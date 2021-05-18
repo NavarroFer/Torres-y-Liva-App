@@ -1,11 +1,20 @@
+import 'dart:ui';
+
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:searchable_dropdown/searchable_dropdown.dart';
 import 'package:torres_y_liva/src/models/cliente_model.dart';
+import 'package:torres_y_liva/src/models/pedido_model.dart';
+
+import 'nuevo_pedido_page.dart';
 
 class DatosPedidoPage extends StatefulWidget {
   static final String route = 'datosPedido';
+
+  Pedido pedido;
+
+  DatosPedidoPage(this.pedido);
 
   @override
   _DatosPedidoPageState createState() => _DatosPedidoPageState();
@@ -17,6 +26,7 @@ class _DatosPedidoPageState extends State<DatosPedidoPage> {
   String telefono;
   String email;
   int _radioValueTipoVenta;
+  Pedido pedido;
   TextEditingController _comentariosController = TextEditingController();
   TextEditingController _descuentoController = TextEditingController();
   TextEditingController _observacionesController = TextEditingController();
@@ -26,6 +36,8 @@ class _DatosPedidoPageState extends State<DatosPedidoPage> {
 
   @override
   void initState() {
+    pedido = widget.pedido;
+    selectedValueCliente = pedido.cliente.id;
     clientesList.addAll([
       Cliente(
           id: 16262,
@@ -65,11 +77,12 @@ class _DatosPedidoPageState extends State<DatosPedidoPage> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.all(12),
-      child: Column(
-        children: _inputDatosCompra(context),
-      ),
-    );
+        padding: EdgeInsets.all(12),
+        child: SingleChildScrollView(
+          child: Column(
+            children: _inputDatosCompra(context),
+          ),
+        ));
   }
 
   List<Widget> _inputDatosCompra(BuildContext context) {
@@ -79,8 +92,8 @@ class _DatosPedidoPageState extends State<DatosPedidoPage> {
       _tipoVenta(context),
       SizedBox(height: MediaQuery.of(context).size.height * 0.01),
       _inputsText(context),
-      SizedBox(height: MediaQuery.of(context).size.height * 0.01),
-      _totalesVenta(context),
+      SizedBox(height: MediaQuery.of(context).size.height * 0.03),
+      totalesVenta(context),
     ];
   }
 
@@ -94,6 +107,7 @@ class _DatosPedidoPageState extends State<DatosPedidoPage> {
       searchHint: "Busca un cliente",
       onChanged: (Cliente value) {
         setState(() {
+          NuevoPedidoPage.clienteSeleccionado = value != null;
           selectedValueCliente = value?.id;
           direccion = value?.direccion;
           telefono = value?.telefono;
@@ -125,7 +139,7 @@ class _DatosPedidoPageState extends State<DatosPedidoPage> {
   Widget _datos(BuildContext context) {
     final size = MediaQuery.of(context).size;
 
-    if (selectedValueCliente > 0) {
+    if (selectedValueCliente != null && selectedValueCliente > 0) {
       return Padding(
         padding: EdgeInsets.symmetric(horizontal: size.width * 0.02),
         child: Column(
@@ -193,7 +207,6 @@ class _DatosPedidoPageState extends State<DatosPedidoPage> {
   }
 
   Widget _opcionRadio(BuildContext context, String s, int i) {
-    final size = MediaQuery.of(context).size;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -234,8 +247,33 @@ class _DatosPedidoPageState extends State<DatosPedidoPage> {
     );
   }
 
-  Widget _totalesVenta(BuildContext context) {
-    return Container();
+  Widget _columnaTotal(BuildContext context, String titulo, double importe) {
+    final size = MediaQuery.of(context).size;
+
+    return Column(
+      children: [
+        Text(titulo),
+        SizedBox(
+          height: size.height * 0.01,
+        ),
+        Text(
+          "\$ ${importe.toStringAsFixed(2)}",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ],
+    );
+  }
+
+  Widget totalesVenta(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        _columnaTotal(context, 'NETO', NuevoPedidoPage.neto),
+        _columnaTotal(context, 'IVA', NuevoPedidoPage.iva),
+        _columnaTotal(context, 'TOTAL', NuevoPedidoPage.total),
+      ],
+    );
   }
 
   Widget _inputText(String s, TextEditingController controller, IconData icon,

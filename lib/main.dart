@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:torres_y_liva/src/pages/buscador_producto_page.dart';
 import 'package:torres_y_liva/src/pages/catalogo_productos_page.dart';
 import 'package:torres_y_liva/src/pages/datos_pedido_page.dart';
 import 'package:torres_y_liva/src/pages/home_page.dart';
@@ -25,9 +26,10 @@ class MyApp extends StatelessWidget {
         HomePage.route: (context) => HomePage(),
         NuevoPedidoPage.route: (context) => NuevoPedidoPage(),
         CalculatorPage.route: (context) => CalculatorPage(),
-        DatosPedidoPage.route: (context) => DatosPedidoPage(),
-        ItemsPedidoPage.route: (context) => ItemsPedidoPage(),
+        DatosPedidoPage.route: (context) => DatosPedidoPage(null),
+        ItemsPedidoPage.route: (context) => ItemsPedidoPage(null),
         CatalogoProductosPage.route: (context) => CatalogoProductosPage(),
+        BuscadorProductoPage.route: (context) => BuscadorProductoPage(),
       },
     );
   }
