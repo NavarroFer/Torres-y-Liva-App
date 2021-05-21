@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:torres_y_liva/src/bloc/bloc_provider.dart';
 import 'package:torres_y_liva/src/pages/buscador_producto_page.dart';
 import 'package:torres_y_liva/src/pages/catalogo_productos_page.dart';
 import 'package:torres_y_liva/src/pages/datos_pedido_page.dart';
@@ -13,21 +14,22 @@ import 'package:url_launcher/url_launcher.dart';
 
 void main() async {
   runApp(MyApp());
-  Position pos = await determinePosition();
-  print(pos);
+  // Position pos = await determinePosition();
+  // print(pos);
 }
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return BlocProvider(
+        child: MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Torres y Liva',
       theme: ThemeData(
         primarySwatch: Colors.red,
       ),
-      initialRoute: HomePage.route,
+      initialRoute: LoginPage.route,
       routes: {
         HomePage.route: (context) => HomePage(),
         NuevoPedidoPage.route: (context) => NuevoPedidoPage(),
@@ -38,6 +40,6 @@ class MyApp extends StatelessWidget {
         BuscadorProductoPage.route: (context) => BuscadorProductoPage(),
         LoginPage.route: (context) => LoginPage(),
       },
-    );
+    ));
   }
 }
