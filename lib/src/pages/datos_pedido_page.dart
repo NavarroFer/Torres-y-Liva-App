@@ -37,7 +37,7 @@ class _DatosPedidoPageState extends State<DatosPedidoPage> {
   @override
   void initState() {
     pedido = widget.pedido;
-    selectedValueCliente = pedido.cliente.id;
+    selectedValueCliente = pedido != null ? pedido.cliente.id : 0;
     clientesList.addAll([
       Cliente(
           id: 16262,

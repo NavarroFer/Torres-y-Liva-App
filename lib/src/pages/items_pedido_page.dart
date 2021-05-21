@@ -59,7 +59,7 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
         height: size.height * 0.58,
         width: double.infinity,
         child: DataTable(
-            columnSpacing: size.width * 0.01,
+            columnSpacing: size.width * 0.04,
             columns: [
               DataColumn(label: Text('CÓDIGO')),
               DataColumn(label: Text('CANT.')),
@@ -77,7 +77,10 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
         DataCell(Text(item.id.toString())),
         DataCell(Text('1')),
         DataCell(Text(item.nombre)),
-        DataCell(Text('\$ ${item.precio.toStringAsFixed(2)}')),
+        DataCell(Text(
+          '\$${item.precio.toStringAsFixed(2)}',
+          textScaleFactor: MediaQuery.of(context).size.width * 0.003,
+        )),
       ]);
       lista.add(dataRow);
     });
@@ -121,9 +124,6 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
           width: size.width * 0.02,
         ),
         _buttonBuscarProd(context),
-        SizedBox(
-          width: size.width * 0.04,
-        ),
       ],
     );
   }
@@ -167,10 +167,7 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
           width: size.width * 0.02,
         ),
         _inputText('Cant.', _cantController, null, TextInputType.number,
-            height: size.height * 0.05, width: size.width * 0.16),
-        SizedBox(
-          width: size.width * 0.04,
-        ),
+            height: size.height * 0.05, width: size.width * 0.17),
       ],
     );
   }

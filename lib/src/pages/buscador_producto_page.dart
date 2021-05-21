@@ -149,7 +149,7 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
     final size = MediaQuery.of(context).size;
     return Container(
       width: size.width * 0.45,
-      height: size.height * 0.25,
+      height: size.width * 0.45,
       child: Card(
         margin: EdgeInsets.all(size.width * 0.02),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),

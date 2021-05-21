@@ -248,10 +248,14 @@ class _HomePageState extends State<HomePage> {
   Widget _gridPedidos(BuildContext context) {
     return Container(
       width: double.infinity,
-      child: DataTable(columns: [
-        DataColumn(label: Text('CLIENTE')),
-        DataColumn(label: Text('TOTAL')),
-      ], showCheckboxColumn: false, rows: _rowsPedidos(context)),
+      child: DataTable(
+          columnSpacing: MediaQuery.of(context).size.width * 0.1,
+          columns: [
+            DataColumn(label: Text('CLIENTE')),
+            DataColumn(label: Text('TOTAL')),
+          ],
+          showCheckboxColumn: false,
+          rows: _rowsPedidos(context)),
     );
   }
 

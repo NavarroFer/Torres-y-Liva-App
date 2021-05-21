@@ -1,6 +1,8 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:torres_y_liva/src/models/rubro_model.dart';
+import 'package:geolocator/geolocator.dart';
 
 class CatalogoProductosPage extends StatefulWidget {
   static final String route = 'catalgo';
@@ -33,6 +35,9 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
   Widget build(BuildContext context) {
     return Column(
       children: [
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 0.015,
+        ),
         _rowButtons(context),
         SizedBox(
           height: MediaQuery.of(context).size.height * 0.03,
@@ -73,26 +78,55 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
   }
 
   Widget _rowButtons(BuildContext context) {
-    return ButtonBar(
+    final size = MediaQuery.of(context).size;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
-        OutlinedButton(
-            onPressed: _ultimasEntradasPressed,
-            style: OutlinedButton.styleFrom(
-              backgroundColor: Colors.grey[300],
-            ),
-            child: Text('Últimas Entradas')),
-        OutlinedButton(
-            style: OutlinedButton.styleFrom(
-              backgroundColor: Colors.grey[300],
-            ),
-            onPressed: _ultimasFotosPressed,
-            child: Text('Últimas Fotos')),
-        OutlinedButton(
-            style: OutlinedButton.styleFrom(
-              backgroundColor: Colors.grey[300],
-            ),
-            onPressed: _importacionPressed,
-            child: Text('Importación')),
+        Container(
+          width: size.width * 0.3,
+          height: size.height * 0.06,
+          child: OutlinedButton(
+              onPressed: _ultimasEntradasPressed,
+              style: OutlinedButton.styleFrom(
+                backgroundColor: Colors.grey[300],
+              ),
+              child: AutoSizeText(
+                'Últimas Entradas',
+                maxFontSize: (size.height * 0.02).roundToDouble(),
+                minFontSize: (size.height * 0.015).roundToDouble(),
+                maxLines: 1,
+              )),
+        ),
+        Container(
+          width: size.width * 0.3,
+          height: size.height * 0.06,
+          child: OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                backgroundColor: Colors.grey[300],
+              ),
+              onPressed: _ultimasFotosPressed,
+              child: AutoSizeText(
+                'Últimas Fotos',
+                maxLines: 1,
+                // maxFontSize: (size.height * 0.017).roundToDouble(),
+                // minFontSize: (size.height * 0.001).roundToDouble(),
+              )),
+        ),
+        Container(
+          width: size.width * 0.3,
+          height: size.height * 0.06,
+          child: OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                backgroundColor: Colors.grey[300],
+              ),
+              onPressed: _importacionPressed,
+              child: AutoSizeText(
+                'Importación',
+                maxLines: 1,
+                // maxFontSize: (size.height * 0.017).roundToDouble(),
+                // minFontSize: (size.height * 0.001).roundToDouble(),
+              )),
+        ),
       ],
     );
   }
@@ -102,24 +136,33 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
     return Container(
       width: size.width * 0.45,
       height: size.height * 0.25,
-      child: Card(
-        margin: EdgeInsets.all(size.width * 0.02),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-        clipBehavior: Clip.antiAlias,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              MdiIcons.cameraOff,
-              size: size.height * 0.1,
-            ),
-            ListTile(
-              title: Text(
-                rubro.nombre.toUpperCase(),
-                textAlign: TextAlign.center,
+      child: InkWell(
+        splashColor: Colors.red,
+        highlightColor: Colors.red.withOpacity(0.5),
+        onTap: () {
+          print(rubro.nombre);
+        },
+        onLongPress: () {},
+        child: Card(
+          margin: EdgeInsets.all(size.width * 0.02),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                MdiIcons.cameraOff,
+                size: size.height * 0.1,
               ),
-            ),
-          ],
+              ListTile(
+                title: Text(
+                  rubro.nombre.toUpperCase(),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
