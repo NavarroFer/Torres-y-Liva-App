@@ -12,20 +12,26 @@ class Clientes {
 }
 
 class Cliente {
-  int id;
-  int code;
-  int domicilioID;
-  String nombre;
-  String ciudad;
-  String cuit;
-  String email;
-  String domicilio;
-  String telefono;
-  String telefonoCel;
-  String fechaUltimaCompra;
-  int priceList;
-  int sellerCode;
-  String formaPago;
+  int id; //clienteID
+  int code; //usuarioWebID
+  int domicilioID; //domicilioClienteID
+  String codigoGestion; //codigoGestion
+  String nombre; //nombre fantasia
+  String ciudad; //localidad
+  int tipoCuitID; //tipoCuitID
+  String cuit; //cuit
+  String email; //email
+  String domicilio; //domicilio
+  String telefono; //telefono
+  String telefonoCel; //telefonoCel
+  String fechaUltimaCompra; // lo tengo que guardar yo????
+  int priceList; //lista_precios
+  String formaPago; //formaPago
+  String razonSocial; //razonSocial
+  double descuento; //descuento  default
+  double saldo; //saldo deudor total
+  double credito; //limite de credito
+  String observaciones; //obs comerciales
 
   Cliente({this.id, this.nombre, this.domicilio, this.telefono, this.email});
 
