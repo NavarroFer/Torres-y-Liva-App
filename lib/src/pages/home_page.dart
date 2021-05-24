@@ -21,6 +21,7 @@ class _HomePageState extends State<HomePage> {
   TextEditingController _buscadorController = TextEditingController();
   String _searchQuery = "";
   List<Pedido> listaPedidos = List<Pedido>.filled(0, null, growable: true);
+  List<Pedido> listaPedidosShow = List<Pedido>.filled(0, null, growable: true);
 
   int _cantChecked = 0;
 
@@ -29,23 +30,32 @@ class _HomePageState extends State<HomePage> {
     final c1 = Cliente(
         id: 16262,
         nombre: "BAJO JAVIER",
-        direccion: "PEHUAJO",
+        domicilio: "PEHUAJO",
         email: "bajojavier@gmail.com");
     final c2 = Cliente(
         id: 7283,
         nombre: "BARUK S.R.L",
-        direccion: "CALLE 59 ENTRE 520 521 LA PLATA",
+        domicilio: "CALLE 59 ENTRE 520 521 LA PLATA",
         email: "baruk@gmail.com",
         telefono: "4673423");
 
     final c3 =
-        Cliente(id: 7284, nombre: "BENITEZ MARCELO", direccion: "RUTA 88");
-    final p1 =
-        Producto(id: 1, nombre: 'CUCHARON ALUMINIO 1 PIEZA', precio: 354.85);
-    final p2 =
-        Producto(id: 2, nombre: 'ESPUMADERA ALUM. 1 PIEZA', precio: 336.38);
-    final p3 =
-        Producto(id: 3, nombre: 'CUCHARON ALUMINIO 16CM HOTEL', precio: 570.05);
+        Cliente(id: 7284, nombre: "BENITEZ MARCELO", domicilio: "RUTA 88");
+    final p1 = ItemPedido(
+        id: 1,
+        cantidad: 2,
+        producto: Producto(
+            id: 1, nombre: 'CUCHARON ALUMINIO 1 PIEZA', precio: 354.85));
+    final p2 = ItemPedido(
+        id: 2,
+        cantidad: 1,
+        producto: Producto(
+            id: 2, nombre: 'ESPUMADERA ALUM. 1 PIEZA', precio: 336.38));
+    final p3 = ItemPedido(
+        id: 3,
+        cantidad: 2,
+        producto: Producto(
+            id: 3, nombre: 'CUCHARON ALUMINIO 16CM HOTEL', precio: 570.05));
     listaPedidos.addAll([
       Pedido(
           id: 1,
@@ -72,6 +82,8 @@ class _HomePageState extends State<HomePage> {
           total: p1.precio + p2.precio + p3.precio,
           fechaHora: DateTime.now()),
     ]);
+
+    listaPedidosShow.addAll(listaPedidos);
     super.initState();
   }
 
@@ -151,6 +163,12 @@ class _HomePageState extends State<HomePage> {
   void updateSearchQuery(String newQuery) {
     setState(() {
       _searchQuery = newQuery;
+
+      listaPedidosShow = listaPedidos
+          .where((element) => element.cliente.nombre
+              .toUpperCase()
+              .contains(_searchQuery.toUpperCase()))
+          .toList();
     });
   }
 
@@ -230,7 +248,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget _body(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    if (listaPedidos.length > 0) {
+    if (listaPedidosShow.length > 0) {
       return _gridPedidos(context);
     } else {
       return Center(
@@ -261,7 +279,7 @@ class _HomePageState extends State<HomePage> {
 
   List<DataRow> _rowsPedidos(BuildContext context) {
     List<DataRow> lista = List<DataRow>.filled(0, null, growable: true);
-    listaPedidos.forEach((pedido) {
+    listaPedidosShow.forEach((pedido) {
       var dataRow = DataRow(
           onSelectChanged: (value) {
             Navigator.of(context)

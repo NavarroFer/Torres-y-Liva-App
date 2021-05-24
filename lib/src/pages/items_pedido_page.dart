@@ -76,7 +76,7 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
       var dataRow = DataRow(cells: [
         DataCell(Text(item.id.toString())),
         DataCell(Text('1')),
-        DataCell(Text(item.nombre)),
+        DataCell(Text(item.producto.nombre)),
         DataCell(Text(
           '\$${item.precio.toStringAsFixed(2)}',
           textScaleFactor: MediaQuery.of(context).size.width * 0.003,

@@ -42,22 +42,22 @@ class _DatosPedidoPageState extends State<DatosPedidoPage> {
       Cliente(
           id: 16262,
           nombre: "BAJO JAVIER",
-          direccion: "PEHUAJO",
+          domicilio: "PEHUAJO",
           email: "bajojavier@gmail.com"),
       Cliente(
           id: 7283,
           nombre: "BARUK S.R.L",
-          direccion: "CALLE 59 ENTRE 520 521 LA PLATA",
+          domicilio: "CALLE 59 ENTRE 520 521 LA PLATA",
           email: "baruk@gmail.com",
           telefono: "4673423"),
-      Cliente(id: 7284, nombre: "BENITEZ MARCELO", direccion: "RUTA 88"),
-      Cliente(id: 7245, nombre: "BIANCHI JESSICA", direccion: "RUTA 88"),
+      Cliente(id: 7284, nombre: "BENITEZ MARCELO", domicilio: "RUTA 88"),
+      Cliente(id: 7245, nombre: "BIANCHI JESSICA", domicilio: "RUTA 88"),
       Cliente(
           id: 56025,
           nombre: "BONAUDI MIGUEL ANGEL",
-          direccion: "CHACABUCO 398"),
+          domicilio: "CHACABUCO 398"),
       Cliente(
-          id: 24083, nombre: "CHAVES FABIANA INES", direccion: "PAREJA 663"),
+          id: 24083, nombre: "CHAVES FABIANA INES", domicilio: "PAREJA 663"),
     ]);
 
     clientesList.forEach((cliente) {
@@ -65,7 +65,7 @@ class _DatosPedidoPageState extends State<DatosPedidoPage> {
         DropdownMenuItem(
             child: ListTile(
               title: Text(cliente.id.toString() + ' - ' + cliente.nombre),
-              subtitle: Text(cliente.direccion),
+              subtitle: Text(cliente.domicilio),
             ),
             value: cliente),
       );
@@ -109,7 +109,7 @@ class _DatosPedidoPageState extends State<DatosPedidoPage> {
         setState(() {
           NuevoPedidoPage.clienteSeleccionado = value != null;
           selectedValueCliente = value?.id;
-          direccion = value?.direccion;
+          direccion = value?.domicilio;
           telefono = value?.telefono;
           email = value?.email;
         });

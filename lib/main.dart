@@ -14,8 +14,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 void main() async {
   runApp(MyApp());
-  // Position pos = await determinePosition();
-  // print(pos);
+  Position pos = await determinePosition();
+  print(pos);
 }
 
 class MyApp extends StatelessWidget {
