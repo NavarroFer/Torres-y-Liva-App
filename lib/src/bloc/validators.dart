@@ -13,14 +13,10 @@ class Validators {
 
   final validarMail = StreamTransformer<String, String>.fromHandlers(
       handleData: (usuario, sink) {
-    Pattern pattern =
-        "^(?=.{8,20}\$)(?![_.])(?!.*[_.]{2})[a-zA-Z0-9._]+(?<![_.])\$";
-    RegExp regExp = new RegExp(pattern);
-
-    if (true) {
-      sink.add(usuario);
-    } else {
-      sink.addError('El usuario es invalido');
-    }
+    // if (true) {
+    sink.add(usuario);
+    // } else {
+    // sink.addError('El usuario es invalido');
+    // }
   });
 }

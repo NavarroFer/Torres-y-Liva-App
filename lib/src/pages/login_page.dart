@@ -4,6 +4,8 @@ import 'package:torres_y_liva/src/bloc/bloc_provider.dart';
 import 'package:torres_y_liva/src/bloc/login_bloc.dart';
 import 'package:torres_y_liva/src/pages/home_page.dart';
 import 'package:torres_y_liva/src/pages/utils/size_helper.dart';
+import 'package:torres_y_liva/src/providers/usuario_provider.dart';
+import 'package:torres_y_liva/src/utils/globals.dart';
 
 class LoginPage extends StatelessWidget {
   static final String route = 'login';
@@ -235,11 +237,17 @@ class LoginPage extends StatelessWidget {
     );
   }
 
-  void _login(LoginBloc bloc, BuildContext context) {
+  void _login(LoginBloc bloc, BuildContext context) async {
     print('==================');
     print('Email: ${bloc.usuario}');
     print('Password: ${bloc.password}');
     print('==================');
-    Navigator.of(context).pushReplacementNamed(HomePage.route);
+
+    final usuarioProvider = UsuariosProvider();
+
+    await usuarioProvider.login(bloc.usuario, bloc.password, tokenEmpresa).then(
+        (value) => value
+            ? Navigator.of(context).pushReplacementNamed(HomePage.route)
+            : print('Login incorrecto'));
   }
 }

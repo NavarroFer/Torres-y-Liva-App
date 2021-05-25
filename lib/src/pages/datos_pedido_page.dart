@@ -9,6 +9,7 @@ import 'package:torres_y_liva/src/models/pedido_model.dart';
 
 import 'nuevo_pedido_page.dart';
 
+// ignore: must_be_immutable
 class DatosPedidoPage extends StatefulWidget {
   static final String route = 'datosPedido';
 

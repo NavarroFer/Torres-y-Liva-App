@@ -37,6 +37,7 @@ class ItemPedido {
         'precio': this.precio?.toString(),
         'descuento': this.descuento?.toString(),
         'precioTotal': this.precioTotal?.toString(),
+        'detalle': this.detalle?.toString(),
         'listaPrecios': this.listaPrecios?.toString()
       };
 
@@ -54,18 +55,55 @@ class ItemPedido {
   }
 }
 
+class Pedidos {
+  static List<Pedido> pedidos;
+
+  Pedidos.fromJsonList(List<dynamic> jsonList) {
+    pedidos = [];
+
+    jsonList.forEach((jsonItem) {
+      final pedido = new Pedido.fromJsonMap(jsonItem);
+      pedidos?.add(pedido);
+    });
+  }
+}
+
+
 class Pedido {
-  int usuarioWebId;
   int id;
+  int usuarioWebId;
+  int clienteID;
+  int domicilioClienteID;
+  int operadorID;
   Cliente cliente;
   List<ItemPedido> items;
   double total;
   double neto;
   double iva;
   double descuento;
-  DateTime fechaHora;
+  DateTime fechaPedido;
   String observaciones;
   bool checked = false;
+  String domicilioDespacho;
+  String latitud;
+  String longitud;
+  String fechaGps;
+  String accuracyGps;
+  String providerGps;
+  int listaPrecios;
+  double totalPedido;
+  bool enviado;
+
+  List<ItemPedido> itemsFromJsonList(List<dynamic> jsonList) {
+    List<ItemPedido> itemsPedido = [];
+
+    jsonList.forEach((jsonItem) {
+      final itemPedido = new ItemPedido.fromJsonMap(jsonItem);
+      itemsPedido?.add(itemPedido);
+    });
+
+    return itemsPedido;
+  }
 
   Pedido(
       {this.id,
@@ -75,7 +113,22 @@ class Pedido {
       this.neto,
       this.iva,
       this.descuento,
-      this.fechaHora});
+      this.fechaPedido,
+      this.checked,
+      this.clienteID,
+      this.domicilioClienteID,
+      this.observaciones,
+      this.operadorID,
+      this.usuarioWebId,
+      this.domicilioDespacho,
+      this.accuracyGps,
+      this.enviado,
+      this.fechaGps,
+      this.latitud,
+      this.longitud,
+      this.listaPrecios,
+      this.providerGps,
+      this.totalPedido});
 
   Map toJson() => {
         'usuarioWebID': this.usuarioWebId?.toString(),
@@ -84,7 +137,7 @@ class Pedido {
         'domicilioDespacho': this.cliente.domicilio,
         'descuento': this.descuento?.toString(),
         'fechaPedido':
-            fechaHora.microsecondsSinceEpoch, // Creo que va en segundos
+            fechaPedido.microsecondsSinceEpoch, // Creo que va en segundos
         'fechaAltaMovil': 0.toString(),
         'observaciones': this.observaciones,
         'listaPrecios': this.cliente?.priceList?.toString(),
@@ -92,5 +145,25 @@ class Pedido {
         'itemsPedidos': this.items.map((e) => e.toJson()).toList()
       };
 
-  Pedido.fromJsonMap(Map<String, dynamic> json) {}
+  Pedido.fromJsonMap(Map<String, dynamic> json) {
+    this.id = int.tryParse(json['primaryKey']) ?? -1;
+    this.usuarioWebId = int.tryParse(json['usuarioWebID']) ?? -1;
+    this.clienteID = int.tryParse(json['clienteID']) ?? -1;
+    this.domicilioClienteID = int.tryParse(json['domicilioClienteID']) ?? -1;
+    this.operadorID = int.tryParse(json['operadorID']) ?? -1;
+    this.domicilioDespacho = json['domicilioDespacho'];
+    this.descuento = double.tryParse(json['descuento']) ?? 0.0;
+    this.fechaPedido = json['fechaPedido'];
+    //fechaAltaMovil ??
+    this.items = itemsFromJsonList(json['itemsPedidos']);
+    this.observaciones = json['observacion'];
+    this.latitud = json['latitud'];
+    this.longitud = json['longitud'];
+    this.fechaGps = json['fechaGps'];
+    this.accuracyGps = json['accuracyGps'];
+    this.providerGps = json['providerGps'];
+    this.listaPrecios = int.tryParse(json['listaPrecios']) ?? 1;
+    this.totalPedido = double.tryParse(json['totalPedido']) ?? 0.0;
+    this.enviado = json['enviado'];
+  }
 }

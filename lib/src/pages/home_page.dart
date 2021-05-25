@@ -64,7 +64,7 @@ class _HomePageState extends State<HomePage> {
           iva: p1.precio * 0.21 + p2.precio * 0.21,
           neto: p1.precio * 0.79 + p2.precio * 0.79,
           total: p1.precio + p2.precio,
-          fechaHora: DateTime.now()),
+          fechaPedido: DateTime.now()),
       Pedido(
           id: 2,
           cliente: c2,
@@ -72,7 +72,7 @@ class _HomePageState extends State<HomePage> {
           iva: p3.precio * 0.21 + p2.precio * 0.21,
           neto: p3.precio * 0.79 + p2.precio * 0.79,
           total: p3.precio + p2.precio,
-          fechaHora: DateTime.now()),
+          fechaPedido: DateTime.now()),
       Pedido(
           id: 3,
           cliente: c3,
@@ -80,7 +80,7 @@ class _HomePageState extends State<HomePage> {
           iva: p1.precio * 0.21 + p2.precio * 0.21 + p3.precio * 0.21,
           neto: p1.precio * 0.79 + p2.precio * 0.79 + p3.precio * 0.79,
           total: p1.precio + p2.precio + p3.precio,
-          fechaHora: DateTime.now()),
+          fechaPedido: DateTime.now()),
     ]);
 
     listaPedidosShow.addAll(listaPedidos);
@@ -287,7 +287,7 @@ class _HomePageState extends State<HomePage> {
           },
           cells: [
             _datosCliente(context, pedido, pedido.cliente.nombre,
-                pedido.fechaHora?.toString()),
+                pedido.fechaPedido?.toString()),
             _totalPedido(context, pedido.total),
           ]);
       lista.add(dataRow);

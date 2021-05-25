@@ -10,7 +10,6 @@ import 'package:torres_y_liva/src/pages/login_page.dart';
 import 'package:torres_y_liva/src/pages/nuevo_pedido_page.dart';
 import 'package:torres_y_liva/src/pages/utils/calculator_page.dart';
 import 'package:torres_y_liva/src/pages/utils/geolocator.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 void main() async {
   runApp(MyApp());

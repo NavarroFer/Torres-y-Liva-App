@@ -7,6 +7,7 @@ import 'package:torres_y_liva/src/pages/buscador_producto_page.dart';
 
 import '../widgets/base_widgets.dart';
 
+// ignore: must_be_immutable
 class ItemsPedidoPage extends StatefulWidget {
   static final String route = 'itemsPedido';
 

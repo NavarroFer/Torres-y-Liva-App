@@ -1,21 +1,16 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:torres_y_liva/src/models/usuario_model.dart';
 import 'package:torres_y_liva/src/utils/globals.dart';
-import 'package:torres_y_liva/src/models/cliente_model.dart';
 
-class ClientesProvider {
-  Future<List<Cliente>> getClientes(
-      String tokenEmpresa, String tokenCliente, int vendedorID) async {
-    String path = '/ws/pm/cliente/requestClientesVendedor';
+class UsuariosProvider {
+  Future<bool> login(String user, String password, String tokenEmpresa) async {
+    String path = '/ws/pm/usuarios/loginVendedor';
 
     final url = Uri.http(urlServer, path);
     try {
-      final body = {
-        'tokenEmpresa': tokenEmpresa,
-        'tokenCliente': tokenCliente,
-        'vendedorID': vendedorID?.toString()
-      };
+      final body = {'usuario': user, 'clave': password, 'token': tokenEmpresa};
       final resp = await http
           .post(url,
               headers: {"Content-Type": "application/json"},
@@ -25,14 +20,15 @@ class ClientesProvider {
       print(decodedData);
       final respuesta = Respuesta.fromJsonMap(decodedData);
       if (respuesta.success) {
-        Clientes.fromJsonList(decodedData['data']['objects']);
-        return Clientes.clientes;
+        Usuario.fromJsonMap(decodedData['data']);
+        //TODO guardar datos del usuario
+        return true;
       } else
-        return null;
+        return Future.error(respuesta.mensaje);
     } on TimeoutException {
-      return null;
+      return false;
     } on Exception {
-      return null;
+      return false;
     }
   }
 }
