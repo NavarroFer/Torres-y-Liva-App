@@ -4,6 +4,7 @@ import 'package:torres_y_liva/src/bloc/bloc_provider.dart';
 import 'package:torres_y_liva/src/bloc/login_bloc.dart';
 import 'package:torres_y_liva/src/pages/home_page.dart';
 import 'package:torres_y_liva/src/pages/utils/size_helper.dart';
+import 'package:torres_y_liva/src/providers/clientes_provider.dart';
 import 'package:torres_y_liva/src/providers/usuario_provider.dart';
 import 'package:torres_y_liva/src/utils/globals.dart';
 
@@ -77,10 +78,14 @@ class LoginPage extends StatelessWidget {
           padding: EdgeInsets.only(top: 80.0),
           child: Column(
             children: [
-              Icon(
-                Icons.not_listed_location,
-                size: 100.0,
-                color: Colors.white,
+              // Icon(
+              //   Icons.not_listed_location,
+              //   size: 100.0,
+              //   color: Colors.white,
+              // ),
+              Image.asset(
+                'assets/img/ic_launcher_round.png',
+                height: size.height * 0.2,
               ),
               SizedBox(
                 height: 10.0,
@@ -245,9 +250,19 @@ class LoginPage extends StatelessWidget {
 
     final usuarioProvider = UsuariosProvider();
 
-    await usuarioProvider.login(bloc.usuario, bloc.password, tokenEmpresa).then(
-        (value) => value
-            ? Navigator.of(context).pushReplacementNamed(HomePage.route)
-            : print('Login incorrecto'));
+    await usuarioProvider
+        .login(bloc.usuario, bloc.password, tokenEmpresa)
+        .then((value) async {
+      if (value == true) {
+        final clientesProvider = ClientesProvider();
+        clientesDelVendedor = await clientesProvider.getClientes(
+            tokenEmpresa, usuario.tokenWs, usuario.vendedorID);
+        Navigator.of(context).pushReplacementNamed(HomePage.route);
+      } else {
+        print('Login incorrecto');
+      }
+    }).onError((error, stackTrace) {
+      print(error);
+    });
   }
 }

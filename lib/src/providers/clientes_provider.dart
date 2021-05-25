@@ -17,15 +17,17 @@ class ClientesProvider {
         'vendedorID': vendedorID?.toString()
       };
       final resp = await http
-          .post(url,
-              headers: {"Content-Type": "application/json"},
-              body: json.encode(body))
+          .post(
+            url,
+            headers: {"Content-Type": "application/x-www-form-urlencoded"},
+            body: body,
+          )
           .timeout(Duration(seconds: 10));
       final decodedData = jsonDecode(resp.body);
       print(decodedData);
       final respuesta = Respuesta.fromJsonMap(decodedData);
       if (respuesta.success) {
-        Clientes.fromJsonList(decodedData['data']['objects']);
+        Clientes.fromJsonList(decodedData['data']);
         return Clientes.clientes;
       } else
         return null;

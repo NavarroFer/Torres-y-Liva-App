@@ -24,9 +24,11 @@ class VentasProvider {
     try {
       final body = pedido.toJson();
       final resp = await http
-          .post(url,
-              headers: {"Content-Type": "application/json"},
-              body: json.encode(body))
+          .post(
+            url,
+            headers: {"Content-Type": "application/x-www-form-urlencoded"},
+            body: body,
+          )
           .timeout(Duration(seconds: 10));
       final decodedData = jsonDecode(resp.body);
       final respuesta = Respuesta.fromJsonMap(decodedData);
@@ -54,9 +56,11 @@ class VentasProvider {
         'incluyeDetalle': incluyeDetalle?.toString()
       };
       final resp = await http
-          .post(url,
-              headers: {"Content-Type": "application/json"},
-              body: json.encode(body))
+          .post(
+            url,
+            headers: {"Content-Type": "application/x-www-form-urlencoded"},
+            body: body,
+          )
           .timeout(Duration(seconds: 10));
       final decodedData = jsonDecode(resp.body);
       print(decodedData);
@@ -85,9 +89,11 @@ class VentasProvider {
         'pedidoID': pedidoID?.toString()
       };
       final resp = await http
-          .post(url,
-              headers: {"Content-Type": "application/json"},
-              body: json.encode(body))
+          .post(
+            url,
+            headers: {"Content-Type": "application/x-www-form-urlencoded"},
+            body: body,
+          )
           .timeout(Duration(seconds: 10));
       final decodedData = jsonDecode(resp.body);
       print(decodedData);
@@ -104,8 +110,9 @@ class VentasProvider {
     }
   }
 
-  Future<bool> anularPedido(String tokenEmpresa,  String  tokenCliente, int pedidoID) async{
-      String path = '/ws/pm/pedido/anula';
+  Future<bool> anularPedido(
+      String tokenEmpresa, String tokenCliente, int pedidoID) async {
+    String path = '/ws/pm/pedido/anula';
 
     final url = Uri.http(urlServer, path);
     try {
@@ -115,9 +122,11 @@ class VentasProvider {
         'pedidoID': pedidoID?.toString()
       };
       final resp = await http
-          .post(url,
-              headers: {"Content-Type": "application/json"},
-              body: json.encode(body))
+          .post(
+            url,
+            headers: {"Content-Type": "application/x-www-form-urlencoded"},
+            body: body,
+          )
           .timeout(Duration(seconds: 10));
       final decodedData = jsonDecode(resp.body);
       print(decodedData);

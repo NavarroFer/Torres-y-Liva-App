@@ -12,15 +12,18 @@ class UsuariosProvider {
     try {
       final body = {'usuario': user, 'clave': password, 'token': tokenEmpresa};
       final resp = await http
-          .post(url,
-              headers: {"Content-Type": "application/json"},
-              body: json.encode(body))
+          .post(
+            url,
+            headers: {"Content-Type": "application/x-www-form-urlencoded"},
+            body: body,
+          )
           .timeout(Duration(seconds: 10));
+      print(url);
       final decodedData = jsonDecode(resp.body);
       print(decodedData);
       final respuesta = Respuesta.fromJsonMap(decodedData);
       if (respuesta.success) {
-        Usuario.fromJsonMap(decodedData['data']);
+        usuario = Usuario.fromJsonMap(decodedData['data']);
         //TODO guardar datos del usuario
         return true;
       } else

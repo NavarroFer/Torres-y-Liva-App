@@ -22,6 +22,7 @@ class _HomePageState extends State<HomePage> {
   String _searchQuery = "";
   List<Pedido> listaPedidos = List<Pedido>.filled(0, null, growable: true);
   List<Pedido> listaPedidosShow = List<Pedido>.filled(0, null, growable: true);
+  List<Cliente> clientes = List<Cliente>.filled(0, null, growable: true);
 
   int _cantChecked = 0;
 
@@ -44,16 +45,19 @@ class _HomePageState extends State<HomePage> {
     final p1 = ItemPedido(
         id: 1,
         cantidad: 2,
+        precio: 1230,
         producto: Producto(
             id: 1, nombre: 'CUCHARON ALUMINIO 1 PIEZA', precio: 354.85));
     final p2 = ItemPedido(
         id: 2,
         cantidad: 1,
+        precio: 231,
         producto: Producto(
             id: 2, nombre: 'ESPUMADERA ALUM. 1 PIEZA', precio: 336.38));
     final p3 = ItemPedido(
         id: 3,
         cantidad: 2,
+        precio: 200,
         producto: Producto(
             id: 3, nombre: 'CUCHARON ALUMINIO 16CM HOTEL', precio: 570.05));
     listaPedidos.addAll([
@@ -89,6 +93,9 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+
+    clientes =  ModalRoute.of(context).settings.arguments;
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: _cantChecked > 0 ? Colors.grey : Colors.red,
@@ -214,7 +221,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _nuevoPedidoPressed(BuildContext context) {
-    Navigator.pushNamed(context, NuevoPedidoPage.route);
+    Navigator.pushNamed(context, NuevoPedidoPage.route, arguments: clientes);
   }
 
   void _actualizarPressed() {}

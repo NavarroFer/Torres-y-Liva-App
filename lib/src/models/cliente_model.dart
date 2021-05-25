@@ -70,9 +70,9 @@ class Cliente {
       this.userId});
 
   Cliente.fromJsonMap(jsonItem) {
-    this.userId = int.tryParse(jsonItem['usuarioWebID']) ?? -1;
-    this.domicilioID = int.tryParse(jsonItem['domicilioClienteID']) ?? -1;
-    this.clientId = int.tryParse(jsonItem['clienteID']) ?? -1;
+    this.userId = jsonItem['usuarioWebID'];
+    this.domicilioID = jsonItem['domicilioClienteID'];
+    this.clientId = jsonItem['clienteID'];
     this.codigoGestion = jsonItem['codigoGestion'];
     this.tipoCuitID = jsonItem['tipoCuitID'];
     this.cuit = jsonItem['cuit'];
@@ -83,18 +83,18 @@ class Cliente {
     this.ciudad = jsonItem['localidad'];
     this.telefono = jsonItem['telefono'];
     this.telefonoCel = jsonItem['telefonoCel'];
-    this.descuento = double.tryParse(jsonItem['descuento']) ?? 0.0;
-    this.saldo = double.tryParse(jsonItem['saldo']) ?? 0.0;
-    this.credito = double.tryParse(jsonItem['credito']) ?? 0.0;
-    this.priceList = int.tryParse(jsonItem['lista_precios']) ?? -1;
+    this.descuento = jsonItem['descuento'];
+    this.saldo = jsonItem['saldo'];
+    this.credito = jsonItem['credito'];
+    this.priceList = jsonItem['lista_precios'];
     this.observaciones = jsonItem['observaciones'];
     this.latitud = jsonItem['latitud'];
     this.longitud = jsonItem['longitud'];
     this.email = jsonItem['email'];
     this.tokenWs = jsonItem['tokenWs'];
     this.reba = jsonItem['reba'];
-    this.priceListAux = int.tryParse(jsonItem['listaPrecios']) ?? -1;
-    this.id = int.tryParse(jsonItem['primaryKey']) ?? -1;
+    this.priceListAux = jsonItem['listaPrecios'];
+    this.id = jsonItem['primaryKey'];
     this.geoReferenced = jsonItem['geoReferenciado'];
   }
 }

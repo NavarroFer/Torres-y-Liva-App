@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:torres_y_liva/src/models/cliente_model.dart';
 import 'package:torres_y_liva/src/models/pedido_model.dart';
 import 'package:torres_y_liva/src/pages/catalogo_productos_page.dart';
 import 'package:torres_y_liva/src/pages/datos_pedido_page.dart';
@@ -21,6 +22,7 @@ class NuevoPedidoPage extends StatefulWidget {
 class _NuevoPedidoPageState extends State<NuevoPedidoPage>
     with TickerProviderStateMixin {
   Pedido pedido;
+
   @override
   Widget build(BuildContext context) {
     pedido = ModalRoute.of(context).settings.arguments;

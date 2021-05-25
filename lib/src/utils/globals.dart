@@ -1,5 +1,11 @@
-final String urlServer = 'http://torresyliva.no-ip.info:8181';
-final String tokenEmpresa = '';
+import 'package:torres_y_liva/src/models/cliente_model.dart';
+import 'package:torres_y_liva/src/models/usuario_model.dart';
+
+final String urlServer = 'torresyliva.no-ip.info:8181';
+final String tokenEmpresa = '745710b2-5133-11ea-9d0e-9ee722880a34';
+
+Usuario usuario;
+List<Cliente> clientesDelVendedor;
 
 //////////// Constantes respuesta WS ////////////
 
@@ -32,7 +38,7 @@ class Respuesta {
 
   Respuesta.fromJsonMap(Map<String, dynamic> json) {
     this.success = json['success'];
-    this.codigo = int.tryParse(json['codigo']) ?? 0;
+    this.codigo = json['codigo'];
     this.mensaje = json['mensaje'];
   }
 }

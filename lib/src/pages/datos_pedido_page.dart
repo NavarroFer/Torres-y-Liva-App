@@ -6,6 +6,7 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 import 'package:searchable_dropdown/searchable_dropdown.dart';
 import 'package:torres_y_liva/src/models/cliente_model.dart';
 import 'package:torres_y_liva/src/models/pedido_model.dart';
+import 'package:torres_y_liva/src/utils/globals.dart';
 
 import 'nuevo_pedido_page.dart';
 
@@ -35,31 +36,35 @@ class _DatosPedidoPageState extends State<DatosPedidoPage> {
   final List<DropdownMenuItem<Cliente>> clientes = [];
   List<Cliente> clientesList = List<Cliente>.filled(0, null, growable: true);
 
+  int idFormaPago;
+
   @override
   void initState() {
     pedido = widget.pedido;
     selectedValueCliente = pedido != null ? pedido.cliente.id : 0;
-    clientesList.addAll([
-      Cliente(
-          id: 16262,
-          nombre: "BAJO JAVIER",
-          domicilio: "PEHUAJO",
-          email: "bajojavier@gmail.com"),
-      Cliente(
-          id: 7283,
-          nombre: "BARUK S.R.L",
-          domicilio: "CALLE 59 ENTRE 520 521 LA PLATA",
-          email: "baruk@gmail.com",
-          telefono: "4673423"),
-      Cliente(id: 7284, nombre: "BENITEZ MARCELO", domicilio: "RUTA 88"),
-      Cliente(id: 7245, nombre: "BIANCHI JESSICA", domicilio: "RUTA 88"),
-      Cliente(
-          id: 56025,
-          nombre: "BONAUDI MIGUEL ANGEL",
-          domicilio: "CHACABUCO 398"),
-      Cliente(
-          id: 24083, nombre: "CHAVES FABIANA INES", domicilio: "PAREJA 663"),
-    ]);
+    // clientesList.addAll([
+    //   Cliente(
+    //       id: 16262,
+    //       nombre: "BAJO JAVIER",
+    //       domicilio: "PEHUAJO",
+    //       email: "bajojavier@gmail.com"),
+    //   Cliente(
+    //       id: 7283,
+    //       nombre: "BARUK S.R.L",
+    //       domicilio: "CALLE 59 ENTRE 520 521 LA PLATA",
+    //       email: "baruk@gmail.com",
+    //       telefono: "4673423"),
+    //   Cliente(id: 7284, nombre: "BENITEZ MARCELO", domicilio: "RUTA 88"),
+    //   Cliente(id: 7245, nombre: "BIANCHI JESSICA", domicilio: "RUTA 88"),
+    //   Cliente(
+    //       id: 56025,
+    //       nombre: "BONAUDI MIGUEL ANGEL",
+    //       domicilio: "CHACABUCO 398"),
+    //   Cliente(
+    //       id: 24083, nombre: "CHAVES FABIANA INES", domicilio: "PAREJA 663"),
+    // ]);
+
+    clientesList = clientesDelVendedor;
 
     clientesList.forEach((cliente) {
       clientes.add(
@@ -113,6 +118,21 @@ class _DatosPedidoPageState extends State<DatosPedidoPage> {
           direccion = value?.domicilio;
           telefono = value?.telefono;
           email = value?.email;
+          switch (value.formaPago) {
+            case 'CONTADO':
+              idFormaPago = 0;
+              break;
+            case 'CUENTA CORRIENTE':
+              idFormaPago = 1;
+              break;
+            case 'CHEQUE':
+              idFormaPago = 2;
+              break;
+            default:
+              idFormaPago = 3;
+          }
+
+          _radioValueTipoVenta = idFormaPago;
         });
       },
       onClear: () {

@@ -19,10 +19,10 @@ class Usuario {
       this.tokenWs,
       this.usuarioWebID,
       this.vendedorID});
-      
+
   Usuario.fromJsonMap(Map<String, dynamic> json) {
-    this.usuarioWebID = int.tryParse(json['usuarioWebID']) ?? 0;
-    this.vendedorID = int.tryParse(json['vendedorId']) ?? 0;
+    this.usuarioWebID = json['usuarioWebID'];
+    this.vendedorID = json['vendedorId'];
     this.nombre = json['nombre'];
     this.domicilio = json['domicilio'];
     this.ciudad = json['ciudad'];

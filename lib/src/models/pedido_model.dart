@@ -68,7 +68,6 @@ class Pedidos {
   }
 }
 
-
 class Pedido {
   int id;
   int usuarioWebId;
@@ -114,7 +113,7 @@ class Pedido {
       this.iva,
       this.descuento,
       this.fechaPedido,
-      this.checked,
+      this.checked = false,
       this.clienteID,
       this.domicilioClienteID,
       this.observaciones,

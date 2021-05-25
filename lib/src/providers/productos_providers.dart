@@ -16,9 +16,11 @@ class ClientesProvider {
     try {
       final body = {'tokenEmpresa': tokenEmpresa, 'tokenCliente': tokenCliente};
       final resp = await http
-          .post(url,
-              headers: {"Content-Type": "application/json"},
-              body: json.encode(body))
+          .post(
+            url,
+            headers: {"Content-Type": "application/x-www-form-urlencoded"},
+            body: body,
+          )
           .timeout(Duration(seconds: 10));
       final decodedData = jsonDecode(resp.body);
       final respuesta = Respuesta.fromJsonMap(decodedData);
@@ -47,9 +49,11 @@ class ClientesProvider {
         'itemID': itemID?.toString()
       };
       final resp = await http
-          .post(url,
-              headers: {"Content-Type": "application/json"},
-              body: json.encode(body))
+          .post(
+            url,
+            headers: {"Content-Type": "application/x-www-form-urlencoded"},
+            body: body,
+          )
           .timeout(Duration(seconds: 10));
       final decodedData = jsonDecode(resp.body);
       final respuesta = Respuesta.fromJsonMap(decodedData);
@@ -85,9 +89,11 @@ class ClientesProvider {
     try {
       final body = {'tokenEmpresa': tokenEmpresa, 'tokenCliente': tokenCliente};
       final resp = await http
-          .post(url,
-              headers: {"Content-Type": "application/json"},
-              body: json.encode(body))
+          .post(
+            url,
+            headers: {"Content-Type": "application/x-www-form-urlencoded"},
+            body: body,
+          )
           .timeout(Duration(seconds: 10));
       final decodedData = jsonDecode(resp.body);
       final respuesta = Respuesta.fromJsonMap(decodedData);
@@ -109,9 +115,11 @@ class ClientesProvider {
     try {
       final body = {'tokenEmpresa': tokenEmpresa, 'tokenCliente': tokenCliente};
       final resp = await http
-          .post(url,
-              headers: {"Content-Type": "application/json"},
-              body: json.encode(body))
+          .post(
+            url,
+            headers: {"Content-Type": "application/x-www-form-urlencoded"},
+            body: body,
+          )
           .timeout(Duration(seconds: 10));
       final decodedData = jsonDecode(resp.body);
       final respuesta = Respuesta.fromJsonMap(decodedData);
@@ -137,9 +145,11 @@ class ClientesProvider {
     try {
       final body = {'tokenEmpresa': tokenEmpresa, 'tokenCliente': tokenCliente};
       final resp = await http
-          .post(url,
-              headers: {"Content-Type": "application/json"},
-              body: json.encode(body))
+          .post(
+            url,
+            headers: {"Content-Type": "application/x-www-form-urlencoded"},
+            body: body,
+          )
           .timeout(Duration(seconds: 10));
       final decodedData = jsonDecode(resp.body);
       final respuesta = Respuesta.fromJsonMap(decodedData);
@@ -164,9 +174,11 @@ class ClientesProvider {
     try {
       final body = {'tokenEmpresa': tokenEmpresa, 'tokenCliente': tokenCliente};
       final resp = await http
-          .post(url,
-              headers: {"Content-Type": "application/json"},
-              body: json.encode(body))
+          .post(
+            url,
+            headers: {"Content-Type": "application/x-www-form-urlencoded"},
+            body: body,
+          )
           .timeout(Duration(seconds: 10));
       final decodedData = jsonDecode(resp.body);
       final respuesta = Respuesta.fromJsonMap(decodedData);

@@ -4,10 +4,10 @@ class Validators {
   //decir que entra y que sale del stream
   final validarPassword = StreamTransformer<String, String>.fromHandlers(
       handleData: (password, sink) {
-    if (password.length >= 6) {
+    if (password.length >= 2) {
       sink.add(password);
     } else {
-      sink.addError('Debe ser mayor a 5 caracteres');
+      sink.addError('Debe ser mayor a 2 caracteres');
     }
   });
 
