@@ -1,5 +1,12 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:open_file/open_file.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pdf;
+import 'package:share/share.dart';
 import 'package:torres_y_liva/src/models/pedido_model.dart';
 import 'package:torres_y_liva/src/pages/nuevo_pedido_page.dart';
 import 'package:torres_y_liva/src/widgets/base_widgets.dart';
@@ -93,8 +100,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-
-    clientes =  ModalRoute.of(context).settings.arguments;
+    clientes = ModalRoute.of(context).settings.arguments;
 
     return Scaffold(
       appBar: AppBar(
@@ -401,10 +407,10 @@ class _HomePageState extends State<HomePage> {
           onSelected: (value) {
             switch (value) {
               case 0:
-                _catalogoPressed();
+                _catalogoPressed(share);
                 break;
               case 1:
-                _cotizacionPressed();
+                _cotizacionPressed(share);
                 break;
               default:
             }
@@ -417,16 +423,94 @@ class _HomePageState extends State<HomePage> {
         ));
   }
 
-  void _catalogoPressed() async {
+  void _catalogoPressed(bool share) async {
     //generar PDF catalogo
+    final listaChecked =
+        listaPedidos.where((element) => element.checked == true).toList();
 
     setState(() {
       _unCheckPedidos();
     });
   }
 
-  void _cotizacionPressed() async {
+  void _cotizacionPressed(bool share) async {
     //generar PDF cotizacion
+
+    final listaChecked =
+        listaPedidos.where((element) => element.checked == true).toList();
+
+    final listaPdf = List<pdf.Document>.filled(0, null, growable: true);
+    final pdf.Document docpdf = pdf.Document();
+
+    listaChecked.forEach((pedidosChecked) {
+      listaPdf.add(pdf.Document());
+    });
+
+    var i = 0; //index pedido
+
+    listaPdf.forEach((docPdf) {
+      //Agregar encabezado y datos del pedido/cliente
+
+      var j = 0; //index item
+
+      final rowsTabla = List<List<dynamic>>.filled(0, null, growable: true);
+      listaChecked[i].items.forEach((item) {
+        //Agregar filas a la tabla
+        rowsTabla.add(List.from([
+          (j + 1).toString(),
+          'IMAGEN',
+          '${item.producto.id ?? ''}',
+          '${item.cantidad ?? '0'}',
+          '${item.producto.nombre ?? 'Sin descripcion'}',
+          '\$ ${item.precio.toStringAsFixed(2) ?? '\$ 0.00'}',
+          '${item.descuento ?? '0,00 %'}',
+          '${item.observacion ?? ''}',
+        ]));
+      });
+      var page = pdf.Page(
+          orientation: pdf.PageOrientation.landscape,
+          pageFormat: PdfPageFormat.a4,
+          build: (pdf.Context context) {
+            return pdf.Column(children: [
+              pdf.Row(children: [
+                _logoPdf(context, docPdf),
+                _datosClientePdf(context, listaChecked[i]),
+              ]),
+              pdf.SizedBox(height: 30),
+              pdf.Table.fromTextArray(
+                  data: rowsTabla,
+                  context: context,
+                  headers: [
+                    'Nº',
+                    'Imagen',
+                    'Código',
+                    'Cantidad',
+                    'Descripción',
+                    'Precio sin IVA',
+                    'Descuento',
+                    'Observaciones'
+                  ],
+                  cellAlignment: pdf.Alignment.center,
+                  headerHeight: 50,
+                  headerDecoration: pdf.BoxDecoration(color: PdfColors.grey200),
+                  border: pdf.TableBorder.all())
+            ]);
+          });
+
+      docPdf.addPage(page);
+    });
+
+    final String dir = (await getApplicationDocumentsDirectory()).path;
+    final String path = '$dir/cotizacion.pdf';
+    final File file = File(path);
+    await file.writeAsBytes(await listaPdf[0].save());
+
+    if (share) {
+      Share.shareFiles([path], text: 'Cotizacion');
+    } else {
+      OpenFile.open(path);
+    }
+
     setState(() {
       _unCheckPedidos();
     });
@@ -435,5 +519,92 @@ class _HomePageState extends State<HomePage> {
   void _unCheckPedidos() {
     _cantChecked = 0;
     listaPedidos.forEach((pedido) => pedido.checked = false);
+  }
+
+  _logoPdf(
+    pdf.Context context,
+    pdf.Document docPdf,
+  ) {
+    return pdf.Container(width: 100, height: 90, child: pdf.Text('LOGO'));
+  }
+
+  _datosClientePdf(pdf.Context context, Pedido p) {
+    // return pdf.Table.fromTextArray(data: [
+    //   [
+    //     _rowTituloYDescripcion('Cliente', p?.cliente?.nombre ?? ''),
+    //     _rowTituloYDescripcion('Neto gravado', p?.cliente?.nombre ?? ''),
+    //   ],
+    //   [
+    //     _rowTituloYDescripcion('Domicilio', p?.cliente?.domicilio ?? ''),
+    //     _rowTituloYDescripcion(
+    //         'Descuento General', p?.cliente?.domicilio ?? ''),
+    //   ],
+    //   [
+    //     _rowTituloYDescripcion(
+    //         'Condicion de Venta', p?.cliente?.formaPago ?? ''),
+    //     _rowTituloYDescripcion(
+    //         'Iva', '\$ ' + p?.iva?.toStringAsFixed(2) ?? '\$ 0.00'),
+    //     _rowTituloYDescripcion(
+    //         'Total', '\$ ' + p?.total?.toStringAsFixed(2) ?? '\$ 0.00 %')
+    //   ]
+    // ]);
+    return pdf.Row(
+        mainAxisAlignment: pdf.MainAxisAlignment.center,
+        crossAxisAlignment: pdf.CrossAxisAlignment.center,
+        children: [
+          pdf.Container(
+              height: 100,
+              width: 170,
+              color: PdfColors.grey200,
+              child: pdf.Column(
+                  mainAxisAlignment: pdf.MainAxisAlignment.spaceEvenly,
+                  crossAxisAlignment: pdf.CrossAxisAlignment.center,
+                  children: [
+                    _rowTituloYDescripcion('Cliente', p?.cliente?.nombre ?? ''),
+                    _rowTituloYDescripcion(
+                        'Domicilio', p?.cliente?.domicilio ?? ''),
+                    _rowTituloYDescripcion(
+                        'Condicion de Venta', p?.cliente?.formaPago ?? ''),
+                  ])),
+          pdf.Container(
+              height: 100,
+              width: 190,
+              color: PdfColors.grey200,
+              child: pdf.Column(
+                  mainAxisAlignment: pdf.MainAxisAlignment.spaceEvenly,
+                  crossAxisAlignment: pdf.CrossAxisAlignment.center,
+                  children: [
+                    _rowTituloYDescripcion(
+                        'Neto gravado', p?.cliente?.nombre ?? ''),
+                    _rowTituloYDescripcion(
+                        'Descuento General', p?.cliente?.domicilio ?? ''),
+                    pdf.Row(
+                        mainAxisAlignment: pdf.MainAxisAlignment.center,
+                        crossAxisAlignment: pdf.CrossAxisAlignment.center,
+                        children: [
+                          _rowTituloYDescripcion('Iva',
+                              '\$ ' + p?.iva?.toStringAsFixed(2) ?? '\$ 0.00'),
+                          _rowTituloYDescripcion(
+                              'Total',
+                              '\$ ' + p?.total?.toStringAsFixed(2) ??
+                                  '\$ 0.00 %')
+                        ])
+                  ]))
+        ]);
+  }
+
+  _rowTituloYDescripcion(String titulo, String valor) {
+    // return titulo + ':' + valor;
+    return pdf.Container(
+        margin: pdf.EdgeInsets.all(2),
+        child: pdf.Row(
+            mainAxisSize: pdf.MainAxisSize.max,
+            mainAxisAlignment: pdf.MainAxisAlignment.center,
+            crossAxisAlignment: pdf.CrossAxisAlignment.center,
+            children: [
+              pdf.Text(titulo + ':',
+                  style: pdf.TextStyle(fontWeight: pdf.FontWeight.bold)),
+              pdf.Text(valor)
+            ]));
   }
 }
