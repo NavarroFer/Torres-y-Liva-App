@@ -2,14 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:torres_y_liva/src/bloc/bloc_provider.dart';
 import 'package:torres_y_liva/src/bloc/login_bloc.dart';
+import 'package:torres_y_liva/src/models/producto_model.dart';
 import 'package:torres_y_liva/src/pages/home_page.dart';
 import 'package:torres_y_liva/src/pages/utils/size_helper.dart';
 import 'package:torres_y_liva/src/providers/clientes_provider.dart';
+import 'package:torres_y_liva/src/providers/productos_providers.dart';
 import 'package:torres_y_liva/src/providers/usuario_provider.dart';
 import 'package:torres_y_liva/src/utils/globals.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   static final String route = 'login';
+
+  @override
+  _LoginPageState createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  bool _ingresando = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -210,15 +220,20 @@ class LoginPage extends StatelessWidget {
       stream: bloc.formValidStream,
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         return ElevatedButton(
-          onPressed: snapshot.hasData ? () => _login(bloc, context) : null,
+          onPressed: snapshot.hasData && _ingresando == false
+              ? () => _login(bloc, context)
+              : null,
           child: Container(
             padding: EdgeInsets.symmetric(
                 horizontal: sizeSegunOrientation(context, 0.02, 0.45),
                 vertical: sizeSegunOrientation(context, 0.035, 0.035)),
-            child: Text(
-              'INGRESAR',
-              textScaleFactor: sizeSegunOrientation(context, 0.0035, 0.003),
-            ),
+            child: _ingresando
+                ? CircularProgressIndicator()
+                : Text(
+                    'INGRESAR',
+                    textScaleFactor:
+                        sizeSegunOrientation(context, 0.0035, 0.003),
+                  ),
           ),
         );
         // RaisedButton(
@@ -247,6 +262,9 @@ class LoginPage extends StatelessWidget {
     print('Email: ${bloc.usuario}');
     print('Password: ${bloc.password}');
     print('==================');
+    setState(() {
+      _ingresando = true;
+    });
 
     final usuarioProvider = UsuariosProvider();
 
@@ -257,11 +275,23 @@ class LoginPage extends StatelessWidget {
         final clientesProvider = ClientesProvider();
         clientesDelVendedor = await clientesProvider.getClientes(
             tokenEmpresa, usuario.tokenWs, usuario.vendedorID);
+
+        final productosProvider = ProductosProvider();
+
+        Productos.productos =
+            await productosProvider.getProductos(tokenEmpresa, usuario.tokenWs);
+        _ingresando = false;
         Navigator.of(context).pushReplacementNamed(HomePage.route);
       } else {
+        setState(() {
+          _ingresando = false;
+        });
         print('Login incorrecto');
       }
     }).onError((error, stackTrace) {
+      setState(() {
+        _ingresando = false;
+      });
       print(error);
     });
   }

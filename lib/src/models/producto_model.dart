@@ -1,19 +1,18 @@
-class Productos{
-  static List<Producto> productos;
+class Productos {
+  static List<Producto> productos = [];
 
   Productos.fromJsonList(List<dynamic> jsonList) {
     productos = [];
 
-    jsonList.forEach((jsonItem) {
+    jsonList?.forEach((jsonItem) {
       final producto = new Producto.fromJsonMap(jsonItem);
       productos?.add(producto);
     });
   }
 }
 
-
 class Producto {
-  int code; //
+  String code; //
   String descripcion; //
   String nombre;
   int id; //
@@ -21,7 +20,7 @@ class Producto {
   bool disabled;
   DateTime lastUpdate;
   DateTime priceChangeDate;
-  int stock; //
+  double stock; //
   bool hasAsterisk;
   int prv;
   int cxb;
@@ -38,8 +37,8 @@ class Producto {
   double priceL9; //
   double priceL10; //
   double descuento; //
-  int categoriaID;
-  int cantidadPack;
+  String categoriaID;
+  double cantidadPack;
   bool ventaFraccionada;
   bool bloqueado;
   String imagenURL;
@@ -126,26 +125,25 @@ class Producto {
   Producto.fromJsonMap(Map<String, dynamic> json) {
     this.id = json['primaryKey'];
     this.code = json['codigo'];
-    this.categoriaID = int.tryParse(json['categoriaID']) ?? -1; //de aca sacamos el nombre de la cat
+    this.categoriaID = json['categoriaID'];
     this.descripcion = json['descripcion'];
-    this.stock = int.tryParse(json['cantidad']) ?? 0;
-    this.precio = double.tryParse(json['precio']) ?? 0.0;
-    this.priceL2 = double.tryParse(json['precio_l2']) ?? 0.0;
-    this.priceL3 = double.tryParse(json['precio_l3']) ?? 0.0;
-    this.priceL4 = double.tryParse(json['precio_l4']) ?? 0.0;
-    this.priceL5 = double.tryParse(json['precio_l5']) ?? 0.0;
-    this.priceL6 = double.tryParse(json['precio_l6']) ?? 0.0;
-    this.priceL7 = double.tryParse(json['precio_l7']) ?? 0.0;
-    this.priceL8 = double.tryParse(json['precio_l8']) ?? 0.0;
-    this.priceL9 = double.tryParse(json['precio_l9']) ?? 0.0;
-    this.priceL10 = double.tryParse(json['precio_l10']) ?? 0.0;
-    this.descuento = double.tryParse(json['descuento']) ?? 0.0;
-    this.cantidadPack = int.tryParse(json['cantidadPack']) ?? 0;
+    this.stock = json['cantidad'];
+    this.precio = json['precio'];
+    this.priceL2 = json['precio_l2'];
+    this.priceL3 = json['precio_l3'];
+    this.priceL4 = json['precio_l4'];
+    this.priceL5 = json['precio_l5'];
+    this.priceL6 = json['precio_l6'];
+    this.priceL7 = json['precio_l7'];
+    this.priceL8 = json['precio_l8'];
+    this.priceL9 = json['precio_l9'];
+    this.priceL10 = json['precio_l10'];
+    this.descuento = json['descuento'];
+    this.cantidadPack = json['cantidadPack'];
     this.ventaFraccionada = json['ventaFraccionada'];
     this.bloqueado = json['bloqueado'];
     this.imagenURL = json['imagenURL'];
     this.noPermiteRemito = json['noPermiteRemito'];
-    this.iva = double.tryParse(json['tasaIVA']) ?? 0.0;
+    this.iva = json['tasaIVA'];
   }
 }
-

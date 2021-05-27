@@ -40,3 +40,4 @@ Widget _columnaTotal(BuildContext context, String titulo, double importe) {
     ],
   );
 }
+

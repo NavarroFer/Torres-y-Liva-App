@@ -7,7 +7,7 @@ import 'package:torres_y_liva/src/models/precio_model.dart';
 import 'package:torres_y_liva/src/models/producto_model.dart';
 import 'package:torres_y_liva/src/utils/globals.dart';
 
-class ClientesProvider {
+class ProductosProvider {
   Future<List<Categoria>> getCategorias(
       String tokenEmpresa, String tokenCliente) async {
     String path = '/ws/pm/categoriaItem/requestAll';
@@ -120,12 +120,12 @@ class ClientesProvider {
             headers: {"Content-Type": "application/x-www-form-urlencoded"},
             body: body,
           )
-          .timeout(Duration(seconds: 10));
+          .timeout(Duration(seconds: 20));
       final decodedData = jsonDecode(resp.body);
       final respuesta = Respuesta.fromJsonMap(decodedData);
       print(decodedData);
       if (respuesta.success) {
-        Productos.fromJsonList(decodedData['data']);
+        Productos.fromJsonList(decodedData['data']['objects']);
         await ackUpdateProductos(tokenEmpresa, tokenCliente);
         return Productos.productos;
       } else
