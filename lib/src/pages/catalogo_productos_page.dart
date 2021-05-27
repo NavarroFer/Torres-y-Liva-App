@@ -6,12 +6,19 @@ import 'package:torres_y_liva/src/models/rubro_model.dart';
 class CatalogoProductosPage extends StatefulWidget {
   static final String route = 'catalgo';
 
+  final String modo;
+
+  static List itemsSelected = List.empty(growable: true);
+  static bool seleccionando = false;
+
+  CatalogoProductosPage({this.modo});
+
   @override
   _CatalogoProductosPageState createState() => _CatalogoProductosPageState();
 }
 
 class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
-  List listaRubros = List.filled(0, null, growable: true);
+  List listaRubros = List.empty(growable: true);
 
   @override
   void initState() {
@@ -132,38 +139,67 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
 
   Widget _cardRubro(BuildContext context, Rubro rubro) {
     final size = MediaQuery.of(context).size;
-    return Container(
-      width: size.width * 0.45,
-      height: size.height * 0.25,
-      child: InkWell(
-        splashColor: Colors.red,
-        highlightColor: Colors.red.withOpacity(0.5),
-        onTap: () {
-          print(rubro.nombre);
-        },
-        onLongPress: () {},
-        child: Card(
-          margin: EdgeInsets.all(size.width * 0.02),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-          clipBehavior: Clip.antiAlias,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                MdiIcons.cameraOff,
-                size: size.height * 0.1,
+    return Stack(
+      children: [
+        Container(
+          width: size.width * 0.45,
+          height: size.height * 0.25,
+          child: InkWell(
+            splashColor: Colors.red,
+            highlightColor: Colors.red.withOpacity(0.5),
+            onTap: () {
+              //TODO cambiar lista que se muestra (rubros o items)
+              if (CatalogoProductosPage.seleccionando) {
+                if (rubro.checked) {
+                  rubro.checked = false;
+                  CatalogoProductosPage.itemsSelected.remove(rubro);
+                } else {
+                  rubro.checked = true;
+                  CatalogoProductosPage.itemsSelected.add(rubro);
+                }
+
+                setState(() {});
+              }
+            },
+            onLongPress: () {
+              if (CatalogoProductosPage.seleccionando == false)
+                CatalogoProductosPage.seleccionando = true;
+
+              if (!rubro.checked) {
+                rubro.checked = true;
+                CatalogoProductosPage.itemsSelected.add(rubro);
+              }
+              setState(() {});
+            },
+            child: Card(
+              margin: EdgeInsets.all(size.width * 0.02),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30)),
+              clipBehavior: Clip.antiAlias,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    MdiIcons.cameraOff,
+                    size: size.height * 0.1,
+                  ),
+                  ListTile(
+                    title: Text(
+                      rubro.nombre.toUpperCase(),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ],
               ),
-              ListTile(
-                title: Text(
-                  rubro.nombre.toUpperCase(),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ],
+            ),
           ),
         ),
-      ),
+        widget.modo == 'cotizacion' && CatalogoProductosPage.seleccionando
+            ? _checkBox(context, rubro)
+            : SizedBox(
+                height: 0.001,
+              ),
+      ],
     );
   }
 
@@ -172,4 +208,8 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
   void _ultimasEntradasPressed() {}
 
   void _importacionPressed() {}
+
+  _checkBox(BuildContext context, Rubro rubro) {
+    return Checkbox(value: rubro.checked, onChanged: (value) {});
+  }
 }

@@ -71,7 +71,9 @@ class _NuevoPedidoPageState extends State<NuevoPedidoPage>
             children: [
               DatosPedidoPage(pedido),
               ItemsPedidoPage(pedido),
-              CatalogoProductosPage(),
+              CatalogoProductosPage(
+                modo: 'pedido',
+              ),
             ],
           ),
         ));
