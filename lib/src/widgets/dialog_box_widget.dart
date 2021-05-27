@@ -1,13 +1,20 @@
 import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:torres_y_liva/src/models/pedido_model.dart';
 
 class CustomDialogBox extends StatefulWidget {
-  final String title, descriptions, text;
+  final String title, descriptions, textBtn1, textBtn2;
   final Image img;
 
   const CustomDialogBox(
-      {Key key, this.title, this.descriptions, this.text, this.img})
+      {Key key,
+      this.title,
+      this.descriptions,
+      this.textBtn1,
+      this.textBtn2,
+      this.img})
       : super(key: key);
 
   @override
@@ -17,6 +24,9 @@ class CustomDialogBox extends StatefulWidget {
 class _CustomDialogBoxState extends State<CustomDialogBox> {
   static final double padding = 20;
   static final double avatarRadius = 20;
+
+  TextEditingController _observacionesController = TextEditingController();
+  TextEditingController _cantController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -65,16 +75,53 @@ class _CustomDialogBoxState extends State<CustomDialogBox> {
               SizedBox(
                 height: 22,
               ),
-              Align(
-                alignment: Alignment.bottomRight,
-                child: FlatButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: Text(
-                      widget.text,
-                      style: TextStyle(fontSize: 18),
-                    )),
+              TextField(
+                controller: _observacionesController,
+                keyboardType: TextInputType.text,
+                decoration: InputDecoration(
+                  icon: Icon(MdiIcons.text,
+                      color: Colors.red,
+                      size: MediaQuery.of(context).size.height * 0.05),
+                  hintText: 'Observaciones',
+                  labelText: 'Observaciones',
+                ),
+              ),
+              TextField(
+                controller: _cantController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  icon: Icon(MdiIcons.numeric,
+                      color: Colors.red,
+                      size: MediaQuery.of(context).size.height * 0.05),
+                  hintText: 'Cantidad',
+                  labelText: 'Cantidad',
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  FlatButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: Text(
+                        widget.textBtn1,
+                        style: TextStyle(fontSize: 18),
+                      )),
+                  FlatButton(
+                      onPressed: () {
+                        final cant = double.tryParse(_cantController.text);
+                        if (cant != null && cant > 0) {
+                          //Agregar item a pedido
+                          final res = [cant, _observacionesController.text];
+                          Navigator.of(context).pop(res);
+                        }
+                      },
+                      child: Text(
+                        widget.textBtn2,
+                        style: TextStyle(fontSize: 18),
+                      )),
+                ],
               ),
             ],
           ),
@@ -87,7 +134,7 @@ class _CustomDialogBoxState extends State<CustomDialogBox> {
             radius: avatarRadius,
             child: ClipRRect(
                 borderRadius: BorderRadius.all(Radius.circular(avatarRadius)),
-                child: Icon(Icons.image)),
+                child: widget.img),
           ),
         ),
       ],

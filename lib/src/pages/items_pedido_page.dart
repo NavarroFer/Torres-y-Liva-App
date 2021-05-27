@@ -11,7 +11,7 @@ import '../widgets/base_widgets.dart';
 class ItemsPedidoPage extends StatefulWidget {
   static final String route = 'itemsPedido';
 
-  Pedido pedido;
+  Pedido pedido = Pedido(items: List<ItemPedido>.empty(growable: true));
 
   ItemsPedidoPage(this.pedido);
 
@@ -77,7 +77,7 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
       var dataRow = DataRow(cells: [
         DataCell(Text(item.id.toString())),
         DataCell(Text('1')),
-        DataCell(Text(item.producto.nombre)),
+        DataCell(Text(item.producto.descripcion)),
         DataCell(Text(
           '\$${item.precio.toStringAsFixed(2)}',
           textScaleFactor: MediaQuery.of(context).size.width * 0.003,
@@ -207,9 +207,15 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
     }
   }
 
-  void _buscarProducto(BuildContext context) {
-    Navigator.of(context).pushNamed(BuscadorProductoPage.route,
+  Future<void> _buscarProducto(BuildContext context) async {
+    final itemsNuevos = await Navigator.of(context).pushNamed(
+        BuscadorProductoPage.route,
         arguments: _nombreProdController.text);
+
+    if (itemsNuevos != null)
+      setState(() {
+        pedido?.items?.addAll(itemsNuevos);
+      });
   }
 
   Future<void> scanBarcodeNormal() async {

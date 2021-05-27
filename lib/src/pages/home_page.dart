@@ -54,19 +54,21 @@ class _HomePageState extends State<HomePage> {
         cantidad: 2,
         precio: 1230,
         producto: Producto(
-            id: 1, nombre: 'CUCHARON ALUMINIO 1 PIEZA', precio: 354.85));
+            id: 1, descripcion: 'CUCHARON ALUMINIO 1 PIEZA', precio: 354.85));
     final p2 = ItemPedido(
         id: 2,
         cantidad: 1,
         precio: 231,
         producto: Producto(
-            id: 2, nombre: 'ESPUMADERA ALUM. 1 PIEZA', precio: 336.38));
+            id: 2, descripcion: 'ESPUMADERA ALUM. 1 PIEZA', precio: 336.38));
     final p3 = ItemPedido(
         id: 3,
         cantidad: 2,
         precio: 200,
         producto: Producto(
-            id: 3, nombre: 'CUCHARON ALUMINIO 16CM HOTEL', precio: 570.05));
+            id: 3,
+            descripcion: 'CUCHARON ALUMINIO 16CM HOTEL',
+            precio: 570.05));
     listaPedidos.addAll([
       Pedido(
           id: 1,

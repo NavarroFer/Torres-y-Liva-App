@@ -1,6 +1,7 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:torres_y_liva/src/models/pedido_model.dart';
 import 'package:torres_y_liva/src/widgets/dialog_box_widget.dart';
 
 import '../models/producto_model.dart';
@@ -9,13 +10,14 @@ import 'utils/calculator_page.dart';
 
 class BuscadorProductoPage extends StatefulWidget {
   static final String route = 'buscadorProd';
+
   @override
   _BuscadorProductoPageState createState() => _BuscadorProductoPageState();
 }
 
 class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
   String titulo = '';
-  List listaBusqueda = List.filled(0, null, growable: true);
+  List<Producto> listaBusqueda = List<Producto>.filled(0, null, growable: true);
 
   int _vista = 1;
 
@@ -24,6 +26,8 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
   TextEditingController _buscadorController = TextEditingController();
 
   String _searchQuery;
+
+  List<ItemPedido> itemsParaPedido = List<ItemPedido>.empty(growable: true);
 
   @override
   void initState() {
@@ -132,9 +136,6 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
   Widget _gridProductos(BuildContext context) {
     List<Widget> listaProdGrilla = List<Widget>.filled(0, null, growable: true);
 
-    // listaBusqueda.forEach((producto) {
-    //   listaProdGrilla.add(_cardProducto(context, producto));
-    // });
     return ListView.builder(
       itemCount: listaBusqueda.length,
       shrinkWrap: true,
@@ -149,17 +150,32 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
               : Container()
         ]);
       },
-      // children: [
-      //   Wrap(
-      //     alignment: WrapAlignment.center,
-      //     children: listaProdGrilla,
-      //   )
-      // ],
     );
   }
 
   Widget _listaProductos(BuildContext context) {
-    return Container();
+    final size = MediaQuery.of(context).size;
+    List<Widget> listaProdGrilla = List<Widget>.filled(0, null, growable: true);
+
+    return ListView.builder(
+      itemCount: listaBusqueda.length,
+      shrinkWrap: true,
+      scrollDirection: Axis.vertical,
+      itemBuilder: (context, index) {
+        return ListTile(
+          title: Text(listaBusqueda[index].descripcion),
+          leading: Icon(
+            MdiIcons.cameraOff,
+            size: size.height * 0.04,
+          ),
+          trailing:
+              Text("\$ ${listaBusqueda[index].precio.toStringAsFixed(2)}"),
+          onTap: () {
+            _itemPressed(context, listaBusqueda[index]);
+          },
+        );
+      },
+    );
   }
 
   Widget _cardProducto(BuildContext context, Producto producto) {
@@ -195,15 +211,57 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
           ),
         ),
       ),
-      onTap: _productoPressed(context, producto),
+      onTap: () {
+        _itemPressed(context, producto);
+      },
     );
+  }
+
+  void _itemPressed(BuildContext context, Producto producto) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return CustomDialogBox(
+            title: producto.descripcion,
+            descriptions:
+                "\$ ${producto?.precio.toStringAsFixed(2)} - Stock: ${producto?.stock?.toStringAsFixed(2)}",
+            textBtn1: "Cancelar",
+            textBtn2: "Agregar",
+            img: Image.asset('assets/img/ic_launcher_round.png'),
+          );
+        }).then((value) {
+      if (value != null) {
+        final cant = value[0];
+        final obs = value[1];
+
+        final itemPedido = ItemPedido(
+            cantidad: cant,
+            observacion: obs,
+            detalle: producto.descripcion,
+            descuento: 0,
+            producto: producto,
+            productoID: producto.id,
+            precio: producto.precio * 0.79,
+            precioTotal: producto.precio,
+            fraccion: 0.0,
+            id: 241,
+            iva: producto.precio * 0.21,
+            pedidoID: 23);
+
+        itemsParaPedido.add(itemPedido);
+      }
+    });
   }
 
   void _calculadoraPressed(BuildContext context) {
     Navigator.of(context).pushNamed(CalculatorPage.route);
   }
 
-  void _listaPressed() {}
+  void _listaPressed() {
+    setState(() {
+      _vista = 1;
+    });
+  }
 
   void _catalogoPressed() {}
 
@@ -275,19 +333,6 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
   _buttonArrowBack(BuildContext context) {
     return IconButton(
         icon: Icon(Icons.arrow_back, color: Colors.white),
-        onPressed: () => {Navigator.of(context).pop()});
-  }
-
-  _productoPressed(BuildContext context, Producto producto) {
-    // showDialog(
-    //     context: context,
-    //     builder: (BuildContext context) {
-    //       return CustomDialogBox(
-    //         title: "Custom Dialog Demo",
-    //         descriptions:
-    //             "Hii all this is a custom dialog in flutter and  you will be use in your flutter applications",
-    //         text: "Yes",
-    //       );
-    //     });
+        onPressed: () => {Navigator.of(context).pop(itemsParaPedido)});
   }
 }

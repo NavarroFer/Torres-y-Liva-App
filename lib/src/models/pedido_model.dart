@@ -3,7 +3,7 @@ import 'producto_model.dart';
 
 class ItemPedido {
   int id;
-  int cantidad;
+  double cantidad;
   double precio;
   double descuento;
   double precioTotal;
@@ -42,16 +42,16 @@ class ItemPedido {
       };
 
   ItemPedido.fromJsonMap(Map<String, dynamic> json) {
-    this.id = int.tryParse(json['itemID']) ?? -1;
-    this.cantidad = int.tryParse(json['cantidad']) ?? 0;
-    this.fraccion = double.tryParse(json['fraccion']) ?? 0.0;
-    this.precio = double.tryParse(json['precio']) ?? 0.0;
-    this.descuento = double.tryParse(json['descuento']) ?? 0.0;
-    this.precioTotal = double.tryParse(json['precioTotal']) ?? 0.0;
+    this.id = (json['itemID']) ?? -1;
+    this.cantidad = (json['cantidad']) ?? 0;
+    this.fraccion = (json['fraccion']) ?? 0.0;
+    this.precio = (json['precio']) ?? 0.0;
+    this.descuento = (json['descuento']) ?? 0.0;
+    this.precioTotal = (json['precioTotal']) ?? 0.0;
     this.observacion = json['observacion'] ?? '';
     this.detalle = json['detalle'] ?? '';
-    this.listaPrecios = int.tryParse(json['listaPrecios']) ?? 0;
-    this.pedidoID = int.tryParse(json['pedidoid']) ?? 0;
+    this.listaPrecios = (json['listaPrecios']) ?? 0;
+    this.pedidoID = (json['pedidoid']) ?? 0;
   }
 }
 
