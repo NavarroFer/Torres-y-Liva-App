@@ -210,7 +210,7 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
   Future<void> _buscarProducto(BuildContext context) async {
     final itemsNuevos = await Navigator.of(context).pushNamed(
         BuscadorProductoPage.route,
-        arguments: _nombreProdController.text);
+        arguments: [_nombreProdController.text, -1]);
 
     if (itemsNuevos != null)
       setState(() {

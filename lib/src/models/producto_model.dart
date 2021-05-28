@@ -43,6 +43,7 @@ class Producto {
   bool bloqueado;
   String imagenURL;
   bool noPermiteRemito;
+  bool checked = false;
 
   Producto(
       {this.id,

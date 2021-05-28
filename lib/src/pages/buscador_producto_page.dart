@@ -2,6 +2,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:torres_y_liva/src/models/pedido_model.dart';
+import 'package:torres_y_liva/src/pages/catalogo_productos_page.dart';
 import 'package:torres_y_liva/src/widgets/dialog_box_widget.dart';
 
 import '../models/producto_model.dart';
@@ -29,6 +30,14 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
 
   List<ItemPedido> itemsParaPedido = List<ItemPedido>.empty(growable: true);
 
+  List<Object> arguments;
+
+  String idCategoria;
+
+  bool primerFiltro = true;
+
+  String pageFrom = '';
+
   @override
   void initState() {
     super.initState();
@@ -36,7 +45,13 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
 
   @override
   Widget build(BuildContext context) {
-    titulo = ModalRoute.of(context).settings.arguments;
+    arguments = ModalRoute.of(context).settings.arguments;
+    titulo = arguments[0];
+    idCategoria = arguments[1];
+    pageFrom = arguments[2];
+
+    if (primerFiltro) _filterListaBusqueda();
+
     // _startSearch(context);
 
     return Scaffold(
@@ -170,9 +185,18 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
           ),
           trailing:
               Text("\$ ${listaBusqueda[index].precio.toStringAsFixed(2)}"),
-          onTap: () {
-            _itemPressed(context, listaBusqueda[index]);
-          },
+          onTap: pageFrom == 'pedido'
+              ? () {
+                  _itemPressed(context, listaBusqueda[index]);
+                }
+              : () {
+                  _itemPressedCatalogo(context, listaBusqueda[index]);
+                },
+          onLongPress: pageFrom == 'cotizacion'
+              ? () {
+                  _itemLongPressed(context, listaBusqueda[index]);
+                }
+              : () {},
         );
       },
     );
@@ -180,40 +204,49 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
 
   Widget _cardProducto(BuildContext context, Producto producto) {
     final size = MediaQuery.of(context).size;
-    return GestureDetector(
-      child: Container(
-        width: size.width * 0.45,
-        // height: size.width * 0.45,
-        child: Card(
-          margin: EdgeInsets.all(size.width * 0.02),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-          clipBehavior: Clip.antiAlias,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                MdiIcons.cameraOff,
-                size: size.height * 0.1,
+    return Stack(
+      children: [
+        GestureDetector(
+          child: Container(
+            width: size.width * 0.45,
+            // height: size.width * 0.45,
+            child: Card(
+              margin: EdgeInsets.all(size.width * 0.02),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30)),
+              clipBehavior: Clip.antiAlias,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    MdiIcons.cameraOff,
+                    size: size.height * 0.1,
+                  ),
+                  ListTile(
+                    title: Text(
+                      producto?.descripcion ?? '',
+                      textAlign: TextAlign.center,
+                    ),
+                    subtitle: Text(
+                      '\$ ${producto?.precio?.toStringAsFixed(2)}',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.black.withOpacity(0.6)),
+                    ),
+                  ),
+                ],
               ),
-              ListTile(
-                title: Text(
-                  producto?.descripcion ?? '',
-                  textAlign: TextAlign.center,
-                ),
-                subtitle: Text(
-                  '\$ ${producto?.precio?.toStringAsFixed(2)}',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.black.withOpacity(0.6)),
-                ),
-              ),
-            ],
+            ),
           ),
+          onTap: () {
+            _itemPressed(context, producto);
+          },
         ),
-      ),
-      onTap: () {
-        _itemPressed(context, producto);
-      },
+        pageFrom == 'cotizacion' && CatalogoProductosPage.seleccionando
+            ? _checkBox(context, producto)
+            : SizedBox(
+                height: 0.001,
+              ),
+      ],
     );
   }
 
@@ -320,11 +353,28 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
 
   void _filterListaBusqueda() {
     listaBusqueda.clear();
-    listaBusqueda.addAll(Productos.productos
-        .where((element) => element?.descripcion
-            ?.toUpperCase()
-            ?.contains(_searchQuery?.toUpperCase()))
-        .toList());
+
+    if (primerFiltro == true) primerFiltro = false;
+
+    if (int.parse(idCategoria) > 0) {
+      listaBusqueda.addAll(Productos.productos
+          .where((element) => element?.categoriaID == idCategoria)
+          .toList());
+    } else {
+      if (_searchQuery != null && _searchQuery != '') {
+        listaBusqueda.addAll(Productos.productos
+            .where((element) => element?.descripcion
+                ?.toUpperCase()
+                ?.contains(_searchQuery?.toUpperCase()))
+            .toList());
+      } else {
+        listaBusqueda.addAll(Productos.productos
+            .where((element) => element?.descripcion
+                ?.toUpperCase()
+                ?.contains(titulo?.toUpperCase()))
+            .toList());
+      }
+    }
 
     var a;
     a = 2;
@@ -334,5 +384,27 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
     return IconButton(
         icon: Icon(Icons.arrow_back, color: Colors.white),
         onPressed: () => {Navigator.of(context).pop(itemsParaPedido)});
+  }
+
+  void _itemLongPressed(BuildContext context, Producto producto) {
+    CatalogoProductosPage.seleccionando = true;
+    producto.checked = true;
+    CatalogoProductosPage.itemsSelected.add(producto);
+  }
+
+  Widget _checkBox(BuildContext context, Producto producto) {
+    return Checkbox(value: producto.checked, onChanged: (value) {});
+  }
+
+  void _itemPressedCatalogo(BuildContext context, Producto producto) {
+    if (CatalogoProductosPage.seleccionando) {
+      if (producto.checked) {
+        producto.checked = true;
+        CatalogoProductosPage.itemsSelected.add(producto);
+      } else {
+        producto.checked = false;
+        CatalogoProductosPage.itemsSelected.remove(producto);
+      }
+    }
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:torres_y_liva/src/bloc/bloc_provider.dart';
 import 'package:torres_y_liva/src/bloc/login_bloc.dart';
+import 'package:torres_y_liva/src/models/categoria_model.dart';
 import 'package:torres_y_liva/src/models/producto_model.dart';
 import 'package:torres_y_liva/src/pages/home_page.dart';
 import 'package:torres_y_liva/src/pages/utils/size_helper.dart';
@@ -281,6 +282,11 @@ class _LoginPageState extends State<LoginPage> {
         Productos.productos =
             await productosProvider.getProductos(tokenEmpresa, usuario.tokenWs);
         _ingresando = false;
+
+        //TODO cambiar por getProductosActualizados(tokenEmpresa, tokenCliente)
+
+        Categorias.categorias = await productosProvider.getCategorias(
+            tokenEmpresa, usuario.tokenWs);
         Navigator.of(context).pushReplacementNamed(HomePage.route);
       } else {
         setState(() {

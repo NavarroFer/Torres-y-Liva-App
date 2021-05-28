@@ -1,63 +1,90 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:torres_y_liva/src/models/categoria_model.dart';
 import 'package:torres_y_liva/src/models/rubro_model.dart';
+import 'package:torres_y_liva/src/pages/buscador_producto_page.dart';
 
 class CatalogoProductosPage extends StatefulWidget {
   static final String route = 'catalgo';
 
+  final Function() notifyParent;
   final String modo;
-
   static List itemsSelected = List.empty(growable: true);
   static bool seleccionando = false;
 
-  CatalogoProductosPage({this.modo});
+  CatalogoProductosPage({this.modo, this.notifyParent});
 
   @override
   _CatalogoProductosPageState createState() => _CatalogoProductosPageState();
 }
 
 class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
-  List listaRubros = List.empty(growable: true);
+  List listaCategorias = List.empty(growable: true);
+
+  // ignore: non_constant_identifier_names
+  final int PRIMER_NIVEL_CATEGORIA = 0;
+  // ignore: non_constant_identifier_names
+  final String TITLE_CATALOGO = 'RUBROS';
+
+  int nivelActual = 0;
 
   @override
   void initState() {
-    listaRubros.addAll([
-      Rubro(id: 1, nombre: "Bazar", idRubroPadre: -1),
-      Rubro(id: 2, nombre: "Camping y playa", idRubroPadre: -1),
-      Rubro(id: 3, nombre: "Decoracion - regaleria", idRubroPadre: -1),
-      Rubro(id: 4, nombre: "Electricidad - iluminacion", idRubroPadre: -1),
-      Rubro(id: 3, nombre: "Decoracion - regaleria", idRubroPadre: -1),
-      Rubro(id: 4, nombre: "Electricidad - iluminacion", idRubroPadre: -1),
-      Rubro(id: 3, nombre: "Decoracion - regaleria", idRubroPadre: -1),
-      Rubro(id: 4, nombre: "Electricidad - iluminacion", idRubroPadre: -1),
-      Rubro(id: 3, nombre: "Decoracion - regaleria", idRubroPadre: -1),
-      Rubro(id: 4, nombre: "Electricidad - iluminacion", idRubroPadre: -1),
-    ]);
+    listaCategorias.addAll(Categorias.categorias
+        .where((categoria) => categoria.nivel == PRIMER_NIVEL_CATEGORIA)
+        .toList());
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    final size = MediaQuery.of(context).size;
+    return Stack(
       children: [
-        SizedBox(
-          height: MediaQuery.of(context).size.height * 0.015,
+        Column(
+          children: [
+            SizedBox(
+              height: size.height * 0.015,
+            ),
+            _rowButtons(context),
+            SizedBox(
+              height: size.height * 0.03,
+            ),
+            Text(
+              TITLE_CATALOGO,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontWeight: FontWeight.bold),
+              textScaleFactor: size.height * 0.002,
+            ),
+            SizedBox(
+              height: size.height * 0.03,
+            ),
+            _gridCatalogo(context),
+          ],
         ),
-        _rowButtons(context),
-        SizedBox(
-          height: MediaQuery.of(context).size.height * 0.03,
-        ),
-        Text(
-          'RUBROS',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontWeight: FontWeight.bold),
-          textScaleFactor: MediaQuery.of(context).size.height * 0.002,
-        ),
-        SizedBox(
-          height: MediaQuery.of(context).size.height * 0.03,
-        ),
-        _gridCatalogo(context),
+        Positioned(
+          bottom: size.height * 0.03,
+          right: size.width * 0.03,
+          child: CatalogoProductosPage.seleccionando
+              ? FloatingActionButton(
+                  onPressed: () {
+                    CatalogoProductosPage.itemsSelected.clear();
+                    CatalogoProductosPage.seleccionando = false;
+                    listaCategorias.forEach((rubro) {
+                      rubro.checked = false;
+                    });
+                    widget.notifyParent();
+                    setState(() {});
+                  },
+                  child: Icon(
+                    Icons.cancel_outlined,
+                    size: size.height * 0.05,
+                  ),
+                  elevation: 10,
+                )
+              : Container(),
+        )
       ],
     );
   }
@@ -66,8 +93,8 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
     final size = MediaQuery.of(context).size;
     List<Widget> listaProdGrilla = List<Widget>.filled(0, null, growable: true);
 
-    listaRubros.forEach((rubro) {
-      listaProdGrilla.add(_cardRubro(context, rubro));
+    listaCategorias.forEach((categoria) {
+      listaProdGrilla.add(_cardCategoria(context, categoria));
     });
     return Container(
         height: size.height * 0.65,
@@ -137,7 +164,7 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
     );
   }
 
-  Widget _cardRubro(BuildContext context, Rubro rubro) {
+  Widget _cardCategoria(BuildContext context, Categoria categoria) {
     final size = MediaQuery.of(context).size;
     return Stack(
       children: [
@@ -150,25 +177,59 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
             onTap: () {
               //TODO cambiar lista que se muestra (rubros o items)
               if (CatalogoProductosPage.seleccionando) {
-                if (rubro.checked) {
-                  rubro.checked = false;
-                  CatalogoProductosPage.itemsSelected.remove(rubro);
+                if (categoria.checked) {
+                  categoria.checked = false;
+                  CatalogoProductosPage.itemsSelected.remove(categoria);
                 } else {
-                  rubro.checked = true;
-                  CatalogoProductosPage.itemsSelected.add(rubro);
+                  categoria.checked = true;
+                  CatalogoProductosPage.itemsSelected.add(categoria);
                 }
 
+                widget.notifyParent();
+
                 setState(() {});
+              } else { //navegando
+                final idCategoria = categoria.categoriaID;
+                print(widget.modo);
+                if (nivelActual == 2) {
+                  Navigator.of(context).pushNamed(BuscadorProductoPage.route,
+                      arguments: [
+                        categoria.descripcion,
+                        idCategoria,
+                        widget.modo
+                      ]);
+                  //push buscador productos con el idCategoria
+                } else {
+                  nivelActual++;
+                  listaCategorias.clear();
+
+                  Categorias.categorias.forEach((element) {
+                    if (element.nivel == nivelActual &&
+                        element.lineaItemParent.toString() == idCategoria)
+                      listaCategorias.add(element);
+                  });
+                  // listaCategorias.addAll(Categorias.categorias.where((cat) {
+                  //   print(cat);
+                  //   return cat.nivel == nivelActual &&
+                  //       cat.lineaItemParent.toString() == idCategoria;
+                  // }).toList());
+
+                  nivelActual = nivelActual;
+
+                  setState(() {});
+                }
               }
             },
             onLongPress: () {
               if (CatalogoProductosPage.seleccionando == false)
                 CatalogoProductosPage.seleccionando = true;
 
-              if (!rubro.checked) {
-                rubro.checked = true;
-                CatalogoProductosPage.itemsSelected.add(rubro);
+              if (!categoria.checked) {
+                categoria.checked = true;
+                CatalogoProductosPage.itemsSelected.add(categoria);
               }
+
+              widget.notifyParent();
               setState(() {});
             },
             child: Card(
@@ -185,7 +246,7 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
                   ),
                   ListTile(
                     title: Text(
-                      rubro.nombre.toUpperCase(),
+                      categoria?.descripcion?.toUpperCase(),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -195,7 +256,7 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
           ),
         ),
         widget.modo == 'cotizacion' && CatalogoProductosPage.seleccionando
-            ? _checkBox(context, rubro)
+            ? _checkBox(context, categoria)
             : SizedBox(
                 height: 0.001,
               ),
@@ -209,7 +270,7 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
 
   void _importacionPressed() {}
 
-  _checkBox(BuildContext context, Rubro rubro) {
+  _checkBox(BuildContext context, Categoria rubro) {
     return Checkbox(value: rubro.checked, onChanged: (value) {});
   }
 }

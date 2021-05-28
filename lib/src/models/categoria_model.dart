@@ -12,18 +12,21 @@ class Categorias {
 }
 
 class Categoria {
-  int categoriaID;
+  String categoriaID;
   String descripcion;
   int lineaItemParent;
   int nivel;
+
+  // Para seleccionar en cotizacion
+  bool checked = false;
 
   Categoria(
       {this.categoriaID, this.descripcion, this.lineaItemParent, this.nivel});
 
   Categoria.fromJsonMap(Map<String, dynamic> json) {
-    this.categoriaID = int.tryParse(json['categoriaID']) ?? -1;
+    this.categoriaID = json['categoriaID'];
     this.descripcion = json['descripcion'];
-    this.lineaItemParent = int.tryParse(json['lineaItemParent']) ?? -1;
-    this.nivel = int.tryParse(json['nivel']) ?? -1;    
+    this.lineaItemParent = json['lineaItemParent'];
+    this.nivel = json['nivel'];
   }
 }

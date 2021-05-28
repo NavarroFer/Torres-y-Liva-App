@@ -1,10 +1,10 @@
-class Rubro {
-  int id;
-  String nombre;
-  int idRubroPadre;
+// class Categoria {
+//   int id;
+//   String nombre;
+//   int idRubroPadre;
 
-  // Para seleccionar en cotizacion
-  bool checked = false;
+//   // Para seleccionar en cotizacion
+//   bool checked = false;
 
-  Rubro({this.id, this.nombre, this.idRubroPadre});
-}
+//   Categoria({this.id, this.nombre, this.idRubroPadre});
+// }
