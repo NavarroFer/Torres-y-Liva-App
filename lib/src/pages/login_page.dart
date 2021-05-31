@@ -259,10 +259,6 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   void _login(LoginBloc bloc, BuildContext context) async {
-    print('==================');
-    print('Email: ${bloc.usuario}');
-    print('Password: ${bloc.password}');
-    print('==================');
     setState(() {
       _ingresando = true;
     });

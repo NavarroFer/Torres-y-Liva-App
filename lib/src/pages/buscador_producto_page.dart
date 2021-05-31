@@ -24,6 +24,8 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
 
   bool _buscando = false;
 
+  List<Widget> acciones = [];
+
   TextEditingController _buscadorController = TextEditingController();
 
   String _searchQuery;
@@ -60,11 +62,9 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
             ? _buttonArrowWhileSearch(context)
             : _buttonArrowBack(context),
         title: _titleAppBar(context),
-        actions: [
-          _editarBusqueda(context),
-          _vistaGrid(context),
-          _opciones(context)
-        ],
+        actions: CatalogoProductosPage.seleccionando
+            ? acciones = _accionesSeleccionando(context)
+            : _acciones(context),
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(vertical: 30),
@@ -157,10 +157,10 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
       scrollDirection: Axis.vertical,
       itemBuilder: (context, index) {
         return Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-          index < listaBusqueda.length && index > 0
+          index < listaBusqueda.length && index > 0 && index % 2 == 1
               ? _cardProducto(context, listaBusqueda[index - 1])
               : Container(),
-          index < listaBusqueda.length && index > 0
+          index < listaBusqueda.length && index > 0 && index % 2 == 1
               ? _cardProducto(context, listaBusqueda[index])
               : Container()
         ]);
@@ -194,7 +194,7 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
                 },
           onLongPress: pageFrom == 'cotizacion'
               ? () {
-                  _itemLongPressed(context, listaBusqueda[index]);
+                  _itemLongPressedCatalogo(context, listaBusqueda[index]);
                 }
               : () {},
         );
@@ -237,9 +237,18 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
               ),
             ),
           ),
-          onTap: () {
-            _itemPressed(context, producto);
-          },
+          onTap: pageFrom == 'pedido'
+              ? () {
+                  _itemPressed(context, producto);
+                }
+              : () {
+                  _itemPressedCatalogo(context, producto);
+                },
+          onLongPress: pageFrom == 'cotizacion'
+              ? () {
+                  _itemLongPressedCatalogo(context, producto);
+                }
+              : () {},
         ),
         pageFrom == 'cotizacion' && CatalogoProductosPage.seleccionando
             ? _checkBox(context, producto)
@@ -386,10 +395,12 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
         onPressed: () => {Navigator.of(context).pop(itemsParaPedido)});
   }
 
-  void _itemLongPressed(BuildContext context, Producto producto) {
+  void _itemLongPressedCatalogo(BuildContext context, Producto producto) {
     CatalogoProductosPage.seleccionando = true;
     producto.checked = true;
-    CatalogoProductosPage.itemsSelected.add(producto);
+    if (!CatalogoProductosPage.itemsSelected.contains(producto))
+      CatalogoProductosPage.itemsSelected.add(producto);
+    setState(() {});
   }
 
   Widget _checkBox(BuildContext context, Producto producto) {
@@ -398,13 +409,36 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
 
   void _itemPressedCatalogo(BuildContext context, Producto producto) {
     if (CatalogoProductosPage.seleccionando) {
-      if (producto.checked) {
+      if (!producto.checked) {
         producto.checked = true;
         CatalogoProductosPage.itemsSelected.add(producto);
       } else {
         producto.checked = false;
         CatalogoProductosPage.itemsSelected.remove(producto);
       }
+      setState(() {});
     }
+  }
+
+  List<Widget> _accionesSeleccionando(BuildContext context) {
+    return [_confirmSelection(context)];
+  }
+
+  Widget _confirmSelection(BuildContext context) {
+    return ElevatedButton.icon(
+        onPressed: () {
+          Navigator.of(context).pop();
+        },
+        style: ElevatedButton.styleFrom(
+          primary: Colors.red, // background
+          onPrimary: Colors.white, // foreground
+        ),
+        icon: Icon(MdiIcons.check,
+            size: MediaQuery.of(context).size.height * 0.045),
+        label: Container());
+  }
+
+  List<Widget> _acciones(BuildContext context) {
+    return [_editarBusqueda(context), _vistaGrid(context), _opciones(context)];
   }
 }

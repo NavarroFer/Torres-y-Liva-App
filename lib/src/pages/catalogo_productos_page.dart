@@ -2,6 +2,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:torres_y_liva/src/models/categoria_model.dart';
+import 'package:torres_y_liva/src/models/producto_model.dart';
 import 'package:torres_y_liva/src/models/rubro_model.dart';
 import 'package:torres_y_liva/src/pages/buscador_producto_page.dart';
 
@@ -12,6 +13,7 @@ class CatalogoProductosPage extends StatefulWidget {
   final String modo;
   static List itemsSelected = List.empty(growable: true);
   static bool seleccionando = false;
+  static int cantidadItems = 0;
 
   CatalogoProductosPage({this.modo, this.notifyParent});
 
@@ -28,6 +30,8 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
   final String TITLE_CATALOGO = 'RUBROS';
 
   int nivelActual = 0;
+
+  List<Categoria> _pathCategorias = List.empty(growable: true);
 
   @override
   void initState() {
@@ -51,6 +55,7 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
             SizedBox(
               height: size.height * 0.03,
             ),
+            this.nivelActual == 0 ? Container() : _buttonsNavigation(context),
             Text(
               TITLE_CATALOGO,
               textAlign: TextAlign.center,
@@ -60,6 +65,7 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
             SizedBox(
               height: size.height * 0.03,
             ),
+            this.nivelActual == 0 ? Container() : _pathNavigation(context),
             _gridCatalogo(context),
           ],
         ),
@@ -67,21 +73,27 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
           bottom: size.height * 0.03,
           right: size.width * 0.03,
           child: CatalogoProductosPage.seleccionando
-              ? FloatingActionButton(
-                  onPressed: () {
-                    CatalogoProductosPage.itemsSelected.clear();
-                    CatalogoProductosPage.seleccionando = false;
-                    listaCategorias.forEach((rubro) {
-                      rubro.checked = false;
-                    });
-                    widget.notifyParent();
-                    setState(() {});
-                  },
-                  child: Icon(
-                    Icons.cancel_outlined,
-                    size: size.height * 0.05,
-                  ),
-                  elevation: 10,
+              ? Stack(
+                  children: [
+                    FloatingActionButton(
+                      onPressed: () {
+                        CatalogoProductosPage.itemsSelected.clear();
+                        CatalogoProductosPage.seleccionando = false;
+                        CatalogoProductosPage.cantidadItems = 0;
+                        listaCategorias.forEach((rubro) {
+                          rubro.checked = false;
+                        });
+                        widget.notifyParent();
+                        setState(() {});
+                      },
+                      child: Icon(
+                        Icons.cancel_outlined,
+                        size: size.height * 0.05,
+                      ),
+                      elevation: 10,
+                    ),
+                    _numeroCantidadItems(context),
+                  ],
                 )
               : Container(),
         )
@@ -97,7 +109,11 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
       listaProdGrilla.add(_cardCategoria(context, categoria));
     });
     return Container(
-        height: size.height * 0.65,
+        height: this.nivelActual == 0
+            ? size.height * 0.65
+            : widget.modo == 'pedido'
+                ? size.height * 0.5
+                : size.height * 0.55,
         child: ListView(
           shrinkWrap: true,
           scrollDirection: Axis.vertical,
@@ -175,22 +191,29 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
             splashColor: Colors.red,
             highlightColor: Colors.red.withOpacity(0.5),
             onTap: () {
-              //TODO cambiar lista que se muestra (rubros o items)
+              //TODO reemplazar por una query a la DB local
+              final cantItems = _getCantidadItemsCategoria(
+                  categoria.categoriaID, categoria.nivel);
               if (CatalogoProductosPage.seleccionando) {
                 if (categoria.checked) {
                   categoria.checked = false;
                   CatalogoProductosPage.itemsSelected.remove(categoria);
+                  CatalogoProductosPage.cantidadItems -= cantItems;
                 } else {
                   categoria.checked = true;
                   CatalogoProductosPage.itemsSelected.add(categoria);
+                  CatalogoProductosPage.cantidadItems += cantItems;
                 }
 
                 widget.notifyParent();
 
                 setState(() {});
-              } else { //navegando
+              } else {
+                //navegando
+                if (!this._pathCategorias.contains(categoria)) {
+                  this._pathCategorias.add(categoria);
+                }
                 final idCategoria = categoria.categoriaID;
-                print(widget.modo);
                 if (nivelActual == 2) {
                   Navigator.of(context).pushNamed(BuscadorProductoPage.route,
                       arguments: [
@@ -208,13 +231,6 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
                         element.lineaItemParent.toString() == idCategoria)
                       listaCategorias.add(element);
                   });
-                  // listaCategorias.addAll(Categorias.categorias.where((cat) {
-                  //   print(cat);
-                  //   return cat.nivel == nivelActual &&
-                  //       cat.lineaItemParent.toString() == idCategoria;
-                  // }).toList());
-
-                  nivelActual = nivelActual;
 
                   setState(() {});
                 }
@@ -224,9 +240,14 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
               if (CatalogoProductosPage.seleccionando == false)
                 CatalogoProductosPage.seleccionando = true;
 
+              //TODO reemplazar por una query a la DB local
+              final cantItems = _getCantidadItemsCategoria(
+                  categoria.categoriaID, categoria.nivel);
+
               if (!categoria.checked) {
                 categoria.checked = true;
                 CatalogoProductosPage.itemsSelected.add(categoria);
+                CatalogoProductosPage.cantidadItems += cantItems;
               }
 
               widget.notifyParent();
@@ -270,7 +291,163 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
 
   void _importacionPressed() {}
 
-  _checkBox(BuildContext context, Categoria rubro) {
+  Widget _checkBox(BuildContext context, Categoria rubro) {
     return Checkbox(value: rubro.checked, onChanged: (value) {});
+  }
+
+  Widget _numeroCantidadItems(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    return new Positioned(
+      right: 0,
+      top: 0,
+      child: new Container(
+        padding: EdgeInsets.all(1),
+        decoration: new BoxDecoration(
+          color: Colors.blue,
+          borderRadius: BorderRadius.circular(30),
+        ),
+        constraints: BoxConstraints(
+            minWidth: size.width * 0.05, minHeight: size.height * 0.02),
+        child: new Text(
+          '${CatalogoProductosPage.cantidadItems}',
+          style: new TextStyle(
+            color: Colors.white,
+            fontSize: size.height * 0.02,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ),
+    );
+  }
+
+  int _getCantidadItemsCategoria(String categoriaID, int nivel) {
+    //TODO cambiar por una busqueda en la db local
+
+    int cant = 0;
+    if (nivel < 2) {
+      Categorias.categorias.forEach((categoria) {
+        if (categoria.nivel == nivel + 1 &&
+            categoria.lineaItemParent.toString() == categoriaID)
+          cant += _getCantidadItemsCategoria(categoria.categoriaID, nivel + 1);
+      });
+    } else {
+      //nivel 3 = productos
+      Productos.productos.forEach((producto) {
+        if (producto.categoriaID == categoriaID) cant++;
+      });
+    }
+
+    return cant;
+  }
+
+  Widget _buttonsNavigation(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+
+    final botones = Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        SizedBox(
+          width: size.width * 0.05,
+        ),
+        _buttonBackNavigation(context),
+        SizedBox(
+          width: size.width * 0.01,
+        ),
+        _buttonHome(context),
+        Expanded(child: SizedBox()),
+        _buttonCatalogo(context),
+        SizedBox(
+          width: size.width * 0.05,
+        ),
+      ],
+    );
+    return Column(
+      children: [
+        botones,
+        SizedBox(
+          height: size.height * 0.03,
+        ),
+      ],
+    );
+  }
+
+  _buttonBackNavigation(BuildContext context) {
+    return ElevatedButton(
+      onPressed: () {
+        nivelActual--;
+
+        listaCategorias.clear();
+        this._pathCategorias.removeLast();
+
+        Categorias.categorias.forEach((element) {
+          if (element.nivel == nivelActual) listaCategorias.add(element);
+        });
+        setState(() {});
+      },
+      child: Icon(Icons.arrow_back),
+    );
+  }
+
+  _buttonHome(BuildContext context) {
+    return ElevatedButton(
+        onPressed: () {
+          nivelActual = PRIMER_NIVEL_CATEGORIA;
+          listaCategorias.clear();
+          _pathCategorias.clear();
+          Categorias.categorias.forEach((element) {
+            if (element.nivel == nivelActual) listaCategorias.add(element);
+          });
+          setState(() {});
+        },
+        child: Icon(Icons.home));
+  }
+
+  _buttonCatalogo(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+
+    final categoria = _pathCategorias[_pathCategorias.length - 1];
+
+    return ElevatedButton(
+      onPressed: () {
+        //TODO que al apretar, funcione
+        Navigator.of(context).pushNamed(BuscadorProductoPage.route, arguments: [
+          categoria.descripcion,
+          categoria.categoriaID,
+          widget.modo
+        ]);
+      },
+      child: Text('Ver Catálogo'),
+    );
+  }
+
+  Widget _pathNavigation(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+
+    String pathString = '';
+    _pathCategorias.forEach((element) {
+      pathString += " > ${element?.descripcion?.trim()}";
+    });
+
+    final path = Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: size.width * 0.05,
+        ),
+        Text(
+          pathString,
+          textAlign: TextAlign.start,
+          textScaleFactor: size.height * 0.0015,
+        ),
+      ],
+    );
+    return Column(
+      children: [
+        path,
+        SizedBox(
+          height: size.height * 0.03,
+        ),
+      ],
+    );
   }
 }

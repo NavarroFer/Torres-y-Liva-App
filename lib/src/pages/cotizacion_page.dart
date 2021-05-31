@@ -23,25 +23,33 @@ class _CotizacionPageState extends State<CotizacionPage> {
 
   List<Widget> acciones;
   Widget get getTitle => title;
+
+  @override
+  void dispose() {
+    CatalogoProductosPage.seleccionando = false;
+    CatalogoProductosPage.itemsSelected.clear();
+
+    super.dispose();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: title,
-        actions: acciones,
+        actions: _getAcciones(context),
         backgroundColor: color,
+        leading: _arrowBack(context),
       ),
       body: CatalogoProductosPage(
         modo: 'cotizacion',
         notifyParent: () {
-          if (CatalogoProductosPage.seleccionando) {
-            color = Colors.grey;
-            acciones = [_toPDF(context), _toPDFShare(context)];
-          } else {
-            color = Colors.red;
-            acciones = [];
-          }
-          setState(() {});
+          _refresh(context);
         },
       ),
     );
@@ -52,7 +60,12 @@ class _CotizacionPageState extends State<CotizacionPage> {
         onPressed: () {
           _opcionesPDF(context, false);
         },
-        icon: Icon(MdiIcons.pdfBox),
+        style: ElevatedButton.styleFrom(
+          primary: Colors.grey, // background
+          onPrimary: Colors.white, // foreground
+        ),
+        icon: Icon(MdiIcons.pdfBox,
+            size: MediaQuery.of(context).size.height * 0.045),
         label: Container());
   }
 
@@ -61,7 +74,12 @@ class _CotizacionPageState extends State<CotizacionPage> {
         onPressed: () {
           _opcionesPDF(context, true);
         },
-        icon: Icon(MdiIcons.shareVariant),
+        style: ElevatedButton.styleFrom(
+          primary: Colors.grey, // background
+          onPrimary: Colors.white, // foreground
+        ),
+        icon: Icon(MdiIcons.shareVariant,
+            size: MediaQuery.of(context).size.height * 0.045),
         label: Container());
   }
 
@@ -97,4 +115,58 @@ class _CotizacionPageState extends State<CotizacionPage> {
   }
 
   void _unCheckCategorias() {}
+
+  Widget _arrowBack(BuildContext context) {
+    if (CatalogoProductosPage.seleccionando == false)
+      return IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            Navigator.of(context).pop();
+          });
+    else
+      return IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () {
+            CatalogoProductosPage.seleccionando = false;
+            _refresh(context);
+          });
+  }
+
+  void _refresh(BuildContext context) {
+    _refreshColorAcciones(context);
+    setState(() {});
+  }
+
+  void _refreshColorAcciones(BuildContext context) {
+    if (CatalogoProductosPage.seleccionando) {
+      color = Colors.grey;
+      acciones = [_toPDF(context), _toPDFShare(context)];
+    } else {
+      color = Colors.red;
+      acciones = [_cantItems(context)];
+    }
+  }
+
+  Widget _cantItems(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    return Container(
+      width: size.width * 0.4,
+      height: size.height * 0.1,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Icon(MdiIcons.formatListBulletedType, size: size.height * 0.045),
+          Text(
+            CatalogoProductosPage.cantidadItems.toString(),
+            textScaleFactor: size.height * 0.0025,
+          )
+        ],
+      ),
+    );
+  }
+
+  _getAcciones(BuildContext context) {
+    _refreshColorAcciones(context);
+    return acciones;
+  }
 }
