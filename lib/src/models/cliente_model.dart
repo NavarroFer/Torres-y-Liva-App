@@ -69,6 +69,11 @@ class Cliente {
       this.tokenWs,
       this.userId});
 
+  @override
+  String toString() {
+    return '$nombre $id';
+  }
+
   Cliente.fromJsonMap(jsonItem) {
     this.userId = jsonItem['usuarioWebID'];
     this.domicilioID = jsonItem['domicilioClienteID'];

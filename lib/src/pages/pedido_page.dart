@@ -229,7 +229,7 @@ class _PedidoPageState extends State<PedidoPage> {
   }
 
   void _nuevoPedidoPressed(BuildContext context) {
-    Navigator.pushNamed(context, NuevoPedidoPage.route, arguments: modo);
+    Navigator.pushNamed(context, NuevoPedidoPage.route, arguments: null);
   }
 
   void _actualizarPressed() {}
