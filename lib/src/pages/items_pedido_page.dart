@@ -14,6 +14,8 @@ import '../widgets/base_widgets.dart';
 class ItemsPedidoPage extends StatefulWidget {
   static final String route = 'itemsPedido';
 
+  static int cantChecked = 0;
+
   Pedido pedido = Pedido(items: List<ItemPedido>.empty(growable: true));
 
   ItemsPedidoPage(this.pedido);
@@ -37,8 +39,6 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
 
   GlobalKey key = new GlobalKey<AutoCompleteTextFieldState<Producto>>();
 
-  int _cantChecked;
-
   @override
   void initState() {
     pedido = widget.pedido;
@@ -60,6 +60,9 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
         ),
         // _gridProductos(context),
         _datosNuevoProducto(context),
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 0.01,
+        ),
       ],
     );
   }
@@ -67,7 +70,7 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
   Widget _gridProductos(BuildContext context) {
     final size = MediaQuery.of(context).size;
     return Container(
-        height: size.height * 0.58,
+        height: size.height * 0.48,
         width: double.infinity,
         child: DataTable(
             columnSpacing: size.width * 0.04,
@@ -121,7 +124,7 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
           width: size.width * 0.04,
         ),
         _inputText('Cód.', _codController, null, TextInputType.number,
-            height: size.height * 0.05, width: size.width * 0.145),
+            height: size.height * 0.1, width: size.width * 0.18),
         SizedBox(
           width: size.width * 0.02,
         ),
@@ -138,17 +141,23 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
     );
   }
 
-  Widget _autoCompleteInput2(BuildContext context,
-      {double height, double width}) {
+  Widget _autoCompleteInput2(BuildContext context) {
     final size = MediaQuery.of(context).size;
 
     return Container(
-      height: size.height * 0.06,
-      width: size.width * 0.45,
+      height: size.height * 0.1,
+      width: size.width * 0.42,
       child: TypeAheadFormField(
         textFieldConfiguration: TextFieldConfiguration(
+            style:
+                TextStyle(fontSize: MediaQuery.of(context).size.height * 0.02),
             controller: this._typeAheadController,
-            decoration: InputDecoration(labelText: 'Nombre producto')),
+            decoration: InputDecoration(
+              labelText: 'Producto',
+              labelStyle: TextStyle(
+                  fontSize: MediaQuery.of(context).size.height * 0.02),
+              border: OutlineInputBorder(),
+            )),
         suggestionsCallback: (input) {
           return Productos.getSuggestions(input);
         },
@@ -158,6 +167,7 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
             subtitle: Text(suggestion.getInfoFormatted()),
           );
         },
+        hideOnEmpty: true,
         transitionBuilder: (context, suggestionsBox, controller) {
           return suggestionsBox;
         },
@@ -170,6 +180,8 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
           _typeAheadController.text = suggestion.descripcion;
           _codController.text = suggestion.id.toString();
           _productoSelected = suggestion;
+
+          //FOCUS A CANTIDAD
 
           setState(() {});
         },
@@ -216,6 +228,18 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
       child: TextField(
         controller: controller,
         keyboardType: inputType,
+        onSubmitted: (value) {
+          if (controller == _codController) {
+            _submittedCod(value);
+          } else if (controller == _obsController) {
+            _submittedObs();
+          } else if (controller == _dtoController) {
+            _submittedDto();
+          } else if (controller == _cantController) {
+            _submittedCant();
+          }
+        },
+        style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.02),
         maxLines: 1,
         decoration: InputDecoration(
             border: OutlineInputBorder(),
@@ -236,23 +260,38 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
           width: size.width * 0.04,
         ),
         _inputText('Observaciones', _obsController, null, TextInputType.text,
-            height: size.height * 0.05, width: size.width * 0.55),
+            height: size.height * 0.08, width: size.width * 0.55),
         SizedBox(
           width: size.width * 0.02,
         ),
         _inputText('Dto.', _dtoController, null, TextInputType.number,
-            height: size.height * 0.05, width: size.width * 0.16),
+            height: size.height * 0.08, width: size.width * 0.16),
         SizedBox(
           width: size.width * 0.02,
         ),
         _inputText('Cant.', _cantController, null, TextInputType.number,
-            height: size.height * 0.05, width: size.width * 0.17),
+            height: size.height * 0.08, width: size.width * 0.17),
       ],
     );
   }
 
   Widget _buttonCodigoDeBarras(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    return Container(
+      height: size.height * 0.1,
+      width: size.width * 0.13,
+      decoration: BoxDecoration(
+          border: Border.all(
+            color: Colors.red,
+          ),
+          color: Colors.red,
+          borderRadius: BorderRadius.all(Radius.circular(10))),
+      child: IconButton(
+          alignment: Alignment.center,
+          color: Colors.white,
+          onPressed: _leerCodigoBarras,
+          icon: Icon(MdiIcons.barcodeScan)),
+    );
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
           primary: Colors.red, // background
@@ -265,8 +304,25 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
 
   Widget _buttonBuscarProd(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    return Container(
+      height: size.height * 0.1,
+      width: size.width * 0.13,
+      decoration: BoxDecoration(
+          border: Border.all(
+            color: Colors.red,
+          ),
+          color: Colors.red,
+          borderRadius: BorderRadius.all(Radius.circular(10))),
+      child: IconButton(
+          alignment: Alignment.center,
+          color: Colors.white,
+          onPressed: () => _buscarProducto(context),
+          icon: Icon(Icons.search)),
+    );
+
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
+          alignment: Alignment.center,
           primary: Colors.red, // background
           onPrimary: Colors.white, // foreground
           minimumSize: Size(size.width * 0.0005, size.height * 0.05)),
@@ -322,8 +378,40 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
           setState(() {
             itemPedido.checked = value;
 
-            _cantChecked += value == true ? 1 : -1;
+            ItemsPedidoPage.cantChecked += value == true ? 1 : -1;
           });
         });
+  }
+
+  void _submittedCod(String value) {
+    value = value.trim();
+    int id = int.parse(value);
+
+    if (id != null) {
+      final producto = Productos.productos
+          .firstWhere((element) => element.id == int.parse(value));
+
+      _productoSelected = producto;
+
+      if (_productoSelected != null) {
+        //FOCUS A CANTIDAD
+
+        setState(() {});
+      } else {
+        // SNACKBAR producto no encontrado
+      }
+    }
+  }
+
+  void _submittedObs() {
+    //FOCUS DESCUENTO
+  }
+
+  void _submittedDto() {
+    //FOCUS CANTIDAD
+  }
+
+  void _submittedCant() {
+    // agregar producto
   }
 }

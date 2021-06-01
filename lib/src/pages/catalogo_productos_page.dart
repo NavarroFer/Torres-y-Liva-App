@@ -42,6 +42,17 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
   }
 
   @override
+  void dispose() {
+    CatalogoProductosPage.itemsSelected.clear();
+    CatalogoProductosPage.seleccionando = false;
+    CatalogoProductosPage.cantidadItems = 0;
+    listaCategorias.forEach((rubro) {
+      rubro.checked = false;
+    });
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     return Stack(
@@ -110,10 +121,10 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
     });
     return Container(
         height: this.nivelActual == 0
-            ? size.height * 0.65
+            ? size.height * 0.58
             : widget.modo == 'pedido'
-                ? size.height * 0.5
-                : size.height * 0.55,
+                ? size.height * 0.4
+                : size.height * 0.45,
         child: ListView(
           shrinkWrap: true,
           scrollDirection: Axis.vertical,
@@ -266,8 +277,9 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
                     size: size.height * 0.1,
                   ),
                   ListTile(
-                    title: Text(
+                    title: AutoSizeText(
                       categoria?.descripcion?.toUpperCase(),
+                      maxLines: 2,
                       textAlign: TextAlign.center,
                     ),
                   ),

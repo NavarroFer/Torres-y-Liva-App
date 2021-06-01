@@ -41,28 +41,7 @@ class _DatosPedidoPageState extends State<DatosPedidoPage> {
   @override
   void initState() {
     pedido = widget.pedido;
-    selectedValueCliente = pedido != null ? pedido.cliente.id : 0;
-    // clientesList.addAll([
-    //   Cliente(
-    //       id: 16262,
-    //       nombre: "BAJO JAVIER",
-    //       domicilio: "PEHUAJO",
-    //       email: "bajojavier@gmail.com"),
-    //   Cliente(
-    //       id: 7283,
-    //       nombre: "BARUK S.R.L",
-    //       domicilio: "CALLE 59 ENTRE 520 521 LA PLATA",
-    //       email: "baruk@gmail.com",
-    //       telefono: "4673423"),
-    //   Cliente(id: 7284, nombre: "BENITEZ MARCELO", domicilio: "RUTA 88"),
-    //   Cliente(id: 7245, nombre: "BIANCHI JESSICA", domicilio: "RUTA 88"),
-    //   Cliente(
-    //       id: 56025,
-    //       nombre: "BONAUDI MIGUEL ANGEL",
-    //       domicilio: "CHACABUCO 398"),
-    //   Cliente(
-    //       id: 24083, nombre: "CHAVES FABIANA INES", domicilio: "PAREJA 663"),
-    // ]);
+    selectedValueCliente = pedido != null ? pedido.cliente.clientId : 0;
 
     clientesList = clientesDelVendedor;
 
@@ -70,7 +49,7 @@ class _DatosPedidoPageState extends State<DatosPedidoPage> {
       clientes.add(
         DropdownMenuItem(
             child: ListTile(
-              title: Text(cliente.id.toString() + ' - ' + cliente.nombre),
+              title: Text(cliente.clientId.toString() + ' - ' + cliente.nombre),
               subtitle: Text(cliente.domicilio),
             ),
             value: cliente),
@@ -108,7 +87,11 @@ class _DatosPedidoPageState extends State<DatosPedidoPage> {
     final size = MediaQuery.of(context).size;
     return SearchableDropdown.single(
       items: items,
-      value: selectedValueCliente,
+      value: items
+              .firstWhere(
+                  (element) => element?.value?.clientId == selectedValueCliente)
+              .value ??
+          null,
       hint: "Selecciona un cliente",
       searchHint: "Busca un cliente",
       onChanged: (Cliente value) {

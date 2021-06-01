@@ -61,11 +61,7 @@ class _NuevoPedidoPageState extends State<NuevoPedidoPage>
                 ),
               ],
             ),
-            actions: [
-              _buscarProductosCliente(context),
-              _abrirCalculadora(context),
-              _guardarPedido(context)
-            ],
+            actions: _acciones(context),
           ),
           body: TabBarView(
             children: [
@@ -104,5 +100,13 @@ class _NuevoPedidoPageState extends State<NuevoPedidoPage>
 
   void _guardarPedidoPressed(BuildContext context) {
     Navigator.pop(context);
+  }
+
+  _acciones(BuildContext context) {
+    return [
+      _buscarProductosCliente(context),
+      _abrirCalculadora(context),
+      _guardarPedido(context)
+    ];
   }
 }

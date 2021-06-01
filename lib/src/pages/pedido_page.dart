@@ -36,19 +36,19 @@ class _PedidoPageState extends State<PedidoPage> {
   @override
   void initState() {
     final c1 = Cliente(
-        id: 16262,
+        clientId: 16262,
         nombre: "BAJO JAVIER",
         domicilio: "PEHUAJO",
         email: "bajojavier@gmail.com");
     final c2 = Cliente(
-        id: 7283,
+        clientId: 7283,
         nombre: "BARUK S.R.L",
         domicilio: "CALLE 59 ENTRE 520 521 LA PLATA",
         email: "baruk@gmail.com",
         telefono: "4673423");
 
-    final c3 =
-        Cliente(id: 7284, nombre: "BENITEZ MARCELO", domicilio: "RUTA 88");
+    final c3 = Cliente(
+        clientId: 7284, nombre: "BENITEZ MARCELO", domicilio: "RUTA 88");
     final p1 = ItemPedido(
         id: 1,
         cantidad: 2,
@@ -279,10 +279,12 @@ class _PedidoPageState extends State<PedidoPage> {
   }
 
   Widget _gridPedidos(BuildContext context) {
+    final size = MediaQuery.of(context).size;
     return Container(
       width: double.infinity,
       child: DataTable(
-          columnSpacing: MediaQuery.of(context).size.width * 0.1,
+          columnSpacing: size.width * 0.05,
+          dataRowHeight: size.height * 0.13,
           columns: [
             DataColumn(label: Text('CLIENTE')),
             DataColumn(label: Text('TOTAL')),
@@ -342,11 +344,18 @@ class _PedidoPageState extends State<PedidoPage> {
   Widget _celdaCliente(BuildContext context, String nombre, String fechaHora) {
     return Column(
       children: [
-        Text(nombre),
-        SizedBox(
-          height: MediaQuery.of(context).size.height * 0.001,
+        Text(
+          nombre,
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        Text(fechaHora)
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 0.01,
+        ),
+        Text(fechaHora.split(' ')[0]),
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 0.01,
+        ),
+        Text(fechaHora.split(' ')[1])
       ],
     );
   }
