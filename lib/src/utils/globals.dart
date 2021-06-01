@@ -6,6 +6,7 @@ final String tokenEmpresa = '745710b2-5133-11ea-9d0e-9ee722880a34';
 
 Usuario usuario;
 List<Cliente> clientesDelVendedor;
+int idCliente;
 
 //////////// Constantes respuesta WS ////////////
 

@@ -16,6 +16,8 @@ class ItemPedido {
   Producto producto; //no se si va esto, por ahora si
   int pedidoID;
 
+  bool checked = false;
+
   ItemPedido(
       {this.id,
       this.cantidad,

@@ -71,7 +71,7 @@ class Cliente {
 
   @override
   String toString() {
-    return '$nombre $id';
+    return '$nombre $clientId';
   }
 
   Cliente.fromJsonMap(jsonItem) {

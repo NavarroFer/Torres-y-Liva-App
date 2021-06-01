@@ -44,7 +44,7 @@ class _NuevoPedidoPageState extends State<NuevoPedidoPage>
         initialIndex: 0,
         length: 3,
         child: Scaffold(
-          resizeToAvoidBottomInset: false,
+          resizeToAvoidBottomInset: true,
           appBar: AppBar(
             title: Text('Pedido'),
             bottom: TabBar(
@@ -70,7 +70,7 @@ class _NuevoPedidoPageState extends State<NuevoPedidoPage>
           body: TabBarView(
             children: [
               DatosPedidoPage(pedido),
-              ItemsPedidoPage(pedido),
+              SingleChildScrollView(child: ItemsPedidoPage(pedido)),
               CatalogoProductosPage(
                 modo: 'pedido',
               ),

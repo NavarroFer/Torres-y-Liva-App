@@ -1,8 +1,11 @@
+import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:torres_y_liva/src/models/pedido_model.dart';
+import 'package:torres_y_liva/src/models/producto_model.dart';
 import 'package:torres_y_liva/src/pages/buscador_producto_page.dart';
 
 import '../widgets/base_widgets.dart';
@@ -21,13 +24,20 @@ class ItemsPedidoPage extends StatefulWidget {
 
 class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
   final _codController = TextEditingController();
-  final _nombreProdController = TextEditingController();
   final _obsController = TextEditingController();
   final _dtoController = TextEditingController();
   final _cantController = TextEditingController();
+  final _typeAheadController = TextEditingController();
+
   String _scanProducto = '';
 
   Pedido pedido;
+
+  Producto _productoSelected;
+
+  GlobalKey key = new GlobalKey<AutoCompleteTextFieldState<Producto>>();
+
+  int _cantChecked;
 
   @override
   void initState() {
@@ -37,20 +47,20 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          _gridProductos(context),
-          SizedBox(
-            height: MediaQuery.of(context).size.height * 0.03,
-          ),
-          totalesVenta(context),
-          SizedBox(
-            height: MediaQuery.of(context).size.height * 0.03,
-          ),
-          _datosNuevoProducto(context),
-        ],
-      ),
+    return Column(
+      children: [
+        // _datosNuevoProducto(context),
+        _gridProductos(context),
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 0.03,
+        ),
+        totalesVenta(context),
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 0.03,
+        ),
+        // _gridProductos(context),
+        _datosNuevoProducto(context),
+      ],
     );
   }
 
@@ -75,8 +85,9 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
     List<DataRow> lista = List<DataRow>.filled(0, null, growable: true);
     pedido?.items?.forEach((item) {
       var dataRow = DataRow(cells: [
-        DataCell(Text(item.id.toString())),
-        DataCell(Text('1')),
+        DataCell(Row(
+            children: [_checkBox(context, item), Text(item.id.toString())])),
+        DataCell(Text(item.cantidad.toString())),
         DataCell(Text(item.producto.descripcion)),
         DataCell(Text(
           '\$${item.precio.toStringAsFixed(2)}',
@@ -118,15 +129,82 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
         SizedBox(
           width: size.width * 0.02,
         ),
-        _inputText('Nombre del producto', _nombreProdController, null,
-            TextInputType.text,
-            height: size.height * 0.05, width: size.width * 0.431),
+        _autoCompleteInput2(context),
         SizedBox(
           width: size.width * 0.02,
         ),
         _buttonBuscarProd(context),
       ],
     );
+  }
+
+  Widget _autoCompleteInput2(BuildContext context,
+      {double height, double width}) {
+    final size = MediaQuery.of(context).size;
+
+    return Container(
+      height: size.height * 0.06,
+      width: size.width * 0.45,
+      child: TypeAheadFormField(
+        textFieldConfiguration: TextFieldConfiguration(
+            controller: this._typeAheadController,
+            decoration: InputDecoration(labelText: 'Nombre producto')),
+        suggestionsCallback: (input) {
+          return Productos.getSuggestions(input);
+        },
+        itemBuilder: (context, suggestion) {
+          return ListTile(
+            title: Text(suggestion.descripcion),
+            subtitle: Text(suggestion.getInfoFormatted()),
+          );
+        },
+        transitionBuilder: (context, suggestionsBox, controller) {
+          return suggestionsBox;
+        },
+        suggestionsBoxDecoration: SuggestionsBoxDecoration(
+            offsetX: -1 * size.width * 0.3,
+            constraints: BoxConstraints(
+                minHeight: size.height * 0.05, minWidth: size.width * 0.9)),
+        autoFlipDirection: true,
+        onSuggestionSelected: (suggestion) {
+          _typeAheadController.text = suggestion.descripcion;
+          _codController.text = suggestion.id.toString();
+          _productoSelected = suggestion;
+
+          setState(() {});
+        },
+        validator: (value) {},
+        onSaved: (value) => {print(value)},
+      ),
+    );
+  }
+
+  Widget _autoCompleteInput({double height, double width}) {
+    return Container(
+        height: height,
+        width: width,
+        child: AutoCompleteTextField<Producto>(
+          decoration: new InputDecoration(
+              hintText: "", suffixIcon: new Icon(Icons.search)),
+          itemSubmitted: (item) => setState(() => _productoSelected = item),
+          key: key,
+          suggestionsAmount: 10,
+          suggestions: Productos.productos,
+          itemBuilder: (context, suggestion) {
+            return ListTile(
+              title: Container(
+                  width: double.infinity, child: Text(suggestion.descripcion)),
+            );
+          },
+          itemSorter: (a, b) {
+            return a.descripcion.compareTo(b.descripcion);
+          },
+          itemFilter: (suggestion, input) {
+            return suggestion.descripcion
+                .toLowerCase()
+                .contains(input.toLowerCase());
+          },
+        ));
   }
 
   Widget _inputText(String s, TextEditingController controller, IconData icon,
@@ -210,7 +288,7 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
   Future<void> _buscarProducto(BuildContext context) async {
     final itemsNuevos = await Navigator.of(context).pushNamed(
         BuscadorProductoPage.route,
-        arguments: [_nombreProdController.text, -1]);
+        arguments: [_typeAheadController.text, "-1", 'pedido']);
 
     if (itemsNuevos != null)
       setState(() {
@@ -234,5 +312,18 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
 
     if (barcodeScanRes == '-1') return;
     _scanProducto = barcodeScanRes;
+  }
+
+  Widget _checkBox(BuildContext context, ItemPedido itemPedido) {
+    //TODO test funcionamiento
+    return Checkbox(
+        value: itemPedido.checked,
+        onChanged: (value) {
+          setState(() {
+            itemPedido.checked = value;
+
+            _cantChecked += value == true ? 1 : -1;
+          });
+        });
   }
 }

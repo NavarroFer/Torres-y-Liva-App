@@ -1,3 +1,6 @@
+import 'package:flutter/src/widgets/framework.dart';
+import 'package:torres_y_liva/src/utils/globals.dart';
+
 class Productos {
   static List<Producto> productos = [];
 
@@ -8,6 +11,17 @@ class Productos {
       final producto = new Producto.fromJsonMap(jsonItem);
       productos?.add(producto);
     });
+  }
+
+  static List<Producto> getSuggestions(String input) {
+    List<Producto> prod = [];
+
+    productos.forEach((element) {
+      if (element.descripcion.toUpperCase().contains(input.toUpperCase())) {
+        prod.add(element);
+      }
+    });
+    return prod;
   }
 }
 
@@ -77,6 +91,14 @@ class Producto {
       this.bloqueado,
       this.imagenURL,
       this.noPermiteRemito});
+
+  String getInfoFormatted() {
+    //TODO quedarme con el cliente seleccionado
+    final listaPrecios = clientesDelVendedor
+        ?.firstWhere((element) => element.clientId == idCliente)
+        ?.priceList;
+    return "COD: ${this.id} - STK: ${this.stock} - S/IVA: \$ ${this.getPriceFromList(listaPrecios)}";
+  }
 
   double getPriceFromList(int clientPriceList) {
     double priceClient;

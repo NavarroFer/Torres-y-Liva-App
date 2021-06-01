@@ -114,7 +114,8 @@ class _DatosPedidoPageState extends State<DatosPedidoPage> {
       onChanged: (Cliente value) {
         setState(() {
           NuevoPedidoPage.clienteSeleccionado = value != null;
-          selectedValueCliente = value?.id;
+          idCliente = value.clientId ?? -1;
+          selectedValueCliente = value?.clientId ?? -1;
           direccion = value?.domicilio;
           telefono = value?.telefono;
           email = value?.email;
