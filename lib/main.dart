@@ -39,7 +39,7 @@ class MyApp extends StatelessWidget {
         NuevoPedidoPage.route: (context) => NuevoPedidoPage(),
         CalculatorPage.route: (context) => CalculatorPage(),
         DatosPedidoPage.route: (context) => DatosPedidoPage(null),
-        ItemsPedidoPage.route: (context) => ItemsPedidoPage(null),
+        ItemsPedidoPage.route: (context) => ItemsPedidoPage(),
         CatalogoProductosPage.route: (context) => CatalogoProductosPage(),
         BuscadorProductoPage.route: (context) => BuscadorProductoPage(),
         LoginPage.route: (context) => LoginPage(),

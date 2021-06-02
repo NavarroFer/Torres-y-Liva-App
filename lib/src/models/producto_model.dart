@@ -93,10 +93,13 @@ class Producto {
       this.noPermiteRemito});
 
   String getInfoFormatted() {
-    //TODO quedarme con el cliente seleccionado
-    final listaPrecios = clientesDelVendedor
-        ?.firstWhere((element) => element.clientId == idCliente)
-        ?.priceList;
+    int listaPrecios = 0;
+
+    if (idCliente != null) {
+      listaPrecios = clientesDelVendedor
+          ?.firstWhere((element) => element.clientId == idCliente)
+          ?.priceList;
+    }
     return "COD: ${this.id} - STK: ${this.stock} - S/IVA: \$ ${this.getPriceFromList(listaPrecios)}";
   }
 

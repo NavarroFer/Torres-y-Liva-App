@@ -201,6 +201,9 @@ class _LoginPageState extends State<LoginPage> {
           padding: EdgeInsets.symmetric(horizontal: 30.0),
           child: TextField(
             obscureText: true,
+            onSubmitted: (v) {
+              _login(bloc, context);
+            },
             decoration: InputDecoration(
               icon: Icon(Icons.lock_outline,
                   color: Colors.red, size: size * 0.09),

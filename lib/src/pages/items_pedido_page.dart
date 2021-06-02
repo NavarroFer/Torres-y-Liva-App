@@ -16,9 +16,11 @@ class ItemsPedidoPage extends StatefulWidget {
 
   static int cantChecked = 0;
 
-  Pedido pedido = Pedido(items: List<ItemPedido>.empty(growable: true));
+  static Pedido pedido = Pedido(items: List<ItemPedido>.empty(growable: true));
 
-  ItemsPedidoPage(this.pedido);
+  final Function() notifyParent;
+
+  ItemsPedidoPage({this.notifyParent});
 
   @override
   _ItemsPedidoPageState createState() => _ItemsPedidoPageState();
@@ -33,32 +35,38 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
 
   String _scanProducto = '';
 
-  Pedido pedido;
-
   Producto _productoSelected;
 
   GlobalKey key = new GlobalKey<AutoCompleteTextFieldState<Producto>>();
 
+  // @override
+  // void initState() {
+  //   pedido = widget.pedido;
+  //   super.initState();
+  // }
+
   @override
-  void initState() {
-    pedido = widget.pedido;
-    super.initState();
+  void dispose() {
+    ItemsPedidoPage.pedido.items.forEach((element) {
+      element.checked = false;
+    });
+    ItemsPedidoPage.cantChecked = 0;
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        // _datosNuevoProducto(context),
         _gridProductos(context),
         SizedBox(
-          height: MediaQuery.of(context).size.height * 0.03,
+          height: MediaQuery.of(context).size.height * 0.02,
         ),
         totalesVenta(context),
         SizedBox(
-          height: MediaQuery.of(context).size.height * 0.03,
+          height: MediaQuery.of(context).size.height * 0.02,
         ),
-        // _gridProductos(context),
         _datosNuevoProducto(context),
         SizedBox(
           height: MediaQuery.of(context).size.height * 0.01,
@@ -70,7 +78,7 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
   Widget _gridProductos(BuildContext context) {
     final size = MediaQuery.of(context).size;
     return Container(
-        height: size.height * 0.48,
+        height: size.height * 0.55,
         width: double.infinity,
         child: DataTable(
             columnSpacing: size.width * 0.04,
@@ -86,7 +94,7 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
 
   List<DataRow> _rowsItems(BuildContext context) {
     List<DataRow> lista = List<DataRow>.filled(0, null, growable: true);
-    pedido?.items?.forEach((item) {
+    ItemsPedidoPage.pedido?.items?.forEach((item) {
       var dataRow = DataRow(cells: [
         DataCell(Row(
             children: [_checkBox(context, item), Text(item.id.toString())])),
@@ -106,10 +114,12 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
   Widget _datosNuevoProducto(BuildContext context) {
     final size = MediaQuery.of(context).size;
     return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        _codigoNombreProducto(context),
         SizedBox(
-          height: size.height * 0.01,
+            child: _codigoNombreProducto(context), height: size.height * 0.08),
+        SizedBox(
+          height: size.height * 0.02,
         ),
         _obsDtoCant(context),
       ],
@@ -119,12 +129,14 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
   Widget _codigoNombreProducto(BuildContext context) {
     final size = MediaQuery.of(context).size;
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         SizedBox(
-          width: size.width * 0.04,
+          width: size.width * 0.03,
         ),
         _inputText('Cód.', _codController, null, TextInputType.number,
-            height: size.height * 0.1, width: size.width * 0.18),
+            height: size.height * 0.06, width: size.width * 0.18),
         SizedBox(
           width: size.width * 0.02,
         ),
@@ -137,6 +149,9 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
           width: size.width * 0.02,
         ),
         _buttonBuscarProd(context),
+        SizedBox(
+          width: size.width * 0.03,
+        ),
       ],
     );
   }
@@ -147,6 +162,7 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
     return Container(
       height: size.height * 0.1,
       width: size.width * 0.42,
+      alignment: Alignment.center,
       child: TypeAheadFormField(
         textFieldConfiguration: TextFieldConfiguration(
             style:
@@ -222,32 +238,36 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
   Widget _inputText(String s, TextEditingController controller, IconData icon,
       TextInputType inputType,
       {double height, double width}) {
-    return Container(
-      height: height,
-      width: width,
-      child: TextField(
-        controller: controller,
-        keyboardType: inputType,
-        onSubmitted: (value) {
-          if (controller == _codController) {
-            _submittedCod(value);
-          } else if (controller == _obsController) {
-            _submittedObs();
-          } else if (controller == _dtoController) {
-            _submittedDto();
-          } else if (controller == _cantController) {
-            _submittedCant();
-          }
-        },
-        style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.02),
-        maxLines: 1,
-        decoration: InputDecoration(
-            border: OutlineInputBorder(),
-            icon: icon == null ? null : Icon(icon),
-            labelText: s,
-            labelStyle:
-                TextStyle(fontSize: MediaQuery.of(context).size.height * 0.02),
-            alignLabelWithHint: true),
+    return Expanded(
+      child: Container(
+        // height: height,
+        // width: width,
+        decoration:
+            BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(20))),
+        child: TextField(
+          controller: controller,
+          keyboardType: inputType,
+          onSubmitted: (value) {
+            if (controller == _codController) {
+              _submittedCod(value);
+            } else if (controller == _obsController) {
+              _submittedObs();
+            } else if (controller == _dtoController) {
+              _submittedDto();
+            } else if (controller == _cantController) {
+              _submittedCant();
+            }
+          },
+          style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.02),
+          maxLines: 1,
+          decoration: InputDecoration(
+              border: OutlineInputBorder(),
+              icon: icon == null ? null : Icon(icon),
+              labelText: s,
+              labelStyle: TextStyle(
+                  fontSize: MediaQuery.of(context).size.height * 0.02),
+              alignLabelWithHint: true),
+        ),
       ),
     );
   }
@@ -257,7 +277,7 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
     return Row(
       children: [
         SizedBox(
-          width: size.width * 0.04,
+          width: size.width * 0.03,
         ),
         _inputText('Observaciones', _obsController, null, TextInputType.text,
             height: size.height * 0.08, width: size.width * 0.55),
@@ -271,6 +291,9 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
         ),
         _inputText('Cant.', _cantController, null, TextInputType.number,
             height: size.height * 0.08, width: size.width * 0.17),
+        SizedBox(
+          width: size.width * 0.03,
+        ),
       ],
     );
   }
@@ -278,8 +301,8 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
   Widget _buttonCodigoDeBarras(BuildContext context) {
     final size = MediaQuery.of(context).size;
     return Container(
-      height: size.height * 0.1,
-      width: size.width * 0.13,
+      // height: size.height * 0.15 * size.aspectRatio,
+      // width: size.width * 0.13,
       decoration: BoxDecoration(
           border: Border.all(
             color: Colors.red,
@@ -292,21 +315,13 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
           onPressed: _leerCodigoBarras,
           icon: Icon(MdiIcons.barcodeScan)),
     );
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-          primary: Colors.red, // background
-          onPrimary: Colors.white, // foreground
-          minimumSize: Size(size.width * 0.0005, size.height * 0.05)),
-      child: Icon(MdiIcons.barcodeScan),
-      onPressed: _leerCodigoBarras,
-    );
   }
 
   Widget _buttonBuscarProd(BuildContext context) {
     final size = MediaQuery.of(context).size;
     return Container(
-      height: size.height * 0.1,
-      width: size.width * 0.13,
+      // height: size.height * 0.1,
+      // width: size.width * 0.13,
       decoration: BoxDecoration(
           border: Border.all(
             color: Colors.red,
@@ -348,7 +363,7 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
 
     if (itemsNuevos != null)
       setState(() {
-        pedido?.items?.addAll(itemsNuevos);
+        ItemsPedidoPage.pedido?.items?.addAll(itemsNuevos);
       });
   }
 
@@ -379,6 +394,9 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
             itemPedido.checked = value;
 
             ItemsPedidoPage.cantChecked += value == true ? 1 : -1;
+
+            widget.notifyParent();
+            setState(() {});
           });
         });
   }

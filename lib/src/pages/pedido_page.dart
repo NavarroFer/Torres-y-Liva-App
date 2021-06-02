@@ -284,7 +284,7 @@ class _PedidoPageState extends State<PedidoPage> {
       width: double.infinity,
       child: DataTable(
           columnSpacing: size.width * 0.05,
-          dataRowHeight: size.height * 0.13,
+          dataRowHeight: size.height * 0.1,
           columns: [
             DataColumn(label: Text('CLIENTE')),
             DataColumn(label: Text('TOTAL')),
@@ -321,6 +321,7 @@ class _PedidoPageState extends State<PedidoPage> {
           _checkBox(context, pedido),
           _celdaCliente(context, nombreCliente, fechaHora),
         ],
+        crossAxisAlignment: CrossAxisAlignment.center,
       ),
     );
   }
@@ -343,18 +344,19 @@ class _PedidoPageState extends State<PedidoPage> {
 
   Widget _celdaCliente(BuildContext context, String nombre, String fechaHora) {
     return Column(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
         Text(
           nombre,
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        SizedBox(
-          height: MediaQuery.of(context).size.height * 0.01,
-        ),
+        // SizedBox(
+        //   height: MediaQuery.of(context).size.height * 0.01,
+        // ),
         Text(fechaHora.split(' ')[0]),
-        SizedBox(
-          height: MediaQuery.of(context).size.height * 0.01,
-        ),
+        // SizedBox(
+        //   height: MediaQuery.of(context).size.height * 0.01,
+        // ),
         Text(fechaHora.split(' ')[1])
       ],
     );
@@ -482,30 +484,33 @@ class _PedidoPageState extends State<PedidoPage> {
           orientation: pdf.PageOrientation.landscape,
           pageFormat: PdfPageFormat.a4,
           build: (pdf.Context context) {
-            return pdf.Column(children: [
-              pdf.Row(children: [
-                _logoPdf(context, docPdf),
-                _datosClientePdf(context, listaChecked[i]),
-              ]),
-              pdf.SizedBox(height: 30),
-              pdf.Table.fromTextArray(
-                  data: rowsTabla,
-                  context: context,
-                  headers: [
-                    'Nº',
-                    'Imagen',
-                    'Código',
-                    'Cantidad',
-                    'Descripción',
-                    'Precio sin IVA',
-                    'Descuento',
-                    'Observaciones'
-                  ],
-                  cellAlignment: pdf.Alignment.center,
-                  headerHeight: 50,
-                  headerDecoration: pdf.BoxDecoration(color: PdfColors.grey200),
-                  border: pdf.TableBorder.all())
-            ]);
+            return pdf.Column(
+                mainAxisAlignment: pdf.MainAxisAlignment.center,
+                children: [
+                  pdf.Row(children: [
+                    _logoPdf(context, docPdf),
+                    _datosClientePdf(context, listaChecked[i]),
+                  ]),
+                  pdf.SizedBox(height: 30),
+                  pdf.Table.fromTextArray(
+                      data: rowsTabla,
+                      context: context,
+                      headers: [
+                        'Nº',
+                        'Imagen',
+                        'Código',
+                        'Cantidad',
+                        'Descripción',
+                        'Precio sin IVA',
+                        'Descuento',
+                        'Observaciones'
+                      ],
+                      cellAlignment: pdf.Alignment.center,
+                      headerHeight: 50,
+                      headerDecoration:
+                          pdf.BoxDecoration(color: PdfColors.grey200),
+                      border: pdf.TableBorder.all())
+                ]);
           });
 
       docPdf.addPage(page);

@@ -230,7 +230,8 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
                       arguments: [
                         categoria.descripcion,
                         idCategoria,
-                        widget.modo
+                        widget.modo,
+                        nivelActual
                       ]);
                   //push buscador productos con el idCategoria
                 } else {
@@ -248,21 +249,23 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
               }
             },
             onLongPress: () {
-              if (CatalogoProductosPage.seleccionando == false)
-                CatalogoProductosPage.seleccionando = true;
+              if (widget.modo == 'cotizacion') {
+                if (CatalogoProductosPage.seleccionando == false)
+                  CatalogoProductosPage.seleccionando = true;
 
-              //TODO reemplazar por una query a la DB local
-              final cantItems = _getCantidadItemsCategoria(
-                  categoria.categoriaID, categoria.nivel);
+                //TODO reemplazar por una query a la DB local
+                final cantItems = _getCantidadItemsCategoria(
+                    categoria.categoriaID, categoria.nivel);
 
-              if (!categoria.checked) {
-                categoria.checked = true;
-                CatalogoProductosPage.itemsSelected.add(categoria);
-                CatalogoProductosPage.cantidadItems += cantItems;
+                if (!categoria.checked) {
+                  categoria.checked = true;
+                  CatalogoProductosPage.itemsSelected.add(categoria);
+                  CatalogoProductosPage.cantidadItems += cantItems;
+                }
+
+                widget.notifyParent();
+                setState(() {});
               }
-
-              widget.notifyParent();
-              setState(() {});
             },
             child: Card(
               margin: EdgeInsets.all(size.width * 0.02),
@@ -423,9 +426,10 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
       onPressed: () {
         //TODO que al apretar, funcione
         Navigator.of(context).pushNamed(BuscadorProductoPage.route, arguments: [
-          categoria.descripcion,
-          categoria.categoriaID,
-          widget.modo
+          categoria?.descripcion?.trim(),
+          categoria?.categoriaID,
+          widget.modo,
+          nivelActual - 1
         ]);
       },
       child: Text('Ver Catálogo'),

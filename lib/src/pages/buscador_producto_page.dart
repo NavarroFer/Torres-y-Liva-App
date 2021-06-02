@@ -1,6 +1,7 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:torres_y_liva/src/models/categoria_model.dart';
 import 'package:torres_y_liva/src/models/pedido_model.dart';
 import 'package:torres_y_liva/src/pages/catalogo_productos_page.dart';
 import 'package:torres_y_liva/src/widgets/dialog_box_widget.dart';
@@ -36,13 +37,23 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
 
   String idCategoria;
 
+  int nivelCat = -1;
+
   bool primerFiltro = true;
 
   String pageFrom = '';
 
+  List<String> listaCat = List<String>.empty(growable: true);
+
   @override
   void initState() {
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    primerFiltro = true;
+    super.dispose();
   }
 
   @override
@@ -51,6 +62,7 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
     titulo = arguments[0];
     idCategoria = arguments[1];
     pageFrom = arguments[2];
+    nivelCat = arguments[3];
 
     if (primerFiltro) _filterListaBusqueda();
 
@@ -366,8 +378,13 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
     if (primerFiltro == true) primerFiltro = false;
 
     if (int.parse(idCategoria) > 0) {
+      int cant = 0;
+      listaCat.clear();
+      _getCatHijas(idCategoria, nivelCat);
+      print(listaCat?.asMap());
+
       listaBusqueda.addAll(Productos.productos
-          .where((element) => element?.categoriaID == idCategoria)
+          .where((element) => listaCat.contains(element?.categoriaID))
           .toList());
     } else {
       if (_searchQuery != null && _searchQuery != '') {
@@ -440,5 +457,27 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
 
   List<Widget> _acciones(BuildContext context) {
     return [_editarBusqueda(context), _vistaGrid(context), _opciones(context)];
+  }
+
+  _getCatHijas(String idCategoria, int nivel) {
+    if (nivel >= 0 && nivel < 2) {
+      Categorias.categorias.forEach((categoria) {
+        if (categoria.nivel == nivel + 1 &&
+            categoria.lineaItemParent.toString() == idCategoria) {
+          print('Pase por categoria intermedia: ${categoria.categoriaID}');
+          _getCatHijas(categoria.categoriaID, nivel + 1);
+        }
+      });
+    } else if (nivel == 2) {
+      print('Agregando categoria hoja: $idCategoria');
+      listaCat.add(idCategoria);
+      // Categorias.categorias.forEach((categoria) {
+      //   if (categoria.nivel == 2 &&
+      //       categoria.lineaItemParent.toString() == idCategoria) {
+      //     print('Agregando categoria hoja: ${categoria.categoriaID}');
+      //     listaCat.add(categoria.categoriaID);
+      //   }
+      // });
+    }
   }
 }

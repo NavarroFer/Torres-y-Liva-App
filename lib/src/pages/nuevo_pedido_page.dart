@@ -23,9 +23,14 @@ class _NuevoPedidoPageState extends State<NuevoPedidoPage>
     with TickerProviderStateMixin {
   Pedido pedido;
 
+  MaterialColor color = Colors.red;
+
+  List<Widget> acciones;
+
   @override
   Widget build(BuildContext context) {
     pedido = ModalRoute.of(context).settings.arguments;
+    ItemsPedidoPage.pedido = pedido;
     int _tabIndex = 0;
 
     var tab = TabController(initialIndex: 0, length: 3, vsync: this);
@@ -47,6 +52,7 @@ class _NuevoPedidoPageState extends State<NuevoPedidoPage>
           resizeToAvoidBottomInset: true,
           appBar: AppBar(
             title: Text('Pedido'),
+            backgroundColor: color,
             bottom: TabBar(
               // controller: tab,
               tabs: [
@@ -61,12 +67,16 @@ class _NuevoPedidoPageState extends State<NuevoPedidoPage>
                 ),
               ],
             ),
-            actions: _acciones(context),
+            actions: _getAcciones(context),
           ),
           body: TabBarView(
             children: [
               DatosPedidoPage(pedido),
-              SingleChildScrollView(child: ItemsPedidoPage(pedido)),
+              SingleChildScrollView(child: ItemsPedidoPage(
+                notifyParent: () {
+                  _refresh(context);
+                },
+              )),
               CatalogoProductosPage(
                 modo: 'pedido',
               ),
@@ -108,5 +118,39 @@ class _NuevoPedidoPageState extends State<NuevoPedidoPage>
       _abrirCalculadora(context),
       _guardarPedido(context)
     ];
+  }
+
+  void _refresh(BuildContext context) {
+    _refreshColorAcciones(context);
+    setState(() {});
+  }
+
+  void _refreshColorAcciones(BuildContext context) {
+    if (ItemsPedidoPage.cantChecked > 0) {
+      color = Colors.grey;
+      acciones = _accionesItemsChecked(context);
+    } else {
+      color = Colors.red;
+      acciones = _acciones(context);
+    }
+  }
+
+  List<Widget> _accionesItemsChecked(BuildContext context) {
+    return [_buttonEliminarItems(context)];
+  }
+
+  _getAcciones(BuildContext context) {
+    _refreshColorAcciones(context);
+    return acciones;
+  }
+
+  _buttonEliminarItems(BuildContext context) {
+    return action(context,
+        icon: Icons.delete_forever, onPressed: _eliminarItemsPressed);
+  }
+
+  void _eliminarItemsPressed(BuildContext context) {
+    ItemsPedidoPage.pedido?.items?.removeWhere((element) => element?.checked);
+    setState(() {});
   }
 }
