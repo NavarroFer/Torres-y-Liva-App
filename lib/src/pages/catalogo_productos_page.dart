@@ -231,7 +231,7 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
                         categoria.descripcion,
                         idCategoria,
                         widget.modo,
-                        nivelActual
+                        -1
                       ]);
                   //push buscador productos con el idCategoria
                 } else {

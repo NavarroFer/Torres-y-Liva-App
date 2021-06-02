@@ -459,18 +459,20 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
     return [_editarBusqueda(context), _vistaGrid(context), _opciones(context)];
   }
 
-  _getCatHijas(String idCategoria, int nivel) {
-    if (nivel >= 0 && nivel < 2) {
+  _getCatHijas(String idCat, int nivel) {
+    if (nivel == -1) {
+      listaCat.add(idCategoria);
+    } else if (nivel >= 0 && nivel < 2) {
       Categorias.categorias.forEach((categoria) {
         if (categoria.nivel == nivel + 1 &&
-            categoria.lineaItemParent.toString() == idCategoria) {
-          print('Pase por categoria intermedia: ${categoria.categoriaID}');
+            categoria.lineaItemParent.toString() == idCat) {
+          // print('Pase por categoria intermedia: ${categoria.categoriaID}');
           _getCatHijas(categoria.categoriaID, nivel + 1);
         }
       });
     } else if (nivel == 2) {
-      print('Agregando categoria hoja: $idCategoria');
-      listaCat.add(idCategoria);
+      // print('Agregando categoria hoja: $idCat');
+      listaCat.add(idCat);
       // Categorias.categorias.forEach((categoria) {
       //   if (categoria.nivel == 2 &&
       //       categoria.lineaItemParent.toString() == idCategoria) {
