@@ -7,19 +7,20 @@ import 'package:torres_y_liva/src/pages/catalogo_productos_page.dart';
 import 'package:torres_y_liva/src/pages/cotizacion_page.dart';
 import 'package:torres_y_liva/src/pages/datos_pedido_page.dart';
 import 'package:torres_y_liva/src/pages/home_page.dart';
+import 'package:torres_y_liva/src/pages/pedido_enviado_detail_page.dart';
 import 'package:torres_y_liva/src/pages/pedido_page.dart';
 import 'package:torres_y_liva/src/pages/items_pedido_page.dart';
 import 'package:torres_y_liva/src/pages/login_page.dart';
 import 'package:torres_y_liva/src/pages/nuevo_pedido_page.dart';
 import 'package:torres_y_liva/src/pages/utils/calculator_page.dart';
 import 'package:torres_y_liva/src/pages/utils/geolocator.dart';
+import 'package:torres_y_liva/src/utils/globals.dart';
 
 void main() async {
   runApp(MyApp());
   Position pos = await determinePosition();
   print(pos);
 }
-
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
@@ -33,7 +34,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.red,
       ),
-      initialRoute: LoginPage.route,
+      initialRoute: logged ? HomePage.route : LoginPage.route,
       routes: {
         PedidoPage.route: (context) => PedidoPage(),
         NuevoPedidoPage.route: (context) => NuevoPedidoPage(),
@@ -45,6 +46,7 @@ class MyApp extends StatelessWidget {
         LoginPage.route: (context) => LoginPage(),
         HomePage.route: (context) => HomePage(),
         CotizacionPage.route: (context) => CotizacionPage(),
+        PedidoEnviadoDetailPage.route: (context) => PedidoEnviadoDetailPage(),
       },
     ));
   }

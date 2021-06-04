@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:open_file/open_file.dart';
@@ -8,8 +9,12 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pdf;
 import 'package:share/share.dart';
 import 'package:torres_y_liva/src/models/pedido_model.dart';
+import 'package:torres_y_liva/src/pages/login_page.dart';
 import 'package:torres_y_liva/src/pages/nuevo_pedido_page.dart';
+import 'package:torres_y_liva/src/pages/pedido_enviado_detail_page.dart';
+import 'package:torres_y_liva/src/providers/ventas_provider.dart';
 import 'package:torres_y_liva/src/widgets/base_widgets.dart';
+import 'package:torres_y_liva/src/utils/globals.dart';
 
 import '../models/cliente_model.dart';
 import '../models/producto_model.dart';
@@ -33,68 +38,11 @@ class _PedidoPageState extends State<PedidoPage> {
 
   int _cantChecked = 0;
 
+  int _vista = 0;
+
   @override
   void initState() {
-    final c1 = Cliente(
-        clientId: 16262,
-        nombre: "BAJO JAVIER",
-        domicilio: "PEHUAJO",
-        email: "bajojavier@gmail.com");
-    final c2 = Cliente(
-        clientId: 7283,
-        nombre: "BARUK S.R.L",
-        domicilio: "CALLE 59 ENTRE 520 521 LA PLATA",
-        email: "baruk@gmail.com",
-        telefono: "4673423");
-
-    final c3 = Cliente(
-        clientId: 7284, nombre: "BENITEZ MARCELO", domicilio: "RUTA 88");
-    final p1 = ItemPedido(
-        id: 1,
-        cantidad: 2,
-        precio: 1230,
-        producto: Producto(
-            id: 1, descripcion: 'CUCHARON ALUMINIO 1 PIEZA', precio: 354.85));
-    final p2 = ItemPedido(
-        id: 2,
-        cantidad: 1,
-        precio: 231,
-        producto: Producto(
-            id: 2, descripcion: 'ESPUMADERA ALUM. 1 PIEZA', precio: 336.38));
-    final p3 = ItemPedido(
-        id: 3,
-        cantidad: 2,
-        precio: 200,
-        producto: Producto(
-            id: 3,
-            descripcion: 'CUCHARON ALUMINIO 16CM HOTEL',
-            precio: 570.05));
-    listaPedidos.addAll([
-      Pedido(
-          id: 1,
-          cliente: c1,
-          items: List.of([p1, p2]),
-          iva: p1.precio * 0.21 + p2.precio * 0.21,
-          neto: p1.precio * 0.79 + p2.precio * 0.79,
-          total: p1.precio + p2.precio,
-          fechaPedido: DateTime.now()),
-      Pedido(
-          id: 2,
-          cliente: c2,
-          items: List.of([p2, p3]),
-          iva: p3.precio * 0.21 + p2.precio * 0.21,
-          neto: p3.precio * 0.79 + p2.precio * 0.79,
-          total: p3.precio + p2.precio,
-          fechaPedido: DateTime.now()),
-      Pedido(
-          id: 3,
-          cliente: c3,
-          items: List.of([p1, p2, p3]),
-          iva: p1.precio * 0.21 + p2.precio * 0.21 + p3.precio * 0.21,
-          neto: p1.precio * 0.79 + p2.precio * 0.79 + p3.precio * 0.79,
-          total: p1.precio + p2.precio + p3.precio,
-          fechaPedido: DateTime.now()),
-    ]);
+    listaPedidos.addAll(_initListaPedidosSinEnviar());
 
     listaPedidosShow.addAll(listaPedidos);
     super.initState();
@@ -107,11 +55,7 @@ class _PedidoPageState extends State<PedidoPage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: _cantChecked > 0 ? Colors.grey : Colors.red,
-        leading: _buscando
-            ? _buttonArrowWhileSearch(context)
-            : _cantChecked > 0
-                ? _buttonCheckedWhileSelecting(context)
-                : _buttonBack(context),
+        leading: _leading(context),
         title: _titleAppBar(context),
         actions: _acciones(context),
       ),
@@ -148,7 +92,13 @@ class _PedidoPageState extends State<PedidoPage> {
   }
 
   Widget _nuevoPedido(BuildContext context) {
-    return action(context, icon: Icons.add, onPressed: _nuevoPedidoPressed);
+    return action(
+      context,
+      icon: Icons.add,
+      onPressed: (context) {
+        _nuevoPedidoPressed(context, _vista);
+      },
+    );
   }
 
   void _startSearch(BuildContext context) {
@@ -199,19 +149,19 @@ class _PedidoPageState extends State<PedidoPage> {
                 _actualizarPressed();
                 break;
               case 1:
-                _enviarPedidosPressed();
+                _enviarPedidosPressed(context);
                 break;
               case 2:
-                _pedidosEnviadosPressed();
+                _pedidosEnviadosPressed(context);
                 break;
               case 3:
-                _cotizacionesPressed();
+                _cotizacionesPressed(context);
                 break;
               case 4:
                 _calculadoraPressed(context);
                 break;
               case 5:
-                _cerrarSesionPressed();
+                _cerrarSesionPressed(context);
                 break;
               default:
             }
@@ -228,23 +178,49 @@ class _PedidoPageState extends State<PedidoPage> {
         ));
   }
 
-  void _nuevoPedidoPressed(BuildContext context) {
-    Navigator.pushNamed(context, NuevoPedidoPage.route, arguments: null);
+  void _nuevoPedidoPressed(BuildContext context, int vista) {
+    Navigator.of(context)
+        .pushNamed(NuevoPedidoPage.route, arguments: [null, vista]);
   }
 
   void _actualizarPressed() {}
 
-  void _enviarPedidosPressed() {}
+  void _enviarPedidosPressed(BuildContext context) async {
+    final ventasProvider = VentasProvider();
 
-  void _pedidosEnviadosPressed() {}
+    final enviados = await ventasProvider
+        .enviarPedidos(tokenEmpresa, usuario.tokenWs, this.listaPedidos)
+        .then((value) {
+      if (value) {
+        mostrarSnackbar('Pedidos enviados correctamente', context);
+      } else {
+        mostrarSnackbar('No se han enviados los pedidos', context);
+      }
+    }).onError((error, stackTrace) {
+      mostrarSnackbar(error.toString(), context);
+    });
+  }
 
-  void _cotizacionesPressed() {}
+  void _pedidosEnviadosPressed(BuildContext context) {
+    _vista = 1; //enviados
+    setState(() {});
+    // Navigator.of(context).pushNamed(PedidosEnviadosPage.route);
+  }
+
+  void _cotizacionesPressed(BuildContext context) {
+    _vista = 2; //cotizaciones
+    setState(() {});
+  }
 
   void _calculadoraPressed(BuildContext context) {
     Navigator.of(context).pushNamed(CalculatorPage.route);
   }
 
-  void _cerrarSesionPressed() {}
+  void _cerrarSesionPressed(BuildContext context) {
+    logged = false;
+    Navigator.of(context).pushNamedAndRemoveUntil(
+        LoginPage.route, (Route<dynamic> route) => false);
+  }
 
   Widget _titleAppBar(BuildContext context) {
     if (_buscando) {
@@ -257,25 +233,60 @@ class _PedidoPageState extends State<PedidoPage> {
           style: TextStyle(color: Colors.white, fontSize: 16.0),
           onChanged: (query) => updateSearchQuery(query));
     } else {
-      return Text('Pedidos');
+      switch (_vista) {
+        case 0:
+          return Text('Pedidos');
+          break;
+        case 1:
+          return Text('Pedidos Enviados');
+          break;
+        case 2:
+          return Text('Cotizaciones');
+          break;
+        default:
+          return Text('Pedidos');
+      }
     }
   }
 
   Widget _body(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    listaPedidosShow.clear();
+
+    listaPedidosShow.addAll(_getPedidosSegunVista());
     if (listaPedidosShow.length > 0) {
       return _gridPedidos(context);
     } else {
-      return Center(
-          child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                  minimumSize: Size(size.width * 0.001, size.height * 0.06)),
-              onPressed: () => _nuevoPedidoPressed(context),
-              child: Text(
-                'Crear Pedido',
-                textScaleFactor: size.height * 0.0025,
-              )));
+      switch (_vista) {
+        case Pedido.ESTADO_SIN_ENVIAR:
+          return _bottonNuevoPedidoCotizacion(size, context);
+          break;
+        case Pedido.ESTADO_ENVIADO:
+          return Center(
+              child: AutoSizeText(
+            'No hay pedidos enviados',
+            minFontSize: (size.width * 0.07).floorToDouble(),
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ));
+          break;
+        case Pedido.ESTADO_COTIZADO:
+          return _bottonNuevoPedidoCotizacion(size, context);
+          break;
+        default:
+      }
     }
+  }
+
+  Center _bottonNuevoPedidoCotizacion(Size size, BuildContext context) {
+    return Center(
+        child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+                minimumSize: Size(size.width * 0.001, size.height * 0.06)),
+            onPressed: () => _nuevoPedidoPressed(context, _vista),
+            child: Text(
+              _vista == 0 ? 'Crear Pedido' : 'Crear Cotización',
+              textScaleFactor: size.height * 0.0025,
+            )));
   }
 
   Widget _gridPedidos(BuildContext context) {
@@ -299,8 +310,13 @@ class _PedidoPageState extends State<PedidoPage> {
     listaPedidosShow.forEach((pedido) {
       var dataRow = DataRow(
           onSelectChanged: (value) {
-            Navigator.of(context)
-                .pushNamed(NuevoPedidoPage.route, arguments: pedido);
+            if (_vista == 1) {
+              Navigator.of(context)
+                  .pushNamed(PedidoEnviadoDetailPage.route, arguments: pedido);
+            } else {
+              Navigator.of(context).pushNamed(NuevoPedidoPage.route,
+                  arguments: [pedido, _vista]);
+            }
           },
           cells: [
             _datosCliente(context, pedido, pedido.cliente.nombre,
@@ -363,19 +379,36 @@ class _PedidoPageState extends State<PedidoPage> {
   }
 
   List<Widget> _acciones(BuildContext context) {
-    if (_cantChecked > 0)
-      return [
-        _eliminarPedidos(context),
-        _convertirACotizaciones(context),
-        _toPDF(context),
-        _toPDFShare(context)
-      ];
-    else
-      return [
-        _buscarPedido(context),
-        _nuevoPedido(context),
-        _opciones(context)
-      ];
+    switch (_vista) {
+      case 0:
+        if (_cantChecked > 0)
+          return [
+            _eliminarPedidos(context),
+            _convertirACotizaciones(context),
+            _toPDF(context),
+            _toPDFShare(context)
+          ];
+        else
+          return [
+            _buscarPedido(context),
+            _nuevoPedido(context),
+            _opciones(context)
+          ];
+        break;
+      case 1:
+        return [
+          _buscarPedido(context),
+        ];
+        break;
+      case 2:
+        return [
+          _buscarPedido(context),
+          _nuevoPedido(context),
+        ];
+        break;
+      default:
+        return [];
+    }
   }
 
   Widget _convertirACotizaciones(BuildContext context) {
@@ -628,5 +661,123 @@ class _PedidoPageState extends State<PedidoPage> {
     return IconButton(
         icon: Icon(Icons.arrow_back, color: Colors.white),
         onPressed: () => {Navigator.of(context).pop()});
+  }
+
+  _leading(BuildContext context) {
+    switch (_vista) {
+      case 0:
+        return _buscando
+            ? _buttonArrowWhileSearch(context)
+            : _cantChecked > 0
+                ? _buttonCheckedWhileSelecting(context)
+                : _buttonBack(context);
+        break;
+      case 1:
+        return _buscando
+            ? _buttonArrowWhileSearch(context)
+            : _buttonBackPedidos(context);
+        break;
+      case 2:
+        return _buscando
+            ? _buttonArrowWhileSearch(context)
+            : _buttonBackPedidos(context);
+        break;
+      default:
+    }
+  }
+
+  _buttonBackPedidos(BuildContext context) {
+    return IconButton(
+        icon: Icon(Icons.arrow_back, color: Colors.white),
+        onPressed: () {
+          _vista = 0;
+          setState(() {});
+        });
+  }
+
+  List<Pedido> _getPedidosSegunVista() {
+    final List<Pedido> lista = List<Pedido>.empty(growable: true);
+    switch (_vista) {
+      case Pedido.ESTADO_SIN_ENVIAR:
+        //TODO hacer un select en la base de datos de los pedidos sin enviar
+        return _initListaPedidosSinEnviar();
+        break;
+      case Pedido.ESTADO_ENVIADO:
+        //TODO hacer un select en la base de datos de los pedidos enviados
+        return _initListaPedidosSinEnviar();
+        break;
+      case Pedido.ESTADO_COTIZADO:
+        //TODO hacer un select en la base de datos de los pedidos cotizados
+        return _initListaPedidosSinEnviar();
+        break;
+      default:
+        return [];
+    }
+  }
+
+  List<Pedido> _initListaPedidosSinEnviar() {
+    List<Pedido> lista = List<Pedido>.empty(growable: true);
+    final c1 = Cliente(
+        clientId: 16262,
+        nombre: "BAJO JAVIER",
+        domicilio: "PEHUAJO",
+        email: "bajojavier@gmail.com");
+    final c2 = Cliente(
+        clientId: 7283,
+        nombre: "BARUK S.R.L",
+        domicilio: "CALLE 59 ENTRE 520 521 LA PLATA",
+        email: "baruk@gmail.com",
+        telefono: "4673423");
+
+    final c3 = Cliente(
+        clientId: 7284, nombre: "BENITEZ MARCELO", domicilio: "RUTA 88");
+    final p1 = ItemPedido(
+        id: 1,
+        cantidad: 2,
+        precio: 1230,
+        producto: Producto(
+            id: 1, descripcion: 'CUCHARON ALUMINIO 1 PIEZA', precio: 354.85));
+    final p2 = ItemPedido(
+        id: 2,
+        cantidad: 1,
+        precio: 231,
+        producto: Producto(
+            id: 2, descripcion: 'ESPUMADERA ALUM. 1 PIEZA', precio: 336.38));
+    final p3 = ItemPedido(
+        id: 3,
+        cantidad: 2,
+        precio: 200,
+        producto: Producto(
+            id: 3,
+            descripcion: 'CUCHARON ALUMINIO 16CM HOTEL',
+            precio: 570.05));
+    lista.addAll([
+      Pedido(
+          id: 1,
+          cliente: c1,
+          items: List.of([p1, p2]),
+          iva: p1.precio * 0.21 + p2.precio * 0.21,
+          neto: p1.precio * 0.79 + p2.precio * 0.79,
+          total: p1.precio + p2.precio,
+          fechaPedido: DateTime.now()),
+      Pedido(
+          id: 2,
+          cliente: c2,
+          items: List.of([p2, p3]),
+          iva: p3.precio * 0.21 + p2.precio * 0.21,
+          neto: p3.precio * 0.79 + p2.precio * 0.79,
+          total: p3.precio + p2.precio,
+          fechaPedido: DateTime.now()),
+      Pedido(
+          id: 3,
+          cliente: c3,
+          items: List.of([p1, p2, p3]),
+          iva: p1.precio * 0.21 + p2.precio * 0.21 + p3.precio * 0.21,
+          neto: p1.precio * 0.79 + p2.precio * 0.79 + p3.precio * 0.79,
+          total: p1.precio + p2.precio + p3.precio,
+          fechaPedido: DateTime.now()),
+    ]);
+
+    return lista;
   }
 }

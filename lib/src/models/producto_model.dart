@@ -27,17 +27,16 @@ class Productos {
 
 class Producto {
   String code; //
-  String descripcion; //
-  String nombre;
+  String descripcion = ''; //
+  String nombre = '';
   int id; //
-  double precio; //
+  double precio = 0; //
   bool disabled;
   DateTime lastUpdate;
   DateTime priceChangeDate;
   double stock; //
   bool hasAsterisk;
   int prv;
-  int cxb;
   DateTime lastBuyDate;
   List<String> barCodes;
   double iva;
@@ -66,7 +65,6 @@ class Producto {
       this.nombre,
       this.barCodes,
       this.code,
-      this.cxb,
       this.descripcion,
       this.disabled,
       this.descuento,

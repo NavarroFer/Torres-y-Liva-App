@@ -8,6 +8,8 @@ Usuario usuario;
 List<Cliente> clientesDelVendedor;
 int idCliente;
 
+bool logged = false;
+
 //////////// Constantes respuesta WS ////////////
 
 class Respuesta {

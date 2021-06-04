@@ -24,6 +24,13 @@ Widget totalesVenta(BuildContext context) {
   );
 }
 
+void mostrarSnackbar(String mensaje, BuildContext c) {
+  final snackbar = SnackBar(
+    content: Text(mensaje),
+    duration: Duration(milliseconds: 1500),
+  );
+}
+
 Widget _columnaTotal(BuildContext context, String titulo, double importe) {
   final size = MediaQuery.of(context).size;
 
@@ -40,4 +47,3 @@ Widget _columnaTotal(BuildContext context, String titulo, double importe) {
     ],
   );
 }
-

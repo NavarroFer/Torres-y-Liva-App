@@ -21,6 +21,8 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   bool _ingresando = false;
 
+  FocusNode passwordFocusNode = new FocusNode();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -175,6 +177,9 @@ class _LoginPageState extends State<LoginPage> {
         return Container(
           padding: EdgeInsets.symmetric(horizontal: 30.0),
           child: TextField(
+            onSubmitted: (value) {
+              FocusScope.of(context).requestFocus(passwordFocusNode);
+            },
             keyboardType: TextInputType.text,
             decoration: InputDecoration(
               icon: Icon(MdiIcons.accountCircleOutline,
@@ -201,6 +206,7 @@ class _LoginPageState extends State<LoginPage> {
           padding: EdgeInsets.symmetric(horizontal: 30.0),
           child: TextField(
             obscureText: true,
+            focusNode: passwordFocusNode,
             onSubmitted: (v) {
               _login(bloc, context);
             },
@@ -272,6 +278,7 @@ class _LoginPageState extends State<LoginPage> {
         .login(bloc.usuario, bloc.password, tokenEmpresa)
         .then((value) async {
       if (value == true) {
+        logged = true;
         final clientesProvider = ClientesProvider();
         clientesDelVendedor = await clientesProvider.getClientes(
             tokenEmpresa, usuario.tokenWs, usuario.vendedorID);
@@ -290,6 +297,7 @@ class _LoginPageState extends State<LoginPage> {
       } else {
         setState(() {
           _ingresando = false;
+          logged = false;
         });
         print('Login incorrecto');
       }

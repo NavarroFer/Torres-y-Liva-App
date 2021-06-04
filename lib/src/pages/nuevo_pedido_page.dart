@@ -27,22 +27,31 @@ class _NuevoPedidoPageState extends State<NuevoPedidoPage>
 
   List<Widget> acciones;
 
+  int _index = 0;
+
+  List<Object> arguments;
+
   @override
   Widget build(BuildContext context) {
-    pedido = ModalRoute.of(context).settings.arguments;
+    arguments = ModalRoute.of(context).settings.arguments;
+    pedido = arguments[0];
+    int vista = arguments[1];
     ItemsPedidoPage.pedido = pedido;
     int _tabIndex = 0;
 
-    var tab = TabController(initialIndex: 0, length: 3, vsync: this);
+    var tab = TabController(
+      initialIndex: 0,
+      length: 3,
+      vsync: this,
+    );
 
     void _handleTabSelection() {
       setState(() {
-        if (tab.index != 0 && NuevoPedidoPage.clienteSeleccionado == false)
-          tab.index = _tabIndex;
-        else
-          tab.index = tab.index;
+        tab.animateTo(2);
       });
     }
+
+    tab.addListener(_handleTabSelection);
 
     // tab.addListener(_handleTabSelection);
     return DefaultTabController(
@@ -51,7 +60,7 @@ class _NuevoPedidoPageState extends State<NuevoPedidoPage>
         child: Scaffold(
           resizeToAvoidBottomInset: true,
           appBar: AppBar(
-            title: Text('Pedido'),
+            title: vista == 2 ? Text('Cotizacion') : Text('Pedido'),
             backgroundColor: color,
             bottom: TabBar(
               // controller: tab,
@@ -70,6 +79,10 @@ class _NuevoPedidoPageState extends State<NuevoPedidoPage>
             actions: _getAcciones(context),
           ),
           body: TabBarView(
+            // controller: tab,
+            physics: NuevoPedidoPage.clienteSeleccionado
+                ? AlwaysScrollableScrollPhysics()
+                : NeverScrollableScrollPhysics(),
             children: [
               DatosPedidoPage(pedido),
               SingleChildScrollView(child: ItemsPedidoPage(

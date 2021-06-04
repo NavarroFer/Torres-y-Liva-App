@@ -7,6 +7,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pdf;
 import 'package:share/share.dart';
+import 'package:torres_y_liva/src/models/producto_model.dart';
+import 'package:torres_y_liva/src/pages/buscador_producto_page.dart';
 import 'package:torres_y_liva/src/pages/catalogo_productos_page.dart';
 
 class CotizacionPage extends StatefulWidget {
@@ -87,8 +89,56 @@ class _CotizacionPageState extends State<CotizacionPage> {
     //generar PDF cotizacion
     final pdf.Document docpdf = pdf.Document();
 
-    var i = 0; //index pedido
+    var j = 0; //index pedido
 
+    final rowsTabla = List<List<dynamic>>.filled(0, null, growable: true);
+    CatalogoProductosPage.itemsSelected.forEach((item) {
+      //Agregar filas a la tabla
+
+      if (item.runtimeType == Producto) {
+        rowsTabla.add(List.from([
+          (j++).toString(),
+          'IMAGEN',
+          '${item.producto.id ?? ''}',
+          '${item.cantidad ?? '0'}',
+          '${item.producto.nombre ?? 'Sin descripcion'}',
+          '\$ ${item.precio.toStringAsFixed(2) ?? '\$ 0.00'}',
+          '${item.descuento ?? '0,00 %'}',
+          '${item.observacion ?? ''}',
+        ]));
+      }
+    });
+
+    var multipage = pdf.MultiPage(
+      pageFormat: PdfPageFormat.a4,
+      orientation: pdf.PageOrientation.landscape,
+      build: (context) {
+        return [
+          pdf.Column(children: [
+            pdf.Column(children: [
+              pdf.Text('Ejemplo cotizacion'),
+            ]),
+            pdf.Table.fromTextArray(
+                data: rowsTabla,
+                context: context,
+                headers: [
+                  'Nº',
+                  'Imagen',
+                  'Código',
+                  'Cantidad',
+                  'Descripción',
+                  'Precio sin IVA',
+                  'Descuento',
+                  'Observaciones'
+                ],
+                cellAlignment: pdf.Alignment.center,
+                headerHeight: 50,
+                headerDecoration: pdf.BoxDecoration(color: PdfColors.grey200),
+                border: pdf.TableBorder.all())
+          ])
+        ];
+      },
+    );
     var page = pdf.Page(
         orientation: pdf.PageOrientation.landscape,
         pageFormat: PdfPageFormat.a4,
@@ -96,7 +146,7 @@ class _CotizacionPageState extends State<CotizacionPage> {
           return pdf.Center(child: pdf.Text('COTIZACION DE PRODUCTOS'));
         });
 
-    docpdf.addPage(page);
+    docpdf.addPage(multipage);
 
     final String dir = (await getApplicationDocumentsDirectory()).path;
     final String path = '$dir/cotizacion_${DateTime.now()}.pdf';

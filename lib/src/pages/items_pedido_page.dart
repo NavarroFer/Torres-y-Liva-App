@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,6 +8,7 @@ import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:torres_y_liva/src/models/pedido_model.dart';
 import 'package:torres_y_liva/src/models/producto_model.dart';
 import 'package:torres_y_liva/src/pages/buscador_producto_page.dart';
+import 'package:torres_y_liva/src/widgets/dialog_box_widget.dart';
 
 import '../widgets/base_widgets.dart';
 
@@ -39,15 +41,14 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
 
   GlobalKey key = new GlobalKey<AutoCompleteTextFieldState<Producto>>();
 
-  // @override
-  // void initState() {
-  //   pedido = widget.pedido;
-  //   super.initState();
-  // }
+  FocusNode cantidadFocusNode = new FocusNode();
+  FocusNode descuentoFocusNode = new FocusNode();
+
+  final styleProduct = TextStyle(fontWeight: FontWeight.bold);
 
   @override
   void dispose() {
-    ItemsPedidoPage.pedido.items.forEach((element) {
+    ItemsPedidoPage.pedido?.items?.forEach((element) {
       element.checked = false;
     });
     ItemsPedidoPage.cantChecked = 0;
@@ -60,6 +61,10 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
       mainAxisSize: MainAxisSize.min,
       children: [
         _gridProductos(context),
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 0.02,
+        ),
+        _productoActual(context),
         SizedBox(
           height: MediaQuery.of(context).size.height * 0.02,
         ),
@@ -80,16 +85,18 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
     return Container(
         height: size.height * 0.55,
         width: double.infinity,
-        child: DataTable(
-            columnSpacing: size.width * 0.04,
-            columns: [
-              DataColumn(label: Text('CÓDIGO')),
-              DataColumn(label: Text('CANT.')),
-              DataColumn(label: Text('DESCRIPCIÓN')),
-              DataColumn(label: Text('PRECIO'))
-            ],
-            rows: _rowsItems(context)) // cada fila un producto agregado,
-        );
+        child: SingleChildScrollView(
+            // constrained: false,
+            child: DataTable(
+                columnSpacing: size.width * 0.04,
+                columns: [
+                  DataColumn(label: Text('CÓDIGO')),
+                  DataColumn(label: Text('CANT.')),
+                  DataColumn(label: Text('DESCRIPCIÓN')),
+                  DataColumn(label: Text('PRECIO'))
+                ],
+                rows: _rowsItems(context)) // cada fila un producto agregado,
+            ));
   }
 
   List<DataRow> _rowsItems(BuildContext context) {
@@ -98,8 +105,13 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
       var dataRow = DataRow(cells: [
         DataCell(Row(
             children: [_checkBox(context, item), Text(item.id.toString())])),
-        DataCell(Text(item.cantidad.toString())),
-        DataCell(Text(item.producto.descripcion)),
+        DataCell(Text(item?.cantidad.toString() ?? '')),
+        DataCell(GestureDetector(
+          child: Text(item?.producto?.descripcion ?? ''),
+          onTap: () {
+            _onItemTap(item);
+          },
+        )),
         DataCell(Text(
           '\$${item.precio.toStringAsFixed(2)}',
           textScaleFactor: MediaQuery.of(context).size.width * 0.003,
@@ -135,7 +147,7 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
         SizedBox(
           width: size.width * 0.03,
         ),
-        _inputText('Cód.', _codController, null, TextInputType.number,
+        _inputText(null, 'Cód.', _codController, null, TextInputType.number,
             height: size.height * 0.06, width: size.width * 0.18),
         SizedBox(
           width: size.width * 0.02,
@@ -179,7 +191,7 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
         },
         itemBuilder: (context, suggestion) {
           return ListTile(
-            title: Text(suggestion.descripcion),
+            title: Text(suggestion.descripcion ?? ''),
             subtitle: Text(suggestion.getInfoFormatted()),
           );
         },
@@ -193,12 +205,12 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
                 minHeight: size.height * 0.05, minWidth: size.width * 0.9)),
         autoFlipDirection: true,
         onSuggestionSelected: (suggestion) {
-          _typeAheadController.text = suggestion.descripcion;
-          _codController.text = suggestion.id.toString();
+          _typeAheadController.text = suggestion?.descripcion ?? '';
+          _codController.text = suggestion?.id.toString() ?? '';
           _productoSelected = suggestion;
 
           //FOCUS A CANTIDAD
-
+          FocusScope.of(context).requestFocus(cantidadFocusNode);
           setState(() {});
         },
         validator: (value) {},
@@ -235,8 +247,8 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
         ));
   }
 
-  Widget _inputText(String s, TextEditingController controller, IconData icon,
-      TextInputType inputType,
+  Widget _inputText(FocusNode focus, String s, TextEditingController controller,
+      IconData icon, TextInputType inputType,
       {double height, double width}) {
     return Expanded(
       child: Container(
@@ -245,6 +257,7 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
         decoration:
             BoxDecoration(borderRadius: BorderRadius.all(Radius.circular(20))),
         child: TextField(
+          focusNode: focus,
           controller: controller,
           keyboardType: inputType,
           onSubmitted: (value) {
@@ -255,7 +268,7 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
             } else if (controller == _dtoController) {
               _submittedDto();
             } else if (controller == _cantController) {
-              _submittedCant();
+              _submittedCant(double.tryParse(value));
             }
           },
           style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.02),
@@ -279,17 +292,20 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
         SizedBox(
           width: size.width * 0.03,
         ),
-        _inputText('Observaciones', _obsController, null, TextInputType.text,
+        _inputText(
+            null, 'Observaciones', _obsController, null, TextInputType.text,
             height: size.height * 0.08, width: size.width * 0.55),
         SizedBox(
           width: size.width * 0.02,
         ),
-        _inputText('Dto.', _dtoController, null, TextInputType.number,
+        _inputText(descuentoFocusNode, 'Dto.', _dtoController, null,
+            TextInputType.number,
             height: size.height * 0.08, width: size.width * 0.16),
         SizedBox(
           width: size.width * 0.02,
         ),
-        _inputText('Cant.', _cantController, null, TextInputType.number,
+        _inputText(cantidadFocusNode, 'Cant.', _cantController, null,
+            TextInputType.number,
             height: size.height * 0.08, width: size.width * 0.17),
         SizedBox(
           width: size.width * 0.03,
@@ -406,30 +422,125 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
     int id = int.parse(value);
 
     if (id != null) {
-      final producto = Productos.productos
-          .firstWhere((element) => element.id == int.parse(value));
+      final producto = Productos.productos.firstWhere(
+        (element) => element.id == int.parse(value),
+        orElse: () => null,
+      );
 
       _productoSelected = producto;
 
       if (_productoSelected != null) {
         //FOCUS A CANTIDAD
+        FocusScope.of(context).requestFocus(cantidadFocusNode);
 
         setState(() {});
       } else {
         // SNACKBAR producto no encontrado
+        mostrarSnackbar('Producto no encontrado', context);
       }
     }
   }
 
   void _submittedObs() {
     //FOCUS DESCUENTO
+    FocusScope.of(context).requestFocus(descuentoFocusNode);
   }
 
   void _submittedDto() {
     //FOCUS CANTIDAD
+    FocusScope.of(context).requestFocus(cantidadFocusNode);
   }
 
-  void _submittedCant() {
+  void _submittedCant(double value) {
     // agregar producto
+    ItemsPedidoPage.pedido?.items?.add(ItemPedido(
+        cantidad: value,
+        descuento: double.tryParse(_dtoController.text),
+        id: ItemsPedidoPage.pedido?.items?.last?.id + 1,
+        precio: _productoSelected.precio,
+        producto: _productoSelected,
+        fraccion: 1.0,
+        precioTotal: _productoSelected.precio * value));
+
+    _codController.text = '';
+    _typeAheadController.text = '';
+    _productoSelected = null;
+    _obsController.text = '';
+    _dtoController.text = '';
+    _cantController.text = '';
+
+    setState(() {});
+  }
+
+  _productoActual(BuildContext context) {
+    if (_productoSelected == null) return Container();
+    return Column(
+      children: [
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 0.02,
+        ),
+        Row(
+          children: [
+            Expanded(
+              child: AutoSizeText(
+                _productoSelected.descripcion,
+                maxLines: 2,
+                textAlign: TextAlign.center,
+                style: styleProduct,
+              ),
+            ),
+            SizedBox(
+              width: MediaQuery.of(context).size.width * 0.02,
+            ),
+            Expanded(
+                child: AutoSizeText(
+              "CxB: ${_productoSelected.cantidadPack ?? '1'} - STOCK: ${_productoSelected.stock}",
+              style: styleProduct,
+            )),
+          ],
+        )
+      ],
+    );
+  }
+
+  void _onItemTap(ItemPedido item) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return CustomDialogBox(
+            title: item.producto.descripcion,
+            descriptions:
+                "\$ ${item.producto?.precio?.toStringAsFixed(2)} - Stock: ${item.producto?.stock?.toStringAsFixed(2)}",
+            textBtn1: "Cancelar",
+            textBtn2: "Aceptar",
+            img: Image.asset('assets/img/ic_launcher_round.png'),
+          );
+        }).then((value) {
+      if (value != null) {
+        final cant = value[0];
+        final obs = value[1];
+
+        // ItemsPedidoPage.pedido?.items?.remove(item);
+
+        final itemPedido = ItemPedido(
+            cantidad: cant,
+            observacion: obs,
+            detalle: item.producto.descripcion,
+            descuento: 0,
+            producto: item.producto,
+            productoID: item.producto.id,
+            precio: item.producto.precio * 0.79,
+            precioTotal: item.producto.precio,
+            fraccion: 0.0,
+            id: item.id,
+            iva: item.producto.precio * 0.21,
+            pedidoID: 23);
+
+        ItemsPedidoPage.pedido?.items[ItemsPedidoPage.pedido?.items
+            ?.indexWhere((element) => element.id == item.id)] = itemPedido;
+
+        setState(() {});
+      }
+    });
   }
 }

@@ -4,6 +4,7 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 import 'package:torres_y_liva/src/models/categoria_model.dart';
 import 'package:torres_y_liva/src/models/pedido_model.dart';
 import 'package:torres_y_liva/src/pages/catalogo_productos_page.dart';
+import 'package:torres_y_liva/src/pages/items_pedido_page.dart';
 import 'package:torres_y_liva/src/widgets/dialog_box_widget.dart';
 
 import '../models/producto_model.dart';
@@ -298,7 +299,7 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
             precio: producto.precio * 0.79,
             precioTotal: producto.precio,
             fraccion: 0.0,
-            id: 241,
+            id: ItemsPedidoPage.pedido?.items?.last?.id + 1,
             iva: producto.precio * 0.21,
             pedidoID: 23);
 

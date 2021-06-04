@@ -33,14 +33,14 @@ class ItemPedido {
       this.pedidoID});
 
   Map toJson() => {
-        'itemID': this.id?.toString(),
-        'cantidad': this.cantidad?.toString(),
-        'fraccion': this.fraccion?.toString(),
-        'precio': this.precio?.toString(),
-        'descuento': this.descuento?.toString(),
-        'precioTotal': this.precioTotal?.toString(),
-        'detalle': this.detalle?.toString(),
-        'listaPrecios': this.listaPrecios?.toString()
+        'itemID': this.id ?? 0,
+        'cantidad': this.cantidad ?? 0,
+        'fraccion': this.fraccion ?? 0,
+        'precio': this.precio ?? 0,
+        'descuento': this.descuento ?? 0,
+        'precioTotal': this.precioTotal ?? 0,
+        // 'detalle': this.detalle ?? '',
+        'listaPrecios': this.listaPrecios ?? 1
       };
 
   ItemPedido.fromJsonMap(Map<String, dynamic> json) {
@@ -71,13 +71,17 @@ class Pedidos {
 }
 
 class Pedido {
+  static const ESTADO_SIN_ENVIAR = 0;
+  static const ESTADO_ENVIADO = 1;
+  static const ESTADO_COTIZADO = 2;
+  int estado = ESTADO_SIN_ENVIAR;
   int id;
   int usuarioWebId;
   int clienteID;
   int domicilioClienteID;
   int operadorID;
   Cliente cliente;
-  List<ItemPedido> items;
+  List<ItemPedido> items = List<ItemPedido>.empty(growable: true);
   double total;
   double neto;
   double iva;
@@ -132,17 +136,17 @@ class Pedido {
       this.totalPedido});
 
   Map toJson() => {
-        'usuarioWebID': this.usuarioWebId?.toString(),
-        'clienteID': this.cliente.id?.toString(),
-        'domicilioClienteID': this.cliente?.domicilioID?.toString(),
-        'domicilioDespacho': this.cliente.domicilio,
-        'descuento': this.descuento?.toString(),
+        'usuarioWebID': this.usuarioWebId ?? 0,
+        'clienteID': this.cliente.id ?? 0,
+        'domicilioClienteID': this.cliente?.domicilioID ?? 0,
+        'domicilioDespacho': this.cliente.domicilio ?? '',
+        'descuento': this.descuento ?? 0,
         'fechaPedido':
-            fechaPedido.microsecondsSinceEpoch, // Creo que va en segundos
+            fechaPedido.microsecondsSinceEpoch ?? 0, // Creo que va en segundos
         'fechaAltaMovil': 0.toString(),
-        'observaciones': this.observaciones,
-        'listaPrecios': this.cliente?.priceList?.toString(),
-        'telefonoContacto': this.cliente?.telefonoCel?.toString(),
+        'observaciones': this.observaciones ?? '',
+        'listaPrecios': this.cliente?.priceList ?? 1,
+        'telefonoContacto': this.cliente?.telefonoCel ?? '',
         'itemsPedidos': this.items.map((e) => e.toJson()).toList()
       };
 

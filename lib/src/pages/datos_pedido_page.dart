@@ -89,8 +89,10 @@ class _DatosPedidoPageState extends State<DatosPedidoPage> {
       items: items,
       value: items
               .firstWhere(
-                  (element) => element?.value?.clientId == selectedValueCliente)
-              .value ??
+                (element) => element?.value?.clientId == selectedValueCliente,
+                orElse: () => null,
+              )
+              ?.value ??
           null,
       hint: "Selecciona un cliente",
       searchHint: "Busca un cliente",

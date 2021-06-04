@@ -10,7 +10,13 @@ class VentasProvider {
       String tokenEmpesa, String tokenCliente, List<Pedido> pedidos) async {
     var enviado = false;
     pedidos.forEach((pedido) async {
-      enviado = await enviarPedido(tokenEmpesa, tokenCliente, pedido);
+      enviado = await enviarPedido(tokenEmpesa, tokenCliente, pedido)
+          .onError((error, stackTrace) {
+        return false;
+      });
+
+      var a = 2;
+      a++;
     });
 
     return enviado;
@@ -22,12 +28,17 @@ class VentasProvider {
 
     final url = Uri.http(urlServer, path);
     try {
-      final body = pedido.toJson();
+      final pedidoJSON = pedido.toJson();
+      final body = {
+        'tokenEmpresa': tokenEmpresa,
+        'tokenCliente': '3d06d3cc-00ab-4b29-932f-7936f89b880d',
+        'pedido': pedidoJSON
+      };
       final resp = await http
           .post(
             url,
             headers: {"Content-Type": "application/x-www-form-urlencoded"},
-            body: body,
+            body: json.encode(body),
           )
           .timeout(Duration(seconds: 10));
       final decodedData = jsonDecode(resp.body);
@@ -36,7 +47,8 @@ class VentasProvider {
       if (respuesta.success)
         return decodedData['success'] == true;
       else
-        return Future.error(respuesta.mensaje);
+        return false;
+      // return Future.error(respuesta.mensaje);
     } on TimeoutException {
       return false;
     } on Exception {
