@@ -40,9 +40,13 @@ class _PedidoPageState extends State<PedidoPage> {
 
   int _vista = 0;
 
+  bool _listaInit = false;
+
   @override
   void initState() {
-    listaPedidos.addAll(_initListaPedidosSinEnviar());
+    _initListaPedidosSinEnviar();
+
+    _listaInit = true;
 
     listaPedidosShow.addAll(listaPedidos);
     super.initState();
@@ -158,11 +162,12 @@ class _PedidoPageState extends State<PedidoPage> {
                 _cotizacionesPressed(context);
                 break;
               case 4:
-                _calculadoraPressed(context);
-                break;
-              case 5:
+                // _calculadoraPressed(context);
                 _cerrarSesionPressed(context);
                 break;
+              // case 5:
+              //   _cerrarSesionPressed(context);
+              //   break;
               default:
             }
           },
@@ -172,8 +177,8 @@ class _PedidoPageState extends State<PedidoPage> {
             new PopupMenuItem<int>(child: Text('Enviar Pedidos'), value: 1),
             new PopupMenuItem<int>(child: Text('Pedidos Enviados'), value: 2),
             new PopupMenuItem<int>(child: Text('Cotizaciones'), value: 3),
-            new PopupMenuItem<int>(child: Text('Calculadora'), value: 4),
-            new PopupMenuItem<int>(child: Text('Cerrar sesión'), value: 5),
+            // new PopupMenuItem<int>(child: Text('Calculadora'), value: 4),
+            new PopupMenuItem<int>(child: Text('Cerrar sesión'), value: 4),
           ],
         ));
   }
@@ -309,10 +314,18 @@ class _PedidoPageState extends State<PedidoPage> {
     List<DataRow> lista = List<DataRow>.filled(0, null, growable: true);
     listaPedidosShow.forEach((pedido) {
       var dataRow = DataRow(
-          onSelectChanged: (value) {
+          onSelectChanged: (value) async {
             if (_vista == 1) {
-              Navigator.of(context)
+              final copiaPedido = await Navigator.of(context)
                   .pushNamed(PedidoEnviadoDetailPage.route, arguments: pedido);
+
+              if (copiaPedido != null && copiaPedido == true) {
+                //Guardar en DB local
+                final pedidoCopiado = Pedido().copyWith(pedido: pedido);
+
+                pedidoCopiado.estado = Pedido.ESTADO_SIN_ENVIAR;
+                listaPedidos.add(pedidoCopiado);
+              }
             } else {
               Navigator.of(context).pushNamed(NuevoPedidoPage.route,
                   arguments: [pedido, _vista]);
@@ -381,30 +394,13 @@ class _PedidoPageState extends State<PedidoPage> {
   List<Widget> _acciones(BuildContext context) {
     switch (_vista) {
       case 0:
-        if (_cantChecked > 0)
-          return [
-            _eliminarPedidos(context),
-            _convertirACotizaciones(context),
-            _toPDF(context),
-            _toPDFShare(context)
-          ];
-        else
-          return [
-            _buscarPedido(context),
-            _nuevoPedido(context),
-            _opciones(context)
-          ];
+        return _accionesPedidoCotizacion(context);
         break;
       case 1:
-        return [
-          _buscarPedido(context),
-        ];
+        return _accionesEnviados(context);
         break;
       case 2:
-        return [
-          _buscarPedido(context),
-          _nuevoPedido(context),
-        ];
+        return _accionesPedidoCotizacion(context);
         break;
       default:
         return [];
@@ -700,23 +696,25 @@ class _PedidoPageState extends State<PedidoPage> {
     switch (_vista) {
       case Pedido.ESTADO_SIN_ENVIAR:
         //TODO hacer un select en la base de datos de los pedidos sin enviar
-        return _initListaPedidosSinEnviar();
+        if (!_listaInit) _initListaPedidosSinEnviar();
+        return listaPedidos;
         break;
       case Pedido.ESTADO_ENVIADO:
         //TODO hacer un select en la base de datos de los pedidos enviados
-        return _initListaPedidosSinEnviar();
+        if (!_listaInit) _initListaPedidosSinEnviar();
+        return listaPedidos;
         break;
       case Pedido.ESTADO_COTIZADO:
         //TODO hacer un select en la base de datos de los pedidos cotizados
-        return _initListaPedidosSinEnviar();
+        if (!_listaInit) _initListaPedidosSinEnviar();
+        return listaPedidos;
         break;
       default:
         return [];
     }
   }
 
-  List<Pedido> _initListaPedidosSinEnviar() {
-    List<Pedido> lista = List<Pedido>.empty(growable: true);
+  _initListaPedidosSinEnviar() {
     final c1 = Cliente(
         clientId: 16262,
         nombre: "BAJO JAVIER",
@@ -751,7 +749,7 @@ class _PedidoPageState extends State<PedidoPage> {
             id: 3,
             descripcion: 'CUCHARON ALUMINIO 16CM HOTEL',
             precio: 570.05));
-    lista.addAll([
+    listaPedidos.addAll([
       Pedido(
           id: 1,
           cliente: c1,
@@ -759,6 +757,7 @@ class _PedidoPageState extends State<PedidoPage> {
           iva: p1.precio * 0.21 + p2.precio * 0.21,
           neto: p1.precio * 0.79 + p2.precio * 0.79,
           total: p1.precio + p2.precio,
+          checked: false,
           fechaPedido: DateTime.now()),
       Pedido(
           id: 2,
@@ -767,6 +766,7 @@ class _PedidoPageState extends State<PedidoPage> {
           iva: p3.precio * 0.21 + p2.precio * 0.21,
           neto: p3.precio * 0.79 + p2.precio * 0.79,
           total: p3.precio + p2.precio,
+          checked: false,
           fechaPedido: DateTime.now()),
       Pedido(
           id: 3,
@@ -775,9 +775,30 @@ class _PedidoPageState extends State<PedidoPage> {
           iva: p1.precio * 0.21 + p2.precio * 0.21 + p3.precio * 0.21,
           neto: p1.precio * 0.79 + p2.precio * 0.79 + p3.precio * 0.79,
           total: p1.precio + p2.precio + p3.precio,
+          checked: false,
           fechaPedido: DateTime.now()),
     ]);
+  }
 
-    return lista;
+  List<Widget> _accionesPedidoCotizacion(BuildContext context) {
+    if (_cantChecked > 0)
+      return [
+        _eliminarPedidos(context),
+        _convertirACotizaciones(context),
+        _toPDF(context),
+        _toPDFShare(context)
+      ];
+    else
+      return [
+        _buscarPedido(context),
+        _nuevoPedido(context),
+        _opciones(context)
+      ];
+  }
+
+  List<Widget> _accionesEnviados(BuildContext context) {
+    return [
+      _buscarPedido(context),
+    ];
   }
 }

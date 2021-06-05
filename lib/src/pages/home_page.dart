@@ -24,7 +24,7 @@ class HomePage extends StatelessWidget {
               children: <Widget>[
                 SizedBox(height: MediaQuery.of(context).size.height * 0.4),
                 _botonPedidos(context),
-                _botonCotizaciones(context),
+                _botonReportePrecios(context),
               ],
             ),
           ),
@@ -37,11 +37,11 @@ class HomePage extends StatelessWidget {
     return _botonMenu(context, "Pedidos", _onPressBotonPedidos);
   }
 
-  Widget _botonCotizaciones(BuildContext context) {
-    return _botonMenu(context, "Cotizaciones", _onPressBotonCotizaciones);
+  Widget _botonReportePrecios(BuildContext context) {
+    return _botonMenu(context, "Reporte precios", _onPressBotonReportePrecios);
   }
 
-  _onPressBotonCotizaciones(BuildContext context) {
+  _onPressBotonReportePrecios(BuildContext context) {
     Navigator.of(context)
         .pushNamed(CotizacionPage.route, arguments: 'cotizacion');
   }

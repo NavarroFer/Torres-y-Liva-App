@@ -105,9 +105,9 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
             case 1:
               _catalogoPressed();
               break;
-            case 2:
-              _calculadoraPressed(context);
-              break;
+            // case 2:
+            //   _calculadoraPressed(context);
+            //   break;
             default:
           }
         },
@@ -115,7 +115,7 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
         itemBuilder: (_) => <PopupMenuItem<int>>[
           new PopupMenuItem<int>(child: Text('Lista'), value: 0),
           new PopupMenuItem<int>(child: Text('Catalogo'), value: 1),
-          new PopupMenuItem<int>(child: Text('Calculadora'), value: 2),
+          // new PopupMenuItem<int>(child: Text('Calculadora'), value: 2),
         ],
       ),
     );
@@ -309,7 +309,7 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
   }
 
   void _calculadoraPressed(BuildContext context) {
-    Navigator.of(context).pushNamed(CalculatorPage.route);
+    // Navigator.of(context).pushNamed(CalculatorPage.route);
   }
 
   void _listaPressed() {
@@ -378,33 +378,49 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
 
     if (primerFiltro == true) primerFiltro = false;
 
-    if (int.parse(idCategoria) > 0) {
-      int cant = 0;
-      listaCat.clear();
-      _getCatHijas(idCategoria, nivelCat);
-      print(listaCat?.asMap());
+    int idCat = int.parse(idCategoria);
 
-      listaBusqueda.addAll(Productos.productos
-          .where((element) => listaCat.contains(element?.categoriaID))
-          .toList());
-    } else {
-      if (_searchQuery != null && _searchQuery != '') {
+    if (idCat != null) {
+      if (int.parse(idCategoria) > 0) {
+        int cant = 0;
+        listaCat.clear();
+        _getCatHijas(idCategoria, nivelCat);
+        print(listaCat?.asMap());
+
         listaBusqueda.addAll(Productos.productos
-            .where((element) => element?.descripcion
-                ?.toUpperCase()
-                ?.contains(_searchQuery?.toUpperCase()))
+            .where((element) => listaCat.contains(element?.categoriaID))
             .toList());
       } else {
-        listaBusqueda.addAll(Productos.productos
-            .where((element) => element?.descripcion
-                ?.toUpperCase()
-                ?.contains(titulo?.toUpperCase()))
-            .toList());
+        if (_searchQuery != null && _searchQuery != '') {
+          listaBusqueda.addAll(Productos.productos
+              .where((element) => element?.descripcion
+                  ?.toUpperCase()
+                  ?.contains(_searchQuery?.toUpperCase()))
+              .toList());
+        } else {
+          listaBusqueda.addAll(Productos.productos
+              .where((element) => element?.descripcion
+                  ?.toUpperCase()
+                  ?.contains(titulo?.toUpperCase()))
+              .toList());
+        }
       }
+    } else {
+      //CAT especiales
+      if (idCategoria == Categoria.ULTIMAS_ENTRADAS) {
+        listaBusqueda.addAll(Productos.productos
+            .where((element) => listaCat.contains(element?.categoriaID))
+            .toList());
+      } else if (idCategoria == Categoria.ULTIMAS_FOTOS) {
+        listaBusqueda.addAll(Productos.productos
+            .where((element) => listaCat.contains(element?.categoriaID))
+            .toList());
+      } else if (idCategoria == Categoria.IMPORTACION) {
+        listaBusqueda.addAll(Productos.productos
+            .where((element) => listaCat.contains(element?.categoriaID))
+            .toList());
+      } 
     }
-
-    var a;
-    a = 2;
   }
 
   _buttonArrowBack(BuildContext context) {

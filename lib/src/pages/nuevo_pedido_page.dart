@@ -128,7 +128,7 @@ class _NuevoPedidoPageState extends State<NuevoPedidoPage>
   _acciones(BuildContext context) {
     return [
       _buscarProductosCliente(context),
-      _abrirCalculadora(context),
+      // _abrirCalculadora(context),
       _guardarPedido(context)
     ];
   }

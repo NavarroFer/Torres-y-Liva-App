@@ -98,6 +98,7 @@ class Pedido {
   int listaPrecios;
   double totalPedido;
   bool enviado;
+  int idFormaPago;
 
   List<ItemPedido> itemsFromJsonList(List<dynamic> jsonList) {
     List<ItemPedido> itemsPedido = [];
@@ -110,6 +111,52 @@ class Pedido {
     return itemsPedido;
   }
 
+  String getFormaPago() {
+    if (this.idFormaPago != null) {
+      switch (this.idFormaPago) {
+        case 0:
+          return 'Contado';
+          break;
+        case 1:
+          return 'Cuenta corriente';
+          break;
+        case 2:
+          return 'Cheque';
+          break;
+        default:
+          return 'Otro';
+      }
+    } else
+      return 'Otro';
+  }
+
+  Pedido copyWith({Pedido pedido}) {
+    return Pedido(
+        accuracyGps: pedido.accuracyGps,
+        checked: false,
+        cliente: pedido.cliente,
+        clienteID: pedido.clienteID,
+        descuento: pedido.descuento,
+        domicilioClienteID: pedido.domicilioClienteID,
+        domicilioDespacho: pedido.domicilioDespacho,
+        enviado: pedido.enviado,
+        fechaGps: pedido.fechaGps,
+        fechaPedido: pedido.fechaPedido,
+        id: 1, //get last id,
+        items: pedido.items,
+        iva: pedido.iva,
+        latitud: pedido.latitud,
+        listaPrecios: pedido.listaPrecios,
+        longitud: pedido.longitud,
+        neto: pedido.neto,
+        observaciones: pedido.observaciones,
+        operadorID: pedido.operadorID,
+        providerGps: pedido.providerGps,
+        total: pedido.total,
+        totalPedido: pedido.totalPedido,
+        usuarioWebId: pedido.usuarioWebId);
+  }
+
   Pedido(
       {this.id,
       this.cliente,
@@ -119,7 +166,7 @@ class Pedido {
       this.iva,
       this.descuento,
       this.fechaPedido,
-      this.checked = false,
+      this.checked,
       this.clienteID,
       this.domicilioClienteID,
       this.observaciones,

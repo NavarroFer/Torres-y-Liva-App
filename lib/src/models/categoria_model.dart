@@ -20,6 +20,12 @@ class Categoria {
   // Para seleccionar en cotizacion
   bool checked = false;
 
+  static const IMPORTACION = 'importacion';
+
+  static const ULTIMAS_FOTOS = 'ULT_FOTOS';
+
+  static const ULTIMAS_ENTRADAS = 'ULT_ENTRADAS';
+
   Categoria(
       {this.categoriaID, this.descripcion, this.lineaItemParent, this.nivel});
 

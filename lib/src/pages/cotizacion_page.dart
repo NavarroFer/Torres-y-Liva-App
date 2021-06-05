@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:open_file/open_file.dart';
@@ -8,7 +9,6 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pdf;
 import 'package:share/share.dart';
 import 'package:torres_y_liva/src/models/producto_model.dart';
-import 'package:torres_y_liva/src/pages/buscador_producto_page.dart';
 import 'package:torres_y_liva/src/pages/catalogo_productos_page.dart';
 
 class CotizacionPage extends StatefulWidget {
@@ -188,19 +188,46 @@ class _CotizacionPageState extends State<CotizacionPage> {
   }
 
   void _refreshColorAcciones(BuildContext context) {
+    final size = MediaQuery.of(context).size;
     if (CatalogoProductosPage.seleccionando) {
       color = Colors.grey;
       acciones = [_toPDF(context), _toPDFShare(context)];
     } else {
       color = Colors.red;
-      acciones = [_cantItems(context)];
+      acciones = [_cantItems(context), _opciones(context)];
     }
+  }
+
+  Widget _opciones(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(
+          horizontal: MediaQuery.of(context).size.width * 0.02),
+      child: PopupMenuButton(
+        child: Icon(MdiIcons.dotsVertical),
+        onSelected: (value) {
+          switch (value) {
+            case 0:
+              _opcionesPDF(context, false);
+              break;
+            case 1:
+              _opcionesPDF(context, true);
+              break;
+            default:
+          }
+        },
+        tooltip: 'Lista de opciones',
+        itemBuilder: (_) => <PopupMenuItem<int>>[
+          new PopupMenuItem<int>(child: Text('Guardar PDF'), value: 0),
+          new PopupMenuItem<int>(child: Text('Compartir PDF'), value: 1),
+        ],
+      ),
+    );
   }
 
   Widget _cantItems(BuildContext context) {
     final size = MediaQuery.of(context).size;
     return Container(
-      width: size.width * 0.4,
+      width: size.width * 0.3,
       height: size.height * 0.1,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,

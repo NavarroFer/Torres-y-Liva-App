@@ -8,6 +8,7 @@ import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:torres_y_liva/src/models/pedido_model.dart';
 import 'package:torres_y_liva/src/models/producto_model.dart';
 import 'package:torres_y_liva/src/pages/buscador_producto_page.dart';
+import 'package:torres_y_liva/src/pages/nuevo_pedido_page.dart';
 import 'package:torres_y_liva/src/widgets/dialog_box_widget.dart';
 
 import '../widgets/base_widgets.dart';
@@ -60,7 +61,7 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _gridProductos(context),
+        _gridProductos(context, ItemsPedidoPage.pedido.items),
         SizedBox(
           height: MediaQuery.of(context).size.height * 0.02,
         ),
@@ -68,7 +69,7 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
         SizedBox(
           height: MediaQuery.of(context).size.height * 0.02,
         ),
-        totalesVenta(context),
+        totalesVenta(context, NuevoPedidoPage.neto, NuevoPedidoPage.iva, NuevoPedidoPage.total),
         SizedBox(
           height: MediaQuery.of(context).size.height * 0.02,
         ),
@@ -80,7 +81,7 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
     );
   }
 
-  Widget _gridProductos(BuildContext context) {
+  Widget _gridProductos(BuildContext context, List<ItemPedido> items) {
     final size = MediaQuery.of(context).size;
     return Container(
         height: size.height * 0.55,
@@ -95,13 +96,13 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
                   DataColumn(label: Text('DESCRIPCIÓN')),
                   DataColumn(label: Text('PRECIO'))
                 ],
-                rows: _rowsItems(context)) // cada fila un producto agregado,
+                rows: _rowsItems(context, items)) // cada fila un producto agregado,
             ));
   }
 
-  List<DataRow> _rowsItems(BuildContext context) {
+  List<DataRow> _rowsItems(BuildContext context, List<ItemPedido> items) {
     List<DataRow> lista = List<DataRow>.filled(0, null, growable: true);
-    ItemsPedidoPage.pedido?.items?.forEach((item) {
+    items?.forEach((item) {
       var dataRow = DataRow(cells: [
         DataCell(Row(
             children: [_checkBox(context, item), Text(item.id.toString())])),

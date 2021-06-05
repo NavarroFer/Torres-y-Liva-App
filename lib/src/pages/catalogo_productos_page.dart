@@ -119,12 +119,13 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
     listaCategorias.forEach((categoria) {
       listaProdGrilla.add(_cardCategoria(context, categoria));
     });
+    final height = this.nivelActual == 0
+        ? size.height * 0.55
+        : widget.modo == 'pedido'
+            ? size.height * 0.4
+            : size.height * 0.45;
     return Container(
-        height: this.nivelActual == 0
-            ? size.height * 0.58
-            : widget.modo == 'pedido'
-                ? size.height * 0.4
-                : size.height * 0.45,
+        height: height * size.aspectRatio * 2.3,
         child: ListView(
           shrinkWrap: true,
           scrollDirection: Axis.vertical,
@@ -146,7 +147,7 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
           width: size.width * 0.3,
           height: size.height * 0.06,
           child: OutlinedButton(
-              onPressed: _ultimasEntradasPressed,
+              onPressed: () => _ultimasEntradasPressed(context),
               style: OutlinedButton.styleFrom(
                 backgroundColor: Colors.grey[300],
               ),
@@ -164,7 +165,7 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
               style: OutlinedButton.styleFrom(
                 backgroundColor: Colors.grey[300],
               ),
-              onPressed: _ultimasFotosPressed,
+              onPressed: () => _ultimasFotosPressed(context),
               child: AutoSizeText(
                 'Últimas Fotos',
                 maxLines: 1,
@@ -179,7 +180,7 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
               style: OutlinedButton.styleFrom(
                 backgroundColor: Colors.grey[300],
               ),
-              onPressed: _importacionPressed,
+              onPressed: () => _importacionPressed(context),
               child: AutoSizeText(
                 'Importación',
                 maxLines: 1,
@@ -222,7 +223,7 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
               } else {
                 //navegando
                 if (!this._pathCategorias.contains(categoria)) {
-                  this._pathCategorias.add(categoria);
+                  if (nivelActual < 2) this._pathCategorias.add(categoria);
                 }
                 final idCategoria = categoria.categoriaID;
                 if (nivelActual == 2) {
@@ -300,11 +301,24 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
     );
   }
 
-  void _ultimasFotosPressed() {}
+  void _ultimasFotosPressed(BuildContext context) {
+    Navigator.of(context).pushNamed(BuscadorProductoPage.route,
+        arguments: ['Últimas Fotos', Categoria.ULTIMAS_FOTOS, widget.modo, -1]);
+  }
 
-  void _ultimasEntradasPressed() {}
+  void _ultimasEntradasPressed(BuildContext context) {
+    Navigator.of(context).pushNamed(BuscadorProductoPage.route, arguments: [
+      'Últimas Entradas',
+      Categoria.ULTIMAS_ENTRADAS,
+      widget.modo,
+      -1
+    ]);
+  }
 
-  void _importacionPressed() {}
+  void _importacionPressed(BuildContext context) {
+    Navigator.of(context).pushNamed(BuscadorProductoPage.route,
+        arguments: ['Importacion', Categoria.IMPORTACION, widget.modo, -1]);
+  }
 
   Widget _checkBox(BuildContext context, Categoria rubro) {
     return Checkbox(value: rubro.checked, onChanged: (value) {});

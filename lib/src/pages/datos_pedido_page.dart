@@ -86,6 +86,7 @@ class _DatosPedidoPageState extends State<DatosPedidoPage> {
       List<DropdownMenuItem<Cliente>> items, BuildContext c) {
     final size = MediaQuery.of(context).size;
     return SearchableDropdown.single(
+      readOnly: pedido != null,
       items: items,
       value: items
               .firstWhere(
@@ -117,6 +118,7 @@ class _DatosPedidoPageState extends State<DatosPedidoPage> {
             default:
               idFormaPago = 3;
           }
+          pedido.idFormaPago = idFormaPago;
 
           _radioValueTipoVenta = idFormaPago;
         });
@@ -220,11 +222,13 @@ class _DatosPedidoPageState extends State<DatosPedidoPage> {
         new Radio(
           value: i,
           groupValue: _radioValueTipoVenta,
-          onChanged: (value) {
-            setState(() {
-              _radioValueTipoVenta = value;
-            });
-          },
+          onChanged: pedido != null
+              ? null
+              : (value) {
+                  setState(() {
+                    _radioValueTipoVenta = value;
+                  });
+                },
         ),
         new Text(
           s,

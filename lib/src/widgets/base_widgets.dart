@@ -12,17 +12,20 @@ Widget action(BuildContext context,
       onPressed: () => onPressed(context));
 }
 
-Widget totalesVenta(BuildContext context) {
+Widget totalesVenta(
+    BuildContext context, double neto, double iva, double total) {
   return Row(
     crossAxisAlignment: CrossAxisAlignment.center,
     mainAxisAlignment: MainAxisAlignment.spaceAround,
     children: [
-      _columnaTotal(context, 'NETO', NuevoPedidoPage.neto),
-      _columnaTotal(context, 'IVA', NuevoPedidoPage.iva),
-      _columnaTotal(context, 'TOTAL', NuevoPedidoPage.total),
+      _columnaTotal(context, 'NETO', neto),
+      _columnaTotal(context, 'IVA', iva),
+      _columnaTotal(context, 'TOTAL', total),
     ],
   );
 }
+
+
 
 void mostrarSnackbar(String mensaje, BuildContext c) {
   final snackbar = SnackBar(
