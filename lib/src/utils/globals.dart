@@ -8,7 +8,13 @@ Usuario usuario;
 List<Cliente> clientesDelVendedor;
 int idCliente;
 
+String username = '';
+String password = '';
+
 bool logged = false;
+bool dbInicializada = false;
+
+bool productosCargados = false;
 
 //////////// Constantes respuesta WS ////////////
 

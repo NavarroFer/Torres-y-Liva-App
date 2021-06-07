@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 import 'package:http/http.dart' as http;
 import 'package:torres_y_liva/src/utils/globals.dart';
 import 'package:torres_y_liva/src/models/cliente_model.dart';
@@ -24,10 +25,10 @@ class ClientesProvider {
           )
           .timeout(Duration(seconds: 10));
       final decodedData = jsonDecode(resp.body);
-      print(decodedData);
       final respuesta = Respuesta.fromJsonMap(decodedData);
       if (respuesta.success) {
         Clientes.fromJsonList(decodedData['data']);
+        log('GET clientes vendedor - count: ${Clientes.clientes?.length}');
         return Clientes.clientes;
       } else
         return null;

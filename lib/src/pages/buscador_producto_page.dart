@@ -4,12 +4,11 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 import 'package:torres_y_liva/src/models/categoria_model.dart';
 import 'package:torres_y_liva/src/models/pedido_model.dart';
 import 'package:torres_y_liva/src/pages/catalogo_productos_page.dart';
-import 'package:torres_y_liva/src/pages/items_pedido_page.dart';
+import 'package:torres_y_liva/src/pages/nuevo_pedido_page.dart';
 import 'package:torres_y_liva/src/widgets/dialog_box_widget.dart';
 
 import '../models/producto_model.dart';
 import '../widgets/base_widgets.dart';
-import 'utils/calculator_page.dart';
 
 class BuscadorProductoPage extends StatefulWidget {
   static final String route = 'buscadorProd';
@@ -299,7 +298,7 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
             precio: producto.precio * 0.79,
             precioTotal: producto.precio,
             fraccion: 0.0,
-            id: ItemsPedidoPage.pedido?.items?.last?.id + 1,
+            id: NuevoPedidoPage.pedido?.items?.last?.id + 1,
             iva: producto.precio * 0.21,
             pedidoID: 23);
 
@@ -385,7 +384,6 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
         int cant = 0;
         listaCat.clear();
         _getCatHijas(idCategoria, nivelCat);
-        print(listaCat?.asMap());
 
         listaBusqueda.addAll(Productos.productos
             .where((element) => listaCat.contains(element?.categoriaID))
@@ -419,7 +417,7 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
         listaBusqueda.addAll(Productos.productos
             .where((element) => listaCat.contains(element?.categoriaID))
             .toList());
-      } 
+      }
     }
   }
 
@@ -483,20 +481,11 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
       Categorias.categorias.forEach((categoria) {
         if (categoria.nivel == nivel + 1 &&
             categoria.lineaItemParent.toString() == idCat) {
-          // print('Pase por categoria intermedia: ${categoria.categoriaID}');
           _getCatHijas(categoria.categoriaID, nivel + 1);
         }
       });
     } else if (nivel == 2) {
-      // print('Agregando categoria hoja: $idCat');
       listaCat.add(idCat);
-      // Categorias.categorias.forEach((categoria) {
-      //   if (categoria.nivel == 2 &&
-      //       categoria.lineaItemParent.toString() == idCategoria) {
-      //     print('Agregando categoria hoja: ${categoria.categoriaID}');
-      //     listaCat.add(categoria.categoriaID);
-      //   }
-      // });
     }
   }
 }

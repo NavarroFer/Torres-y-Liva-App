@@ -1,12 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:torres_y_liva/src/models/cliente_model.dart';
 import 'package:torres_y_liva/src/models/pedido_model.dart';
 import 'package:torres_y_liva/src/pages/catalogo_productos_page.dart';
 import 'package:torres_y_liva/src/pages/datos_pedido_page.dart';
 import 'package:torres_y_liva/src/pages/items_pedido_page.dart';
-import 'package:torres_y_liva/src/pages/utils/calculator_page.dart';
 import 'package:torres_y_liva/src/widgets/base_widgets.dart';
 
 class NuevoPedidoPage extends StatefulWidget {
@@ -15,29 +13,34 @@ class NuevoPedidoPage extends StatefulWidget {
 
   static double neto = 0, iva = 0, total = 0;
 
+  static Pedido pedido =
+      Pedido(cliente: Cliente(), items: List<ItemPedido>.empty(growable: true));
+
+  static bool nuevo;
+
   @override
   _NuevoPedidoPageState createState() => _NuevoPedidoPageState();
 }
 
 class _NuevoPedidoPageState extends State<NuevoPedidoPage>
     with TickerProviderStateMixin {
-  Pedido pedido;
-
   MaterialColor color = Colors.red;
 
   List<Widget> acciones;
 
-  int _index = 0;
-
   List<Object> arguments;
+
+  @override
+  void dispose() {
+    NuevoPedidoPage.pedido = Pedido(
+        cliente: Cliente(), items: List<ItemPedido>.empty(growable: true));
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     arguments = ModalRoute.of(context).settings.arguments;
-    pedido = arguments[0];
-    int vista = arguments[1];
-    ItemsPedidoPage.pedido = pedido;
-    int _tabIndex = 0;
+    int vista = arguments[0];
 
     var tab = TabController(
       initialIndex: 0,
@@ -84,7 +87,7 @@ class _NuevoPedidoPageState extends State<NuevoPedidoPage>
                 ? AlwaysScrollableScrollPhysics()
                 : NeverScrollableScrollPhysics(),
             children: [
-              DatosPedidoPage(pedido),
+              DatosPedidoPage(),
               SingleChildScrollView(child: ItemsPedidoPage(
                 notifyParent: () {
                   _refresh(context);
@@ -98,12 +101,12 @@ class _NuevoPedidoPageState extends State<NuevoPedidoPage>
         ));
   }
 
-  Widget _abrirCalculadora(BuildContext context) {
-    return action(context,
-        size: MediaQuery.of(context).size.width * 0.07,
-        icon: MdiIcons.calculator,
-        onPressed: _calculatorPressed);
-  }
+  // Widget _abrirCalculadora(BuildContext context) {
+  //   return action(context,
+  //       size: MediaQuery.of(context).size.width * 0.07,
+  //       icon: MdiIcons.calculator,
+  //       onPressed: _calculatorPressed);
+  // }
 
   Widget _buscarProductosCliente(BuildContext context) {
     return action(context,
@@ -115,14 +118,29 @@ class _NuevoPedidoPageState extends State<NuevoPedidoPage>
         icon: Icons.save_rounded, onPressed: _guardarPedidoPressed);
   }
 
-  void _calculatorPressed(BuildContext context) {
-    Navigator.pushNamed(context, CalculatorPage.route);
-  }
+  // void _calculatorPressed(BuildContext context) {
+  //   Navigator.pushNamed(context, CalculatorPage.route);
+  // }
 
   void _buscarProductosPressed(BuildContext cotext) {}
 
-  void _guardarPedidoPressed(BuildContext context) {
-    Navigator.pop(context);
+  void _guardarPedidoPressed(BuildContext context) async {
+    NuevoPedidoPage.pedido.items.forEach((element) {
+      element.pedidoID = NuevoPedidoPage.pedido.id;
+    });
+
+    final idNuevoPedido = await Pedido.getNextId();
+
+    NuevoPedidoPage.pedido.id = idNuevoPedido;
+
+    print(NuevoPedidoPage.pedido);
+
+    NuevoPedidoPage.pedido.insertOrUpdate();
+
+    // NuevoPedidoPage.pedido = Pedido(
+    //     cliente: Cliente(), items: List<ItemPedido>.empty(growable: true));
+
+    // Navigator.pop(context);
   }
 
   _acciones(BuildContext context) {
@@ -163,7 +181,7 @@ class _NuevoPedidoPageState extends State<NuevoPedidoPage>
   }
 
   void _eliminarItemsPressed(BuildContext context) {
-    ItemsPedidoPage.pedido?.items?.removeWhere((element) => element?.checked);
+    NuevoPedidoPage.pedido?.items?.removeWhere((element) => element?.checked);
     setState(() {});
   }
 }

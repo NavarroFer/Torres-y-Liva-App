@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 import 'package:http/http.dart' as http;
 import 'package:torres_y_liva/src/models/usuario_model.dart';
 import 'package:torres_y_liva/src/utils/globals.dart';
@@ -18,13 +19,11 @@ class UsuariosProvider {
             body: body,
           )
           .timeout(Duration(seconds: 10));
-      print(url);
       final decodedData = jsonDecode(resp.body);
-      print(decodedData);
       final respuesta = Respuesta.fromJsonMap(decodedData);
       if (respuesta.success) {
         usuario = Usuario.fromJsonMap(decodedData['data']);
-        //TODO guardar datos del usuario
+        log('Login correcto del usuario: ${usuario.nombre}');
         return true;
       } else
         return Future.error(respuesta.mensaje);

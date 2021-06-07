@@ -1,3 +1,6 @@
+import 'package:sqflite/sqflite.dart';
+import 'package:torres_y_liva/src/utils/database_helper.dart';
+
 class Categorias {
   static List<Categoria> categorias;
 
@@ -8,6 +11,30 @@ class Categorias {
       final categoria = new Categoria.fromJsonMap(jsonItem);
       categorias?.add(categoria);
     });
+  }
+
+  static List<Categoria> fromJson(List<dynamic> jsonList) {
+    List<Categoria> lista = [];
+
+    jsonList.forEach((jsonItem) {
+      final producto = new Categoria.fromJsonMap(jsonItem);
+      lista?.add(producto);
+    });
+
+    return lista;
+  }
+
+  static Future<List<Categoria>> getCategorias() async {
+    List<Categoria> cat = [];
+    final dbHelper = DatabaseHelper.instance;
+    List<Map<String, dynamic>> list;
+    final a = await dbHelper.queryRowCount(DatabaseHelper.tableCategorias);
+    final b = await dbHelper.queryRowCount(DatabaseHelper.tableProductos);
+    final c = await dbHelper.queryRowCount(DatabaseHelper.tablePedidos);
+    list = await dbHelper.queryAllRows(DatabaseHelper.tableCategorias);
+    final listObject = Categorias.fromJson(list);
+
+    return listObject;
   }
 }
 
@@ -29,10 +56,32 @@ class Categoria {
   Categoria(
       {this.categoriaID, this.descripcion, this.lineaItemParent, this.nivel});
 
+  Map<String, dynamic> toMap() {
+    return {
+      DatabaseHelper.catID: this.categoriaID ?? '',
+      DatabaseHelper.catDescripcion: this.descripcion ?? '',
+      DatabaseHelper.lineaItemParent: this.lineaItemParent ?? 0,
+      DatabaseHelper.nivel: this.nivel ?? -1,
+    };
+  }
+
   Categoria.fromJsonMap(Map<String, dynamic> json) {
-    this.categoriaID = json['categoriaID'];
-    this.descripcion = json['descripcion'];
-    this.lineaItemParent = json['lineaItemParent'];
-    this.nivel = json['nivel'];
+    this.categoriaID = json[DatabaseHelper.catID];
+    this.descripcion = json[DatabaseHelper.catDescripcion];
+    this.lineaItemParent = json[DatabaseHelper.lineaItemParent];
+    this.nivel = json[DatabaseHelper.nivel];
+  }
+
+  insertOrUpdate() async {
+    final dbHelper = DatabaseHelper.instance;
+    final existe = await dbHelper.exists(
+        DatabaseHelper.tableCategorias, this.categoriaID, DatabaseHelper.catID);
+    if (existe) {
+      await dbHelper.update(
+          this.toMap(), DatabaseHelper.tableCategorias, DatabaseHelper.catID);
+    } else {
+      await dbHelper.insert(this.toMap(), DatabaseHelper.tableCategorias);
+    }
+    return existe ? 0 : 1;
   }
 }

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:torres_y_liva/src/models/pedido_model.dart';
 import 'package:http/http.dart' as http;
@@ -31,8 +32,8 @@ class VentasProvider {
       final pedidoJSON = pedido.toJson();
       final body = {
         'tokenEmpresa': tokenEmpresa,
-        'tokenCliente': '3d06d3cc-00ab-4b29-932f-7936f89b880d',
-        'pedido': pedidoJSON
+        'tokenCliente': tokenCliente,
+        'pedido': json.encode(pedidoJSON)
       };
       final resp = await http
           .post(
@@ -43,10 +44,10 @@ class VentasProvider {
           .timeout(Duration(seconds: 10));
       final decodedData = jsonDecode(resp.body);
       final respuesta = Respuesta.fromJsonMap(decodedData);
-      print(decodedData);
-      if (respuesta.success)
+      if (respuesta.success) {
+        log('${DateTime.now()} - Pedido enviado');
         return decodedData['success'] == true;
-      else
+      } else
         return false;
       // return Future.error(respuesta.mensaje);
     } on TimeoutException {
@@ -75,9 +76,9 @@ class VentasProvider {
           )
           .timeout(Duration(seconds: 10));
       final decodedData = jsonDecode(resp.body);
-      print(decodedData);
       final respuesta = Respuesta.fromJsonMap(decodedData);
       if (respuesta.success) {
+        log('${DateTime.now()} - GET pedidos historicos');
         Pedidos.fromJsonList(decodedData['data']['objects']);
         return Pedidos.pedidos;
       } else
@@ -108,10 +109,10 @@ class VentasProvider {
           )
           .timeout(Duration(seconds: 10));
       final decodedData = jsonDecode(resp.body);
-      print(decodedData);
       final respuesta = Respuesta.fromJsonMap(decodedData);
       if (respuesta.success) {
         final pedido = Pedido.fromJsonMap(decodedData['data']);
+        log('${DateTime.now()} - GET pedido ID: ${pedido.id}');
         return pedido;
       } else
         return null;
@@ -141,9 +142,9 @@ class VentasProvider {
           )
           .timeout(Duration(seconds: 10));
       final decodedData = jsonDecode(resp.body);
-      print(decodedData);
       final respuesta = Respuesta.fromJsonMap(decodedData);
       if (respuesta.success) {
+        log('${DateTime.now()} - Pedido anulado ID: $pedidoID');
         return true;
       } else
         return Future.error(respuesta.mensaje);

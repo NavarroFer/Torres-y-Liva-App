@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:torres_y_liva/src/models/categoria_model.dart';
 import 'package:torres_y_liva/src/models/producto_model.dart';
-import 'package:torres_y_liva/src/models/rubro_model.dart';
 import 'package:torres_y_liva/src/pages/buscador_producto_page.dart';
 
 class CatalogoProductosPage extends StatefulWidget {
@@ -36,8 +35,8 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
   @override
   void initState() {
     listaCategorias.addAll(Categorias.categorias
-        .where((categoria) => categoria.nivel == PRIMER_NIVEL_CATEGORIA)
-        .toList());
+        ?.where((categoria) => categoria.nivel == PRIMER_NIVEL_CATEGORIA)
+        ?.toList());
     super.initState();
   }
 
@@ -116,6 +115,7 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
     final size = MediaQuery.of(context).size;
     List<Widget> listaProdGrilla = List<Widget>.filled(0, null, growable: true);
 
+    
     listaCategorias.forEach((categoria) {
       listaProdGrilla.add(_cardCategoria(context, categoria));
     });

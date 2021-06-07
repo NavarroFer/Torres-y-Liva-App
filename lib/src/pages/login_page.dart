@@ -1,15 +1,21 @@
+import 'dart:developer';
+
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:torres_y_liva/src/bloc/bloc_provider.dart';
 import 'package:torres_y_liva/src/bloc/login_bloc.dart';
 import 'package:torres_y_liva/src/models/categoria_model.dart';
+import 'package:torres_y_liva/src/models/cliente_model.dart';
 import 'package:torres_y_liva/src/models/producto_model.dart';
 import 'package:torres_y_liva/src/pages/home_page.dart';
 import 'package:torres_y_liva/src/pages/utils/size_helper.dart';
 import 'package:torres_y_liva/src/providers/clientes_provider.dart';
 import 'package:torres_y_liva/src/providers/productos_providers.dart';
 import 'package:torres_y_liva/src/providers/usuario_provider.dart';
+import 'package:torres_y_liva/src/utils/database_helper.dart';
 import 'package:torres_y_liva/src/utils/globals.dart';
+import 'package:torres_y_liva/src/utils/shared_pref_helper.dart';
 
 class LoginPage extends StatefulWidget {
   static final String route = 'login';
@@ -23,8 +29,28 @@ class _LoginPageState extends State<LoginPage> {
 
   FocusNode passwordFocusNode = new FocusNode();
 
+  String _msgEstadoActual = '';
+  bool _priveraVezLogin = false;
+
+  TextEditingController _controllerUsuario = TextEditingController();
+
+  TextEditingController _controllerPassword = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarDatos();
+  }
+
   @override
   Widget build(BuildContext context) {
+    // if (logged && _priveraVezLogin == false) {
+    //   _priveraVezLogin = true;
+    //   final bloc = BlocProvider.of(context);
+    //   bloc.changePassword(password);
+    //   bloc.changeUsuario(username);
+    //   _login(bloc, context);
+    // }
     return Scaffold(
       body: Stack(
         children: [
@@ -146,17 +172,18 @@ class _LoginPageState extends State<LoginPage> {
                 textScaleFactor: sizeSegunOrientation(context, 0.006, 0.007),
               ),
               SizedBox(
-                height: 60.0,
+                height: size.height * 0.07,
               ),
               _crearUsuario(bloc),
               SizedBox(
-                height: 30.0,
+                height: size.height * 0.04,
               ),
               _crearPassword(bloc),
               SizedBox(
-                height: 30.0,
+                height: size.height * 0.04,
               ),
               _crearBoton(bloc),
+              _textEstadoAcual(context),
             ],
           ),
         ),
@@ -177,6 +204,8 @@ class _LoginPageState extends State<LoginPage> {
         return Container(
           padding: EdgeInsets.symmetric(horizontal: 30.0),
           child: TextField(
+            controller: _controllerUsuario,
+            readOnly: _ingresando,
             onSubmitted: (value) {
               FocusScope.of(context).requestFocus(passwordFocusNode);
             },
@@ -205,7 +234,9 @@ class _LoginPageState extends State<LoginPage> {
         return Container(
           padding: EdgeInsets.symmetric(horizontal: 30.0),
           child: TextField(
+            controller: _controllerPassword,
             obscureText: true,
+            readOnly: _ingresando,
             focusNode: passwordFocusNode,
             onSubmitted: (v) {
               _login(bloc, context);
@@ -277,35 +308,136 @@ class _LoginPageState extends State<LoginPage> {
     await usuarioProvider
         .login(bloc.usuario, bloc.password, tokenEmpresa)
         .then((value) async {
-      if (value == true) {
-        logged = true;
-        final clientesProvider = ClientesProvider();
-        clientesDelVendedor = await clientesProvider.getClientes(
-            tokenEmpresa, usuario.tokenWs, usuario.vendedorID);
-
-        final productosProvider = ProductosProvider();
-
-        Productos.productos =
-            await productosProvider.getProductos(tokenEmpresa, usuario.tokenWs);
-        _ingresando = false;
-
-        //TODO cambiar por getProductosActualizados(tokenEmpresa, tokenCliente)
-
-        Categorias.categorias = await productosProvider.getCategorias(
-            tokenEmpresa, usuario.tokenWs);
-        Navigator.of(context).pushReplacementNamed(HomePage.route);
-      } else {
-        setState(() {
-          _ingresando = false;
-          logged = false;
-        });
-        print('Login incorrecto');
-      }
+      await _loginOK(value, bloc.usuario, bloc.password, context);
     }).onError((error, stackTrace) {
       setState(() {
         _ingresando = false;
       });
-      print(error);
+      log('${DateTime.now()} - Error en login user: $username psw: $password');
     });
+  }
+
+  Future _loginOK(bool value, String username, String password,
+      BuildContext context) async {
+    if (value == true) {
+      logged = true;
+
+      _msgEstadoActual = 'Obteniendo informacion de clientes';
+      setState(() {});
+      final clientesProvider = ClientesProvider();
+      clientesDelVendedor = await clientesProvider.getClientes(
+          tokenEmpresa, usuario.tokenWs, usuario.vendedorID);
+
+      final productosProvider = ProductosProvider();
+
+      if (!dbInicializada) {
+        // if (true) {
+        _msgEstadoActual = 'Obteniendo informacion de categorias';
+
+        setState(() {});
+        await productosProvider.getCategorias(tokenEmpresa, usuario.tokenWs);
+
+        await updateCategoriasTable();
+
+        _msgEstadoActual = 'Obteniendo informacion de productos';
+
+        setState(() {});
+        Productos.productos =
+            await productosProvider.getProductos(tokenEmpresa, usuario.tokenWs);
+        dbInicializada = true;
+      } else {
+        _msgEstadoActual = 'Obteniendo informacion de productos';
+
+        setState(() {});
+        Productos.productos = await productosProvider.getProductosActualizados(
+            tokenEmpresa, usuario.tokenWs);
+      }
+      await updateProductTable();
+
+      _ingresando = false;
+      await guardarDatos(username, password);
+      Navigator.of(context).pushReplacementNamed(HomePage.route);
+    } else {
+      setState(() {
+        _ingresando = false;
+        logged = false;
+      });
+      log('${DateTime.now()} - Error en login user: $username psw: $password');
+    }
+  }
+
+  Future<bool> updateProductTable() async {
+    for (var producto in Productos.productos) {
+      await producto.insertOrUpdate();
+    }
+    log('${DateTime.now()} - Tabla productos actualizada',
+        time: DateTime.now());
+    return true;
+  }
+
+  _textEstadoAcual(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    if (_ingresando) {
+      return Column(
+        children: [
+          SizedBox(
+            height: size.height * 0.05,
+          ),
+          AutoSizeText(_msgEstadoActual,
+              maxLines: 3,
+              overflow: TextOverflow.fade,
+              minFontSize: (size.width * 0.05).roundToDouble(),
+              style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center)
+        ],
+      );
+    } else
+      return Container();
+  }
+
+  Future _cargarDatos() async {
+    await cargarDatos();
+    if (logged) {
+      setState(() {
+        _controllerUsuario.text = username;
+        _controllerPassword.text = password;
+      });
+      await _loginSinBloc(username, password);
+    }
+  }
+
+  Future _loginSinBloc(String username, String password) async {
+    final usuarioProvider = UsuariosProvider();
+    setState(() {
+      _ingresando = true;
+    });
+    await usuarioProvider
+        .login(username, password, tokenEmpresa)
+        .then((value) async {
+      await _loginOK(value, username, password, context);
+    }).onError((error, stackTrace) {
+      setState(() {
+        _ingresando = false;
+      });
+      log('${DateTime.now()} - Error en login user: $username psw: $password');
+    });
+  }
+
+  Future<bool> updateCategoriasTable() async {
+    for (var categoria in Categorias.categorias) {
+      await categoria.insertOrUpdate();
+    }
+    log('Tabla categorias actualizada', time: DateTime.now());
+    return true;
+  }
+
+  initLists() async {
+    final dbHelper = DatabaseHelper.instance;
+    List<Map<String, dynamic>> list;
+    list = await dbHelper.queryAllRows(DatabaseHelper.tableClientes);
+    Clientes.fromJsonList(list);
+
+    // list = await dbHelper.queryAllRows(DatabaseHelper.tableProductos);
+    // Productos.fromJsonList(list);
   }
 }

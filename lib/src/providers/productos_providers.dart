@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 import 'package:http/http.dart' as http;
 import 'package:torres_y_liva/src/models/categoria_model.dart';
 import 'package:torres_y_liva/src/models/codigo_barra_model.dart';
@@ -24,9 +25,9 @@ class ProductosProvider {
           .timeout(Duration(seconds: 10));
       final decodedData = jsonDecode(resp.body);
       final respuesta = Respuesta.fromJsonMap(decodedData);
-      print(decodedData);
       if (respuesta.success) {
         Categorias.fromJsonList(decodedData['data']['objects']);
+        log('GET categorias - count: ${Categorias.categorias.length}');
         return Categorias.categorias;
       } else
         return Future.error(respuesta.mensaje);
@@ -57,9 +58,9 @@ class ProductosProvider {
           .timeout(Duration(seconds: 10));
       final decodedData = jsonDecode(resp.body);
       final respuesta = Respuesta.fromJsonMap(decodedData);
-      print(decodedData);
       if (respuesta.success) {
         final prod = Producto.fromJsonMap(decodedData['data']);
+        log('GET item: ${prod?.descripcion ?? ''}');
         return prod;
       } else
         return Future.error(respuesta.mensaje);
@@ -97,11 +98,13 @@ class ProductosProvider {
           .timeout(Duration(seconds: 10));
       final decodedData = jsonDecode(resp.body);
       final respuesta = Respuesta.fromJsonMap(decodedData);
-      print(decodedData);
       if (respuesta.success) {
+        log('ACK enviado correctamente');
         return true;
-      } else
+      } else {
+        log(respuesta.mensaje);
         return Future.error(respuesta.mensaje);
+      }
     } on TimeoutException {
       return false;
     } on Exception {
@@ -123,9 +126,9 @@ class ProductosProvider {
           .timeout(Duration(seconds: 20));
       final decodedData = jsonDecode(resp.body);
       final respuesta = Respuesta.fromJsonMap(decodedData);
-      print(decodedData);
       if (respuesta.success) {
         Productos.fromJsonList(decodedData['data']['objects']);
+        log('GET productos - count: ${Productos.productos.length}');
         await ackUpdateProductos(tokenEmpresa, tokenCliente);
         return Productos.productos;
       } else
@@ -153,7 +156,6 @@ class ProductosProvider {
           .timeout(Duration(seconds: 10));
       final decodedData = jsonDecode(resp.body);
       final respuesta = Respuesta.fromJsonMap(decodedData);
-      print(decodedData);
       if (respuesta.success) {
         CodigosBarra.fromJsonList(decodedData['data']['objects']);
         return CodigosBarra.codigos;
@@ -182,7 +184,6 @@ class ProductosProvider {
           .timeout(Duration(seconds: 10));
       final decodedData = jsonDecode(resp.body);
       final respuesta = Respuesta.fromJsonMap(decodedData);
-      print(decodedData);
       if (respuesta.success) {
         Precios.fromJsonList(decodedData['data']['objects']);
         return Precios.precios;

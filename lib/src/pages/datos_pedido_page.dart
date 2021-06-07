@@ -14,10 +14,6 @@ import 'nuevo_pedido_page.dart';
 class DatosPedidoPage extends StatefulWidget {
   static final String route = 'datosPedido';
 
-  Pedido pedido;
-
-  DatosPedidoPage(this.pedido);
-
   @override
   _DatosPedidoPageState createState() => _DatosPedidoPageState();
 }
@@ -28,10 +24,13 @@ class _DatosPedidoPageState extends State<DatosPedidoPage> {
   String telefono;
   String email;
   int _radioValueTipoVenta;
-  Pedido pedido;
-  TextEditingController _comentariosController = TextEditingController();
-  TextEditingController _descuentoController = TextEditingController();
-  TextEditingController _observacionesController = TextEditingController();
+  // Pedido pedido;
+  TextEditingController _comentariosController =
+      TextEditingController(text: NuevoPedidoPage.pedido.observaciones);
+  TextEditingController _descuentoController = TextEditingController(
+      text: NuevoPedidoPage.pedido?.descuento?.toString() ?? '');
+  TextEditingController _observacionesController =
+      TextEditingController(text: NuevoPedidoPage.pedido.observaciones);
 
   final List<DropdownMenuItem<Cliente>> clientes = [];
   List<Cliente> clientesList = List<Cliente>.filled(0, null, growable: true);
@@ -40,8 +39,11 @@ class _DatosPedidoPageState extends State<DatosPedidoPage> {
 
   @override
   void initState() {
-    pedido = widget.pedido;
-    selectedValueCliente = pedido != null ? pedido.cliente.clientId : 0;
+    // pedido = NuevoPedidoPage.pedido;
+
+    selectedValueCliente = NuevoPedidoPage.pedido != null
+        ? NuevoPedidoPage.pedido.cliente.clientId
+        : 0;
 
     clientesList = clientesDelVendedor;
 
@@ -86,7 +88,7 @@ class _DatosPedidoPageState extends State<DatosPedidoPage> {
       List<DropdownMenuItem<Cliente>> items, BuildContext c) {
     final size = MediaQuery.of(context).size;
     return SearchableDropdown.single(
-      readOnly: pedido != null,
+      readOnly: !NuevoPedidoPage.nuevo,
       items: items,
       value: items
               .firstWhere(
@@ -102,6 +104,7 @@ class _DatosPedidoPageState extends State<DatosPedidoPage> {
           NuevoPedidoPage.clienteSeleccionado = value != null;
           idCliente = value.clientId ?? -1;
           selectedValueCliente = value?.clientId ?? -1;
+          NuevoPedidoPage.pedido.cliente = value;
           direccion = value?.domicilio;
           telefono = value?.telefono;
           email = value?.email;
@@ -118,9 +121,8 @@ class _DatosPedidoPageState extends State<DatosPedidoPage> {
             default:
               idFormaPago = 3;
           }
-          pedido.idFormaPago = idFormaPago;
-
           _radioValueTipoVenta = idFormaPago;
+          NuevoPedidoPage.pedido.idFormaPago = _radioValueTipoVenta;
         });
       },
       onClear: () {
@@ -222,11 +224,13 @@ class _DatosPedidoPageState extends State<DatosPedidoPage> {
         new Radio(
           value: i,
           groupValue: _radioValueTipoVenta,
-          onChanged: pedido != null
+          onChanged: !NuevoPedidoPage.nuevo
               ? null
               : (value) {
                   setState(() {
                     _radioValueTipoVenta = value;
+
+                    NuevoPedidoPage.pedido.idFormaPago = value;
                   });
                 },
         ),
@@ -243,17 +247,17 @@ class _DatosPedidoPageState extends State<DatosPedidoPage> {
     return Column(
       children: [
         _inputText('Comentarios', _comentariosController, Icons.comment,
-            TextInputType.text),
+            TextInputType.text, _onComentarioChange),
         SizedBox(
           height: size.height * 0.01,
         ),
         _inputText('Descuento General', _descuentoController, MdiIcons.sale,
-            TextInputType.text),
+            TextInputType.number, _onDescuentoChange),
         SizedBox(
           height: size.height * 0.01,
         ),
         _inputText('Observaciones', _observacionesController,
-            MdiIcons.commentOutline, TextInputType.text),
+            MdiIcons.commentOutline, TextInputType.text, _onObsChange),
       ],
     );
   }
@@ -288,16 +292,29 @@ class _DatosPedidoPageState extends State<DatosPedidoPage> {
   }
 
   Widget _inputText(String s, TextEditingController controller, IconData icon,
-      TextInputType inputType) {
+      TextInputType inputType, Function _onInputChange) {
     return TextField(
       controller: controller,
       keyboardType: inputType,
       maxLines: 1,
+      onChanged: _onInputChange,
       decoration: InputDecoration(
         border: OutlineInputBorder(),
         icon: Icon(icon),
         hintText: s,
       ),
     );
+  }
+
+  _onComentarioChange(String value) {
+    NuevoPedidoPage.pedido.observaciones = value;
+  }
+
+  _onDescuentoChange(String value) {
+    NuevoPedidoPage.pedido.descuento = double.tryParse(value);
+  }
+
+  _onObsChange(String value) {
+    NuevoPedidoPage.pedido.observaciones = value;
   }
 }

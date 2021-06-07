@@ -19,8 +19,6 @@ class ItemsPedidoPage extends StatefulWidget {
 
   static int cantChecked = 0;
 
-  static Pedido pedido = Pedido(items: List<ItemPedido>.empty(growable: true));
-
   final Function() notifyParent;
 
   ItemsPedidoPage({this.notifyParent});
@@ -49,7 +47,7 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
 
   @override
   void dispose() {
-    ItemsPedidoPage.pedido?.items?.forEach((element) {
+    NuevoPedidoPage.pedido?.items?.forEach((element) {
       element.checked = false;
     });
     ItemsPedidoPage.cantChecked = 0;
@@ -61,7 +59,7 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _gridProductos(context, ItemsPedidoPage.pedido.items),
+        _gridProductos(context, NuevoPedidoPage.pedido.items),
         SizedBox(
           height: MediaQuery.of(context).size.height * 0.02,
         ),
@@ -69,7 +67,8 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
         SizedBox(
           height: MediaQuery.of(context).size.height * 0.02,
         ),
-        totalesVenta(context, NuevoPedidoPage.neto, NuevoPedidoPage.iva, NuevoPedidoPage.total),
+        totalesVenta(context, NuevoPedidoPage.neto, NuevoPedidoPage.iva,
+            NuevoPedidoPage.total),
         SizedBox(
           height: MediaQuery.of(context).size.height * 0.02,
         ),
@@ -96,7 +95,8 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
                   DataColumn(label: Text('DESCRIPCIÓN')),
                   DataColumn(label: Text('PRECIO'))
                 ],
-                rows: _rowsItems(context, items)) // cada fila un producto agregado,
+                rows: _rowsItems(
+                    context, items)) // cada fila un producto agregado,
             ));
   }
 
@@ -187,8 +187,9 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
                   fontSize: MediaQuery.of(context).size.height * 0.02),
               border: OutlineInputBorder(),
             )),
-        suggestionsCallback: (input) {
-          return Productos.getSuggestions(input);
+        suggestionsCallback: (input) async {
+          final items = await Productos.getSuggesttionsDB(input);
+          return items;
         },
         itemBuilder: (context, suggestion) {
           return ListTile(
@@ -206,8 +207,9 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
                 minHeight: size.height * 0.05, minWidth: size.width * 0.9)),
         autoFlipDirection: true,
         onSuggestionSelected: (suggestion) {
+          print(suggestion);
           _typeAheadController.text = suggestion?.descripcion ?? '';
-          _codController.text = suggestion?.id.toString() ?? '';
+          _codController.text = suggestion?.id?.toString() ?? '';
           _productoSelected = suggestion;
 
           //FOCUS A CANTIDAD
@@ -380,7 +382,7 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
 
     if (itemsNuevos != null)
       setState(() {
-        ItemsPedidoPage.pedido?.items?.addAll(itemsNuevos);
+        NuevoPedidoPage.pedido?.items?.addAll(itemsNuevos);
       });
   }
 
@@ -454,14 +456,25 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
 
   void _submittedCant(double value) {
     // agregar producto
-    ItemsPedidoPage.pedido?.items?.add(ItemPedido(
-        cantidad: value,
-        descuento: double.tryParse(_dtoController.text),
-        id: ItemsPedidoPage.pedido?.items?.last?.id + 1,
+
+    int newId = 1;
+
+    if (NuevoPedidoPage.pedido.items.length > 0) {
+      newId = NuevoPedidoPage.pedido.items.last.id + 1;
+    }
+    NuevoPedidoPage.pedido?.items?.add(ItemPedido(
+        cantidad: value ?? 1,
+        detalle: _productoSelected.descripcion ?? '',
+        descuento: double.tryParse(_dtoController.text) ?? 0.0,
+        id: newId,
         precio: _productoSelected.precio,
         producto: _productoSelected,
-        fraccion: 1.0,
-        precioTotal: _productoSelected.precio * value));
+        iva: _productoSelected.iva,
+        observacion: _productoSelected.descripcion ?? '',
+        fraccion: 1.0, //TODO ver que es fraccion
+        precioTotal: _productoSelected.precio *
+            value *
+            (double.tryParse(_dtoController.text) ?? 1.0)));
 
     _codController.text = '';
     _typeAheadController.text = '';
@@ -537,7 +550,7 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
             iva: item.producto.precio * 0.21,
             pedidoID: 23);
 
-        ItemsPedidoPage.pedido?.items[ItemsPedidoPage.pedido?.items
+        NuevoPedidoPage.pedido?.items[NuevoPedidoPage.pedido?.items
             ?.indexWhere((element) => element.id == item.id)] = itemPedido;
 
         setState(() {});

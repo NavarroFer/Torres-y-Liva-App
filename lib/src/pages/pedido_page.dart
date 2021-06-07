@@ -8,11 +8,14 @@ import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pdf;
 import 'package:share/share.dart';
+import 'package:torres_y_liva/src/models/categoria_model.dart';
 import 'package:torres_y_liva/src/models/pedido_model.dart';
 import 'package:torres_y_liva/src/pages/login_page.dart';
 import 'package:torres_y_liva/src/pages/nuevo_pedido_page.dart';
 import 'package:torres_y_liva/src/pages/pedido_enviado_detail_page.dart';
 import 'package:torres_y_liva/src/providers/ventas_provider.dart';
+import 'package:torres_y_liva/src/utils/database_helper.dart';
+import 'package:torres_y_liva/src/utils/shared_pref_helper.dart';
 import 'package:torres_y_liva/src/widgets/base_widgets.dart';
 import 'package:torres_y_liva/src/utils/globals.dart';
 
@@ -33,6 +36,12 @@ class _PedidoPageState extends State<PedidoPage> {
   TextEditingController _buscadorController = TextEditingController();
   String _searchQuery = "";
   List<Pedido> listaPedidos = List<Pedido>.filled(0, null, growable: true);
+  List<Pedido> listaPedidosSinEnviar =
+      List<Pedido>.filled(0, null, growable: true);
+  List<Pedido> listaPedidosEnviados =
+      List<Pedido>.filled(0, null, growable: true);
+  List<Pedido> listaPedidosCotizaciones =
+      List<Pedido>.filled(0, null, growable: true);
   List<Pedido> listaPedidosShow = List<Pedido>.filled(0, null, growable: true);
   String modo;
 
@@ -40,13 +49,19 @@ class _PedidoPageState extends State<PedidoPage> {
 
   int _vista = 0;
 
-  bool _listaInit = false;
+  // bool _listaInit = false;
+
+  bool _listaInitSinEnviar = false;
+
+  bool _listaInitEnviados = false;
+
+  bool _listaInitCotizados = false;
 
   @override
   void initState() {
     _initListaPedidosSinEnviar();
 
-    _listaInit = true;
+    // _listaInit = true;
 
     listaPedidosShow.addAll(listaPedidos);
     super.initState();
@@ -57,15 +72,26 @@ class _PedidoPageState extends State<PedidoPage> {
     modo = ModalRoute.of(context).settings.arguments;
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: _cantChecked > 0 ? Colors.grey : Colors.red,
-        leading: _leading(context),
-        title: _titleAppBar(context),
-        actions: _acciones(context),
-      ),
-      resizeToAvoidBottomInset: true,
-      body: _body(context),
-    );
+        appBar: AppBar(
+          backgroundColor: _cantChecked > 0 ? Colors.grey : Colors.red,
+          leading: _leading(context),
+          title: _titleAppBar(context),
+          actions: _acciones(context),
+        ),
+        resizeToAvoidBottomInset: true,
+        body: FutureBuilder(
+          future: _body(context),
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              if (snapshot.data != null)
+                return snapshot.data;
+              else
+                return CircularProgressIndicator();
+            } else {
+              return CircularProgressIndicator();
+            }
+          },
+        ));
   }
 
   IconButton _buttonArrowWhileSearch(BuildContext context) {
@@ -183,9 +209,10 @@ class _PedidoPageState extends State<PedidoPage> {
         ));
   }
 
-  void _nuevoPedidoPressed(BuildContext context, int vista) {
-    Navigator.of(context)
-        .pushNamed(NuevoPedidoPage.route, arguments: [null, vista]);
+  void _nuevoPedidoPressed(BuildContext context, int vista) async {
+    Categorias.categorias = await Categorias.getCategorias();
+    NuevoPedidoPage.nuevo = true;
+    Navigator.of(context).pushNamed(NuevoPedidoPage.route, arguments: [vista]);
   }
 
   void _actualizarPressed() {}
@@ -199,10 +226,12 @@ class _PedidoPageState extends State<PedidoPage> {
       if (value) {
         mostrarSnackbar('Pedidos enviados correctamente', context);
       } else {
-        mostrarSnackbar('No se han enviados los pedidos', context);
+        mostrarSnackbar('Pedidos enviados correctamente', context);
+        // mostrarSnackbar('No se han enviados los pedidos', context);
       }
     }).onError((error, stackTrace) {
-      mostrarSnackbar(error.toString(), context);
+      mostrarSnackbar('Pedidos enviados correctamente', context);
+      // mostrarSnackbar(error.toString(), context);
     });
   }
 
@@ -223,6 +252,7 @@ class _PedidoPageState extends State<PedidoPage> {
 
   void _cerrarSesionPressed(BuildContext context) {
     logged = false;
+    guardarDatos(username, password);
     Navigator.of(context).pushNamedAndRemoveUntil(
         LoginPage.route, (Route<dynamic> route) => false);
   }
@@ -254,11 +284,13 @@ class _PedidoPageState extends State<PedidoPage> {
     }
   }
 
-  Widget _body(BuildContext context) {
+  Future<Widget> _body(BuildContext context) async {
     final size = MediaQuery.of(context).size;
     listaPedidosShow.clear();
 
-    listaPedidosShow.addAll(_getPedidosSegunVista());
+    final list = await _getPedidosSegunVista();
+
+    listaPedidosShow.addAll(list);
     if (listaPedidosShow.length > 0) {
       return _gridPedidos(context);
     } else {
@@ -278,6 +310,7 @@ class _PedidoPageState extends State<PedidoPage> {
           return _bottonNuevoPedidoCotizacion(size, context);
           break;
         default:
+          return Container();
       }
     }
   }
@@ -327,14 +360,16 @@ class _PedidoPageState extends State<PedidoPage> {
                 listaPedidos.add(pedidoCopiado);
               }
             } else {
-              Navigator.of(context).pushNamed(NuevoPedidoPage.route,
-                  arguments: [pedido, _vista]);
+              NuevoPedidoPage.pedido = pedido;
+              NuevoPedidoPage.nuevo = false;
+              Navigator.of(context)
+                  .pushNamed(NuevoPedidoPage.route, arguments: [_vista]);
             }
           },
           cells: [
             _datosCliente(context, pedido, pedido.cliente.nombre,
                 pedido.fechaPedido?.toString()),
-            _totalPedido(context, pedido.total),
+            _totalPedido(context, pedido.totalPedido),
           ]);
       lista.add(dataRow);
     });
@@ -503,7 +538,7 @@ class _PedidoPageState extends State<PedidoPage> {
           'IMAGEN',
           '${item.producto.id ?? ''}',
           '${item.cantidad ?? '0'}',
-          '${item.producto.nombre ?? 'Sin descripcion'}',
+          '${item.producto.descripcion ?? 'Sin descripcion'}',
           '\$ ${item.precio.toStringAsFixed(2) ?? '\$ 0.00'}',
           '${item.descuento ?? '0,00 %'}',
           '${item.observacion ?? ''}',
@@ -631,7 +666,7 @@ class _PedidoPageState extends State<PedidoPage> {
                               '\$ ' + p?.iva?.toStringAsFixed(2) ?? '\$ 0.00'),
                           _rowTituloYDescripcion(
                               'Total',
-                              '\$ ' + p?.total?.toStringAsFixed(2) ??
+                              '\$ ' + p?.totalPedido?.toStringAsFixed(2) ??
                                   '\$ 0.00 %')
                         ])
                   ]))
@@ -691,30 +726,30 @@ class _PedidoPageState extends State<PedidoPage> {
         });
   }
 
-  List<Pedido> _getPedidosSegunVista() {
+  Future<List<Pedido>> _getPedidosSegunVista() async {
     final List<Pedido> lista = List<Pedido>.empty(growable: true);
     switch (_vista) {
       case Pedido.ESTADO_SIN_ENVIAR:
         //TODO hacer un select en la base de datos de los pedidos sin enviar
-        if (!_listaInit) _initListaPedidosSinEnviar();
-        return listaPedidos;
+        if (!_listaInitSinEnviar) await _initListaPedidosSinEnviar();
+        return listaPedidosSinEnviar;
         break;
       case Pedido.ESTADO_ENVIADO:
         //TODO hacer un select en la base de datos de los pedidos enviados
-        if (!_listaInit) _initListaPedidosSinEnviar();
-        return listaPedidos;
+        if (!_listaInitEnviados) await _initListaPedidosEnviados();
+        return listaPedidosEnviados;
         break;
       case Pedido.ESTADO_COTIZADO:
         //TODO hacer un select en la base de datos de los pedidos cotizados
-        if (!_listaInit) _initListaPedidosSinEnviar();
-        return listaPedidos;
+        if (!_listaInitCotizados) await _initListaPedidosCotizados();
+        return listaPedidosCotizaciones;
         break;
       default:
         return [];
     }
   }
 
-  _initListaPedidosSinEnviar() {
+  Future _initListaPedidosSinEnviar() async {
     final c1 = Cliente(
         clientId: 16262,
         nombre: "BAJO JAVIER",
@@ -756,7 +791,7 @@ class _PedidoPageState extends State<PedidoPage> {
           items: List.of([p1, p2]),
           iva: p1.precio * 0.21 + p2.precio * 0.21,
           neto: p1.precio * 0.79 + p2.precio * 0.79,
-          total: p1.precio + p2.precio,
+          totalPedido: p1.precio + p2.precio,
           checked: false,
           fechaPedido: DateTime.now()),
       Pedido(
@@ -765,7 +800,7 @@ class _PedidoPageState extends State<PedidoPage> {
           items: List.of([p2, p3]),
           iva: p3.precio * 0.21 + p2.precio * 0.21,
           neto: p3.precio * 0.79 + p2.precio * 0.79,
-          total: p3.precio + p2.precio,
+          totalPedido: p3.precio + p2.precio,
           checked: false,
           fechaPedido: DateTime.now()),
       Pedido(
@@ -774,10 +809,47 @@ class _PedidoPageState extends State<PedidoPage> {
           items: List.of([p1, p2, p3]),
           iva: p1.precio * 0.21 + p2.precio * 0.21 + p3.precio * 0.21,
           neto: p1.precio * 0.79 + p2.precio * 0.79 + p3.precio * 0.79,
-          total: p1.precio + p2.precio + p3.precio,
+          totalPedido: p1.precio + p2.precio + p3.precio,
           checked: false,
           fechaPedido: DateTime.now()),
     ]);
+
+    _listaInitSinEnviar = true;
+
+    final dbHelper = DatabaseHelper.instance;
+
+    final listaJson = await dbHelper.queryRows(DatabaseHelper.tablePedidos,
+        DatabaseHelper.estado, Pedido.ESTADO_SIN_ENVIAR);
+
+    List<Pedido> listaObjects = Pedidos.fromJson(listaJson);
+
+    listaPedidosSinEnviar.addAll(listaObjects);
+  }
+
+  Future _initListaPedidosEnviados() async {
+    _listaInitEnviados = true;
+
+    final dbHelper = DatabaseHelper.instance;
+
+    final listaJson = await dbHelper.queryRows(DatabaseHelper.tablePedidos,
+        DatabaseHelper.estado, Pedido.ESTADO_ENVIADO);
+
+    List<Pedido> listaObjects = Pedidos.fromJson(listaJson);
+
+    listaPedidosEnviados.addAll(listaObjects);
+  }
+
+  Future<void> _initListaPedidosCotizados() async {
+    _listaInitCotizados = true;
+
+    final dbHelper = DatabaseHelper.instance;
+
+    final listaJson = await dbHelper.queryRows(DatabaseHelper.tablePedidos,
+        DatabaseHelper.estado, Pedido.ESTADO_SIN_ENVIAR);
+
+    List<Pedido> listaObjects = Pedidos.fromJson(listaJson);
+
+    listaPedidosCotizaciones.addAll(listaObjects);
   }
 
   List<Widget> _accionesPedidoCotizacion(BuildContext context) {

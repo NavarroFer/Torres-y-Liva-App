@@ -1,10 +1,8 @@
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:torres_y_liva/src/models/pedido_model.dart';
-import 'package:torres_y_liva/src/pages/datos_pedido_page.dart';
-import 'package:torres_y_liva/src/pages/items_pedido_page.dart';
 import 'package:torres_y_liva/src/widgets/base_widgets.dart';
 
+// ignore: must_be_immutable
 class PedidoEnviadoDetailPage extends StatelessWidget {
   static final String route = 'pedidoEnviadoDetail';
 
@@ -63,7 +61,7 @@ class PedidoEnviadoDetailPage extends StatelessWidget {
           SizedBox(
             height: size.height * 0.05,
           ),
-          totalesVenta(context, pedido.neto, pedido.iva, pedido.total),
+          totalesVenta(context, pedido.neto, pedido.iva, pedido.totalPedido),
         ],
       ),
     );

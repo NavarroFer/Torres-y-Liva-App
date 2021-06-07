@@ -1,3 +1,5 @@
+import 'package:torres_y_liva/src/utils/database_helper.dart';
+
 class Clientes {
   static List<Cliente> clientes;
 
@@ -74,32 +76,67 @@ class Cliente {
     return '$nombre $clientId';
   }
 
+  Map<String, dynamic> toMap() {
+    return {
+      DatabaseHelper.clienteID: this.id,
+      'clientId': this.clientId ?? 0,
+      'userId': this.userId ?? 0,
+      'domicilioID': this.domicilioID ?? 0,
+      'codigoGestion': this.codigoGestion ?? '',
+      'nombre': this.nombre ?? '',
+      'ciudad': this.ciudad ?? '',
+      'tipoCuitID': this.tipoCuitID ?? 0,
+      'cuit': this.cuit ?? '',
+      'email': this.email ?? '',
+      'domicilio': this.domicilio ?? '',
+      'telefono': this.telefono ?? '',
+      'telefonoCel': this.telefonoCel ?? '',
+      'fechaUltimaCompra': this.fechaUltimaCompra ?? 0,
+      'priceList': this.priceList ?? 0,
+      'formaPago': this.formaPago ?? '',
+      'razonSocial': this.razonSocial ?? '',
+      'clienteDescuento': this.descuento ?? 0,
+      'saldo': this.saldo ?? 0,
+      'credito': this.credito ?? 0,
+      'observaciones': this.observaciones ?? '',
+      'latitud': this.latitud ?? '',
+      'longitud': this.longitud ?? '',
+      'reba': this.reba ?? '',
+      'priceListAux': this.priceList ?? 0,
+      'geoReferenced': this.geoReferenced == null
+          ? 0
+          : this.geoReferenced
+              ? 1
+              : 0,
+    };
+  }
+
   Cliente.fromJsonMap(jsonItem) {
-    this.userId = jsonItem['usuarioWebID'];
-    this.domicilioID = jsonItem['domicilioClienteID'];
-    this.clientId = jsonItem['clienteID'];
-    this.codigoGestion = jsonItem['codigoGestion'];
-    this.tipoCuitID = jsonItem['tipoCuitID'];
-    this.cuit = jsonItem['cuit'];
-    this.formaPago = jsonItem['formaPago'];
-    this.razonSocial = jsonItem['razonSocial'];
-    this.nombre = jsonItem['nombre'];
-    this.domicilio = jsonItem['domicilio'];
-    this.ciudad = jsonItem['localidad'];
-    this.telefono = jsonItem['telefono'];
-    this.telefonoCel = jsonItem['telefonoCel'];
-    this.descuento = jsonItem['descuento'];
-    this.saldo = jsonItem['saldo'];
-    this.credito = jsonItem['credito'];
-    this.priceList = jsonItem['lista_precios'];
-    this.observaciones = jsonItem['observaciones'];
-    this.latitud = jsonItem['latitud'];
-    this.longitud = jsonItem['longitud'];
-    this.email = jsonItem['email'];
+    this.userId = jsonItem[DatabaseHelper.userIdCliente]; //
+    this.domicilioID = jsonItem[DatabaseHelper.clienteDomicilioID]; //
+    this.clientId = jsonItem[DatabaseHelper.cliID]; //
+    this.codigoGestion = jsonItem[DatabaseHelper.codigoGestion]; //
+    this.tipoCuitID = jsonItem[DatabaseHelper.tipoCuitID]; //
+    this.cuit = jsonItem[DatabaseHelper.cuit]; //
+    this.formaPago = jsonItem[DatabaseHelper.formaPago]; //
+    this.razonSocial = jsonItem[DatabaseHelper.razonSocial]; //
+    this.nombre = jsonItem[DatabaseHelper.nombre]; //
+    this.domicilio = jsonItem[DatabaseHelper.domicilio]; //
+    this.ciudad = jsonItem[DatabaseHelper.ciudad]; //
+    this.telefono = jsonItem[DatabaseHelper.telefono]; //
+    this.telefonoCel = jsonItem[DatabaseHelper.telefonoCel]; //
+    this.descuento = jsonItem[DatabaseHelper.clienteDescuento]; //
+    this.saldo = jsonItem[DatabaseHelper.saldo]; //
+    this.credito = jsonItem[DatabaseHelper.credito]; //
+    this.priceList = jsonItem[DatabaseHelper.listaPrecios]; //
+    this.observaciones = jsonItem[DatabaseHelper.clienteObservaciones]; //
+    this.latitud = jsonItem[DatabaseHelper.clienteLatitud]; //
+    this.longitud = jsonItem[DatabaseHelper.clienteLongitud]; //
+    this.email = jsonItem[DatabaseHelper.email]; //
     this.tokenWs = jsonItem['tokenWs'];
-    this.reba = jsonItem['reba'];
-    this.priceListAux = jsonItem['listaPrecios'];
-    this.id = jsonItem['primaryKey'];
-    this.geoReferenced = jsonItem['geoReferenciado'];
+    this.reba = jsonItem[DatabaseHelper.reba]; //
+    this.priceListAux = jsonItem[DatabaseHelper.priceListAux]; //
+    this.id = jsonItem[DatabaseHelper.clienteID]; //
+    this.geoReferenced = jsonItem[DatabaseHelper.geoReferenced]; //
   }
 }
