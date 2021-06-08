@@ -73,7 +73,7 @@ class Cliente {
 
   @override
   String toString() {
-    return '$nombre $clientId';
+    return '$nombre $clientId $domicilio $telefono $telefonoCel $ciudad';
   }
 
   Map<String, dynamic> toMap() {

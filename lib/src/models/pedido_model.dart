@@ -1,3 +1,4 @@
+import 'package:torres_y_liva/src/pages/nuevo_pedido_page.dart';
 import 'package:torres_y_liva/src/utils/database_helper.dart';
 
 import 'cliente_model.dart';
@@ -22,7 +23,7 @@ class ItemPedido {
 
   @override
   String toString() {
-    return "ItemID: ${this.id} - Detalle: ${this.detalle}";
+    return "ItemID: ${this.id} - Detalle: ${this.detalle} - Precio: ${this.precio} - PrecioTot: ${this.precioTotal} - Descuento: ${this.descuento} - Cantidad: ${this.cantidad}";
   }
 
   ItemPedido(
@@ -118,19 +119,19 @@ class Pedido {
   int operadorID;
   Cliente cliente;
   List<ItemPedido> items = List<ItemPedido>.empty(growable: true);
-  double totalPedido;
-  double neto;
-  double iva;
-  double descuento;
+  double totalPedido = 0;
+  double neto = 0;
+  double iva = 0;
+  double descuento = 0; //dto general ?
   DateTime fechaPedido;
-  String observaciones;
+  String observaciones = '';
   bool checked = false;
-  String domicilioDespacho;
-  String latitud;
-  String longitud;
-  String fechaGps;
-  String accuracyGps;
-  String providerGps;
+  String domicilioDespacho = '';
+  String latitud = '';
+  String longitud = '';
+  String fechaGps = '';
+  String accuracyGps = '';
+  String providerGps = '';
   int listaPrecios;
   bool enviado;
   int idFormaPago;
@@ -193,7 +194,7 @@ class Pedido {
 
   @override
   String toString() {
-    return "ID: ${this.id?.toString()} - CLIENTE: ${this.cliente?.nombre} - ITEMS: ${this.items.asMap()}";
+    return "ID: ${this.id?.toString()} - TOT: ${this.totalPedido} - IVA: ${this.iva} - NETO: ${this.neto} - CLIENTE: ${this.cliente} - ITEMS: ${this.items.asMap()}";
   }
 
   Pedido(
@@ -235,29 +236,35 @@ class Pedido {
         'itemsPedidos': this.items.map((e) => e.toJson()).toList()
       };
 
-  Map<String, dynamic> toMap() {
-    return {
-      DatabaseHelper.idPedido: this.id ?? 0,
-      DatabaseHelper.estado: this.estado ?? 0,
-      DatabaseHelper.usuarioWebId: this.usuarioWebId ?? 0,
-      DatabaseHelper.clienteID: this.cliente?.id ?? this.clienteID ?? 0,
-      DatabaseHelper.domicilioClienteID: this.domicilioClienteID ?? 0,
-      DatabaseHelper.operadorID: this.operadorID ?? 0,
-      DatabaseHelper.totalPedido: this.totalPedido ?? 0.0,
-      DatabaseHelper.netoPedido: this.neto ?? 0.0,
-      DatabaseHelper.ivaPedido: this.iva ?? 0.0,
-      DatabaseHelper.descuentoPedido: this.descuento ?? 0.0,
-      DatabaseHelper.fechaPedido: this.fechaPedido ?? 0,
-      DatabaseHelper.obsPedido: this.observaciones ?? '',
-      DatabaseHelper.domicilioDespacho: this.domicilioDespacho ?? '',
-      DatabaseHelper.latitudPedido: this.latitud ?? '',
-      DatabaseHelper.longitudPedido: this.longitud ?? '',
-      DatabaseHelper.fechaGps: this.fechaGps ?? 0,
-      DatabaseHelper.accuracyGps: this.accuracyGps ?? '',
-      DatabaseHelper.providerGps: this.providerGps ?? '',
-      DatabaseHelper.listaPrecios: this.listaPrecios ?? 0,
-      DatabaseHelper.idFormaPago: this.idFormaPago,
+  static Map<String, dynamic> toMap(Pedido ped) {
+    //to DB
+    print(ped.totalPedido);
+    Pedido pedi = Pedido().copyWith(pedido: ped);
+    print(pedi.cliente);
+    final map = {
+      'primaryKey': '1',
+      DatabaseHelper.estado: pedi.estado,
+      DatabaseHelper.usuarioWebId: pedi.usuarioWebId,
+      DatabaseHelper.clienteIDPedido: pedi.cliente?.clientId ?? pedi.clienteID,
+      DatabaseHelper.domicilioClienteID: pedi.domicilioClienteID,
+      DatabaseHelper.operadorID: pedi.operadorID ?? 0,
+      DatabaseHelper.totalPedido: pedi.totalPedido ?? 0.0,
+      DatabaseHelper.netoPedido: pedi.neto ?? 0.0,
+      DatabaseHelper.ivaPedido: pedi.iva ?? 0.0,
+      DatabaseHelper.descuentoPedido: ped.descuento ?? 0.0,
+      DatabaseHelper.fechaPedido: pedi.fechaPedido ?? 0,
+      DatabaseHelper.obsPedido: pedi.observaciones ?? 's',
+      DatabaseHelper.domicilioDespacho: pedi.domicilioDespacho ?? 'f',
+      DatabaseHelper.latitudPedido: pedi.latitud ?? 'a',
+      DatabaseHelper.longitudPedido: pedi.longitud ?? 's',
+      DatabaseHelper.fechaGps: pedi.fechaGps ?? 0,
+      DatabaseHelper.accuracyGps: pedi.accuracyGps ?? 'd',
+      DatabaseHelper.providerGps: pedi.providerGps ?? 'f',
+      DatabaseHelper.listaPrecios: pedi.listaPrecios ?? 0,
+      DatabaseHelper.idFormaPago: pedi.idFormaPago ?? 0,
     };
+    print(map);
+    return map;
   }
 
   Pedido.fromJsonMap(Map<String, dynamic> json) {
@@ -290,25 +297,28 @@ class Pedido {
   Future<bool> insertOrUpdate() async {
     if (this.items.length > 0) {
       final dbHelper = DatabaseHelper.instance;
-      final existe = await dbHelper.exists(
-          DatabaseHelper.tablePedidos, this.id, DatabaseHelper.idPedido);
-      if (existe) {
-        await dbHelper.update(
-            this.toMap(), DatabaseHelper.tablePedidos, DatabaseHelper.idPedido);
-      } else {
-        await dbHelper.insert(this.toMap(), DatabaseHelper.tablePedidos);
-      }
+      // print(this.toMap());
+      await dbHelper.insert(
+          Pedido.toMap(NuevoPedidoPage.pedido), DatabaseHelper.tablePedidos);
+      // final existe = await dbHelper.exists(
+      //     DatabaseHelper.tablePedidos, this.id, DatabaseHelper.idPedido);
+      // if (existe) {
+      //   await dbHelper.update(
+      //       this.toMap(), DatabaseHelper.tablePedidos, DatabaseHelper.idPedido);
+      // } else {
+      //   await dbHelper.insert(this.toMap(), DatabaseHelper.tablePedidos);
+      // }
 
       //borrar items
 
-      await dbHelper.delete(DatabaseHelper.tableItemsPedido,
-          id: this.id, nombreColumnId: DatabaseHelper.pedidoIDItemPedido);
+      // await dbHelper.delete(DatabaseHelper.tableItemsPedido,
+      //     id: this.id, nombreColumnId: DatabaseHelper.pedidoIDItemPedido);
 
-      //poner nuevos
+      // //poner nuevos
 
-      this.items.forEach((element) async {
-        await dbHelper.insert(element.toMap(), DatabaseHelper.tableItemsPedido);
-      });
+      // this.items.forEach((element) async {
+      //   await dbHelper.insert(element.toMap(), DatabaseHelper.tableItemsPedido);
+      // });
       return true;
     } else {
       return false;
@@ -318,8 +328,8 @@ class Pedido {
   static Future<int> getNextId() async {
     final dbHelper = DatabaseHelper.instance;
 
-    return await dbHelper.getLastID(
-          DatabaseHelper.tablePedidos, DatabaseHelper.idPedido, DatabaseHelper.fechaPedido) + 1;
-
+    return await dbHelper.getLastID(DatabaseHelper.tablePedidos,
+            DatabaseHelper.idPedido, DatabaseHelper.fechaPedido) +
+        1;
   }
 }

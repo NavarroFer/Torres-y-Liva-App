@@ -43,6 +43,8 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
   FocusNode cantidadFocusNode = new FocusNode();
   FocusNode descuentoFocusNode = new FocusNode();
 
+  bool _validateDto = false;
+
   final styleProduct = TextStyle(fontWeight: FontWeight.bold);
 
   @override
@@ -114,7 +116,7 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
           },
         )),
         DataCell(Text(
-          '\$${item.precio.toStringAsFixed(2)}',
+          '\$${item.precioTotal.toStringAsFixed(2)}',
           textScaleFactor: MediaQuery.of(context).size.width * 0.003,
         )),
       ]);
@@ -188,8 +190,11 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
               border: OutlineInputBorder(),
             )),
         suggestionsCallback: (input) async {
-          final items = await Productos.getSuggesttionsDB(input);
-          return items;
+          if (input.length > 2) {
+            final items = await Productos.getSuggesttionsDB(input);
+            return items;
+          } else
+            return [];
         },
         itemBuilder: (context, suggestion) {
           return ListTile(
@@ -269,14 +274,19 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
             } else if (controller == _obsController) {
               _submittedObs();
             } else if (controller == _dtoController) {
-              _submittedDto();
+              _submittedDto(value);
             } else if (controller == _cantController) {
-              _submittedCant(double.tryParse(value));
+              _submittedCant(value);
             }
           },
           style: TextStyle(fontSize: MediaQuery.of(context).size.height * 0.02),
           maxLines: 1,
           decoration: InputDecoration(
+              errorText: controller == _dtoController
+                  ? _validateDto
+                      ? 'Valor erroneo'
+                      : null
+                  : null,
               border: OutlineInputBorder(),
               icon: icon == null ? null : Icon(icon),
               labelText: s,
@@ -449,41 +459,72 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
     FocusScope.of(context).requestFocus(descuentoFocusNode);
   }
 
-  void _submittedDto() {
+  void _submittedDto(String value) {
     //FOCUS CANTIDAD
-    FocusScope.of(context).requestFocus(cantidadFocusNode);
+    double dto = double.tryParse(value);
+    if (dto != null && dto > 0 && dto < 1) {
+      _validateDto = false;
+      FocusScope.of(context).requestFocus(cantidadFocusNode);
+    } else {
+      _validateDto = true;
+    }
+    setState(() {});
   }
 
-  void _submittedCant(double value) {
+  void _submittedCant(String value) {
     // agregar producto
 
-    int newId = 1;
+    double valueDouble = double.tryParse(value);
 
-    if (NuevoPedidoPage.pedido.items.length > 0) {
-      newId = NuevoPedidoPage.pedido.items.last.id + 1;
+    if (_productoSelected != null && valueDouble != null) {
+      int newId = 1;
+
+      if (NuevoPedidoPage.pedido.items.length > 0) {
+        newId = NuevoPedidoPage.pedido.items.last.id + 1;
+      }
+      var precioTotal = _productoSelected.precio *
+          valueDouble *
+          (1 - (double.tryParse(_dtoController.text) ?? 0));
+      final item = ItemPedido(
+          cantidad: valueDouble ?? 1,
+          detalle: _productoSelected.descripcion ?? '',
+          descuento: double.tryParse(_dtoController.text) ?? 0.0,
+          id: newId,
+          productoID: _productoSelected.id,
+          precio: _productoSelected.precio,
+          producto: _productoSelected,
+          iva: _productoSelected.iva,
+          observacion: _productoSelected.descripcion ?? '',
+          fraccion: 1.0, //TODO ver que es fraccion
+          precioTotal: precioTotal);
+
+      if (NuevoPedidoPage.pedido.neto == null) {
+        NuevoPedidoPage.pedido.neto = 0;
+      }
+      if (NuevoPedidoPage.pedido.totalPedido == null) {
+        NuevoPedidoPage.pedido.totalPedido = 0;
+      }
+      if (NuevoPedidoPage.pedido.iva == null) {
+        NuevoPedidoPage.pedido.iva = 0;
+      }
+
+      NuevoPedidoPage.pedido.neto += precioTotal * (1 - _productoSelected.iva);
+      NuevoPedidoPage.pedido.totalPedido += precioTotal;
+      NuevoPedidoPage.pedido.iva += precioTotal * _productoSelected.iva;
+      print(_productoSelected.iva);
+      NuevoPedidoPage.pedido?.items?.add(item);
+
+      // print(NuevoPedidoPage.pedido);
+
+      _codController.text = '';
+      _typeAheadController.text = '';
+      _productoSelected = null;
+      _obsController.text = '';
+      _dtoController.text = '';
+      _cantController.text = '';
+
+      setState(() {});
     }
-    NuevoPedidoPage.pedido?.items?.add(ItemPedido(
-        cantidad: value ?? 1,
-        detalle: _productoSelected.descripcion ?? '',
-        descuento: double.tryParse(_dtoController.text) ?? 0.0,
-        id: newId,
-        precio: _productoSelected.precio,
-        producto: _productoSelected,
-        iva: _productoSelected.iva,
-        observacion: _productoSelected.descripcion ?? '',
-        fraccion: 1.0, //TODO ver que es fraccion
-        precioTotal: _productoSelected.precio *
-            value *
-            (double.tryParse(_dtoController.text) ?? 1.0)));
-
-    _codController.text = '';
-    _typeAheadController.text = '';
-    _productoSelected = null;
-    _obsController.text = '';
-    _dtoController.text = '';
-    _cantController.text = '';
-
-    setState(() {});
   }
 
   _productoActual(BuildContext context) {

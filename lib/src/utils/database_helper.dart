@@ -17,7 +17,7 @@ class DatabaseHelper {
   static final code = 'codigo';
   static final categoriaID = 'categoriaID';
   static final descripcion = 'descripcion';
-  static final stock = 'stock';
+  static final stock = 'cantidad';
   static final precio = 'precio';
   static final priceL2 = 'precio_l2';
   static final priceL3 = 'precio_l3';
@@ -34,14 +34,18 @@ class DatabaseHelper {
   static final bloqueado = 'bloqueado';
   static final imagenURL = 'imagenURL';
   static final noPermiteRemito = 'noPermiteRemito';
-  static final iva = 'tasaIVA';
+  static final iva = 'tasaIva';
   static final disabled = 'disabled';
-
-  static final lastUpdate = 'lastUpdate';
-  static final priceChangeDate = 'priceChangeDate';
-  static final hasAsterisk = 'hasAsterisk';
-  static final prv = 'prv';
-  static final lastBuyDate = 'lastBuyDate';
+  static final proveedorID = 'proveedorID';
+  static final proveedorNombre = 'proveedorNombre';
+  static final marcaID = 'marcaID';
+  static final marcaNombre = 'marcaNombre';
+  static final presentacion = 'presentacion';
+  static final observacionVentas = 'observacionVentas';
+  static final fechaUltimaCompraProducto = 'fechaUltimaCompra';
+  static final fechaModificadoProducto = 'fechaModificado';
+  static final listaPreciosDefault = 'listaPreciosDefault';
+  
 //productos//
 
 //categorias
@@ -184,6 +188,7 @@ class DatabaseHelper {
     return await db
         .insert(table, row, conflictAlgorithm: ConflictAlgorithm.replace)
         .onError((error, stackTrace) {
+      print(error);
       return -1;
     });
   }
@@ -335,11 +340,15 @@ class DatabaseHelper {
             $noPermiteRemito INTEGER,
             $iva REAL,
             $disabled INTEGER,
-            $lastUpdate INTEGER,
-            $priceChangeDate INTEGER,
-            $hasAsterisk INTEGER,
-            $prv INTEGER,
-            $lastBuyDate INTEGER
+            $proveedorID INTEGER,
+            $proveedorNombre TEXT,
+            $marcaID INTEGER,
+            $marcaNombre TEXT,
+            $presentacion INTEGER,
+            $observacionVentas TEXT,
+            $fechaUltimaCompraProducto TEXT,
+            $fechaModificadoProducto TEXT,
+            $listaPreciosDefault INTEGER
           )
     ''');
     //agregar
@@ -380,7 +389,7 @@ class DatabaseHelper {
             $providerGps REAL,
             $listaPrecios REAL,
             $idFormaPago INTEGER,
-            FOREIGN KEY($clienteID) REFERENCES ${DatabaseHelper.tableClientes}(${DatabaseHelper.clienteID})
+            FOREIGN KEY($clienteIDPedido) REFERENCES ${DatabaseHelper.tableClientes}(${DatabaseHelper.clienteID})
           )
           ''');
   }

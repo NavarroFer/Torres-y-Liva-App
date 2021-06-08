@@ -77,11 +77,16 @@ class Producto {
   bool noPermiteRemito;
   double iva;
   bool disabled;
-  DateTime lastUpdate;
-  DateTime priceChangeDate;
-  bool hasAsterisk;
-  int prv;
-  DateTime lastBuyDate;
+  int proveedorID;
+  String proveedorNombre;
+  int marcaID;
+  String marcaNombre;
+  int presentacion;
+  String observacionVentas;
+  DateTime fechaUltimaCompraProducto;
+  DateTime fechaModificadoProducto;
+  int listaPreciosDefault;
+
   List<String> barCodes;
   bool checked = false;
 
@@ -94,11 +99,9 @@ class Producto {
       this.descripcion,
       this.disabled,
       this.descuento,
-      this.hasAsterisk,
       this.iva,
-      this.lastBuyDate,
-      this.lastUpdate,
-      this.priceChangeDate,
+      this.fechaUltimaCompraProducto,
+      this.fechaModificadoProducto,
       this.priceL10,
       this.priceL2,
       this.priceL3,
@@ -108,7 +111,6 @@ class Producto {
       this.priceL7,
       this.priceL8,
       this.priceL9,
-      this.prv,
       this.stock,
       this.cantidadPack,
       this.ventaFraccionada,
@@ -186,8 +188,23 @@ class Producto {
   }
 
   Map<String, dynamic> toMap() {
+    var fechaUltCompraString = '';
+    var fechaUltModString = '';
+
+    if (this.fechaUltimaCompraProducto != null) {
+      fechaUltCompraString = this.fechaUltimaCompraProducto.year.toString() +
+          this.fechaUltimaCompraProducto.month.toString().padLeft(2, '0') +
+          this.fechaUltimaCompraProducto.day.toString().padLeft(2, '0');
+    }
+
+    if (this.fechaModificadoProducto != null) {
+      fechaUltModString = this.fechaModificadoProducto.year.toString() +
+          this.fechaModificadoProducto.month.toString().padLeft(2, '0') +
+          this.fechaModificadoProducto.day.toString().padLeft(2, '0');
+    }
+
     return {
-      DatabaseHelper.idPedido: this.id,
+      DatabaseHelper.idProducto: this.id,
       DatabaseHelper.code: this.code ?? '',
       DatabaseHelper.categoriaID: this.categoriaID ?? '',
       DatabaseHelper.descripcion: this.descripcion ?? '',
@@ -221,20 +238,20 @@ class Producto {
               ? 1
               : 0,
       DatabaseHelper.iva: this.iva ?? 0.0,
-      'disabled': this.disabled == null
+      DatabaseHelper.disabled: this.disabled == null
           ? 0
           : this.disabled
               ? 1
               : 0,
-      DatabaseHelper.lastUpdate: this.lastUpdate ?? 0,
-      DatabaseHelper.priceChangeDate: this.priceChangeDate ?? 0,
-      'hasAsterisk': this.hasAsterisk == null
-          ? 0
-          : this.hasAsterisk
-              ? 1
-              : 0,
-      DatabaseHelper.prv: this.prv ?? 0,
-      DatabaseHelper.lastBuyDate: this.lastBuyDate ?? 0
+      DatabaseHelper.proveedorID: this.proveedorID ?? 0,
+      DatabaseHelper.proveedorNombre: this.proveedorNombre ?? '',
+      DatabaseHelper.marcaID: this.marcaID ?? 0,
+      DatabaseHelper.marcaNombre: this.marcaNombre ?? '',
+      DatabaseHelper.presentacion: this.presentacion ?? 0,
+      DatabaseHelper.observacionVentas: this.observacionVentas ?? '',
+      DatabaseHelper.fechaUltimaCompraProducto: fechaUltCompraString,
+      DatabaseHelper.fechaModificadoProducto: fechaUltModString,
+      DatabaseHelper.listaPreciosDefault: this.listaPreciosDefault ?? 0,
     };
   }
 
@@ -258,8 +275,70 @@ class Producto {
     this.cantidadPack = json[DatabaseHelper.cantidadPack];
     this.ventaFraccionada = json[DatabaseHelper.ventaFraccionada] == 1 ?? false;
     this.bloqueado = json['bloqueado'] == 1 ?? false;
-    this.imagenURL = json[DatabaseHelper.imagenURL];
+    this.imagenURL = json[DatabaseHelper.imagenURL] ?? '';
     this.noPermiteRemito = json[DatabaseHelper.noPermiteRemito] == 1 ?? false;
-    this.iva = json[DatabaseHelper.iva];
+    this.iva = json[DatabaseHelper.iva] ?? 0;
+    this.proveedorID = json[DatabaseHelper.proveedorID] ?? 0;
+    this.proveedorNombre = json[DatabaseHelper.proveedorNombre] ?? '';
+    this.marcaID = json[DatabaseHelper.marcaID] ?? 0;
+    this.marcaNombre = json[DatabaseHelper.marcaNombre] ?? '';
+
+    var pres = json[DatabaseHelper.presentacion];
+    var presRes;
+    if (pres is int) {
+      presRes = pres;
+    } else if (pres is String) {
+      presRes = int.tryParse(json[DatabaseHelper.presentacion] ?? "0") ?? 0;
+    } else {
+      presRes = 0;
+    }
+    this.presentacion = presRes;
+    this.observacionVentas = json[DatabaseHelper.observacionVentas] ?? '';
+    final fechaUltCompra = json[DatabaseHelper.fechaUltimaCompraProducto];
+    if (fechaUltCompra != null && fechaUltCompra.toString().trim() != '') {
+      DateTime fechaUltCompraDate;
+      if (fechaUltCompra.toString().contains('-')) {
+        //viene del ws formato 2021-06-22
+        fechaUltCompraDate = dateTimeFromWSString(fechaUltCompra);
+      } else {
+        //viene de la db formato 20210622
+        fechaUltCompraDate = datetimeFromDBString(fechaUltCompra.toString());
+      }
+      this.fechaUltimaCompraProducto = fechaUltCompraDate;
+    } else {
+      this.fechaUltimaCompraProducto = null;
+    }
+
+    var fechaUlttModMicrosec = json[DatabaseHelper.fechaModificadoProducto];
+    DateTime fechaUltModDate;
+
+    if (fechaUlttModMicrosec is int) {
+      fechaUltModDate =
+          DateTime.fromMicrosecondsSinceEpoch(fechaUlttModMicrosec * 1000);
+      this.fechaModificadoProducto = fechaUltModDate;
+    } else if (fechaUlttModMicrosec is String &&
+        fechaUlttModMicrosec.trim() != '') {
+      fechaUltModDate = datetimeFromDBString(fechaUlttModMicrosec);
+      this.fechaModificadoProducto = fechaUltModDate;
+    } else {
+      this.fechaModificadoProducto = null;
+    }
+    this.listaPreciosDefault = json[DatabaseHelper.listaPreciosDefault] ?? 0;
+  }
+
+  DateTime datetimeFromDBString(String fechaUltCompra) {
+    print(fechaUltCompra);
+    final year = int.parse(fechaUltCompra.substring(0, 4));
+    final month = int.parse(fechaUltCompra.substring(4, 6));
+    final day = int.parse(fechaUltCompra.substring(6));
+
+    return DateTime(year, month, day);
+  }
+
+  DateTime dateTimeFromWSString(fechaUltCompra) {
+    final arrFech = fechaUltCompra.toString().split('-') ?? null;
+
+    return DateTime(
+        int.parse(arrFech[0]), int.parse(arrFech[1]), int.parse(arrFech[2]));
   }
 }

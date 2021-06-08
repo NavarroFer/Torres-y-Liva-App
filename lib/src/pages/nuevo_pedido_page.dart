@@ -125,17 +125,27 @@ class _NuevoPedidoPageState extends State<NuevoPedidoPage>
   void _buscarProductosPressed(BuildContext cotext) {}
 
   void _guardarPedidoPressed(BuildContext context) async {
-    NuevoPedidoPage.pedido.items.forEach((element) {
-      element.pedidoID = NuevoPedidoPage.pedido.id;
-    });
-
     final idNuevoPedido = await Pedido.getNextId();
-
     NuevoPedidoPage.pedido.id = idNuevoPedido;
 
-    print(NuevoPedidoPage.pedido);
+    double total = 0;
+    double iva = 0;
+    double neto = 0;
+    NuevoPedidoPage.pedido.items.forEach((element) {
+      element.pedidoID = NuevoPedidoPage.pedido.id;
 
-    NuevoPedidoPage.pedido.insertOrUpdate();
+      total += element.precioTotal;
+      iva += element.precioTotal * element.iva;
+      neto += element.precioTotal * (1 - element.iva);
+    });
+
+    NuevoPedidoPage.pedido.totalPedido = total;
+    NuevoPedidoPage.pedido.iva = iva;
+    NuevoPedidoPage.pedido.neto = neto;
+
+    final a = Pedido.toMap(NuevoPedidoPage.pedido);
+
+    // NuevoPedidoPage.pedido.insertOrUpdate();
 
     // NuevoPedidoPage.pedido = Pedido(
     //     cliente: Cliente(), items: List<ItemPedido>.empty(growable: true));

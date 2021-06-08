@@ -354,6 +354,8 @@ class _LoginPageState extends State<LoginPage> {
       }
       await updateProductTable();
 
+      await productosProvider.ackUpdateProductos(tokenEmpresa, usuario.tokenWs);
+
       _ingresando = false;
       await guardarDatos(username, password);
       Navigator.of(context).pushReplacementNamed(HomePage.route);
@@ -376,8 +378,8 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   _textEstadoAcual(BuildContext context) {
-    final size = MediaQuery.of(context).size;
     if (_ingresando) {
+      final size = MediaQuery.of(context).size;
       return Column(
         children: [
           SizedBox(
@@ -427,7 +429,7 @@ class _LoginPageState extends State<LoginPage> {
     for (var categoria in Categorias.categorias) {
       await categoria.insertOrUpdate();
     }
-    log('Tabla categorias actualizada', time: DateTime.now());
+    log('${DateTime.now()} - Tabla categorias actualizada', time: DateTime.now());
     return true;
   }
 

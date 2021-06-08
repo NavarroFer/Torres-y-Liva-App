@@ -47,7 +47,7 @@ class _DatosPedidoPageState extends State<DatosPedidoPage> {
 
     clientesList = clientesDelVendedor;
 
-    clientesList.forEach((cliente) {
+    clientesList?.forEach((cliente) {
       clientes.add(
         DropdownMenuItem(
             child: ListTile(
@@ -108,6 +108,8 @@ class _DatosPedidoPageState extends State<DatosPedidoPage> {
           direccion = value?.domicilio;
           telefono = value?.telefono;
           email = value?.email;
+          print(NuevoPedidoPage.pedido);
+          // print(NuevoPedidoPage.pedido.cliente);
           switch (value.formaPago) {
             case 'CONTADO':
               idFormaPago = 0;

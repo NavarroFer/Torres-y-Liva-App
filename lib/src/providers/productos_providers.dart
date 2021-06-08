@@ -129,7 +129,6 @@ class ProductosProvider {
       if (respuesta.success) {
         Productos.fromJsonList(decodedData['data']['objects']);
         log('GET productos - count: ${Productos.productos.length}');
-        await ackUpdateProductos(tokenEmpresa, tokenCliente);
         return Productos.productos;
       } else
         return Future.error(respuesta.mensaje);
