@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:torres_y_liva/src/bloc/bloc_provider.dart';
-import 'package:torres_y_liva/src/models/categoria_model.dart';
 import 'package:torres_y_liva/src/pages/buscador_producto_page.dart';
 import 'package:torres_y_liva/src/pages/catalogo_productos_page.dart';
 import 'package:torres_y_liva/src/pages/cotizacion_page.dart';

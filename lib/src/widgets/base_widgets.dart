@@ -25,8 +25,6 @@ Widget totalesVenta(
   );
 }
 
-
-
 void mostrarSnackbar(String mensaje, BuildContext c) {
   final snackbar = SnackBar(
     content: Text(mensaje),

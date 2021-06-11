@@ -24,7 +24,6 @@ class UsuariosProvider {
       final respuesta = Respuesta.fromJsonMap(decodedData);
       if (respuesta.success) {
         usuario = Usuario.fromJsonMap(decodedData['data']);
-        print(usuario);
 
         log('Login correcto del usuario: ${usuario.nombre}');
         return true;

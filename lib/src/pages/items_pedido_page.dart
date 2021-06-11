@@ -69,8 +69,8 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
         SizedBox(
           height: MediaQuery.of(context).size.height * 0.02,
         ),
-        totalesVenta(context, NuevoPedidoPage.neto, NuevoPedidoPage.iva,
-            NuevoPedidoPage.total),
+        totalesVenta(context, NuevoPedidoPage.pedido.neto,
+            NuevoPedidoPage.pedido.iva, NuevoPedidoPage.pedido.totalPedido),
         SizedBox(
           height: MediaQuery.of(context).size.height * 0.02,
         ),
@@ -212,7 +212,6 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
                 minHeight: size.height * 0.05, minWidth: size.width * 0.9)),
         autoFlipDirection: true,
         onSuggestionSelected: (suggestion) {
-          print(suggestion);
           _typeAheadController.text = suggestion?.descripcion ?? '';
           _codController.text = suggestion?.id?.toString() ?? '';
           _productoSelected = suggestion;
@@ -221,8 +220,6 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
           FocusScope.of(context).requestFocus(cantidadFocusNode);
           setState(() {});
         },
-        validator: (value) {},
-        onSaved: (value) => {print(value)},
       ),
     );
   }
@@ -508,13 +505,12 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
         NuevoPedidoPage.pedido.iva = 0;
       }
 
-      NuevoPedidoPage.pedido.neto += precioTotal * (1 - _productoSelected.iva);
+      NuevoPedidoPage.pedido.neto +=
+          precioTotal * (1 - _productoSelected.iva / 100);
       NuevoPedidoPage.pedido.totalPedido += precioTotal;
-      NuevoPedidoPage.pedido.iva += precioTotal * _productoSelected.iva;
-      print(_productoSelected.iva);
-      NuevoPedidoPage.pedido?.items?.add(item);
+      NuevoPedidoPage.pedido.iva += precioTotal * _productoSelected.iva / 100;
 
-      // print(NuevoPedidoPage.pedido);
+      NuevoPedidoPage.pedido?.items?.add(item);
 
       _codController.text = '';
       _typeAheadController.text = '';

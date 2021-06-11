@@ -45,7 +45,7 @@ class DatabaseHelper {
   static final fechaUltimaCompraProducto = 'fechaUltimaCompra';
   static final fechaModificadoProducto = 'fechaModificado';
   static final listaPreciosDefault = 'listaPreciosDefault';
-  
+
 //productos//
 
 //categorias
@@ -184,13 +184,17 @@ class DatabaseHelper {
   // inserted row.
   Future<int> insert(Map<String, dynamic> row, String table) async {
     Database db = await instance.database;
+    print('ROWWW: $row');
 
-    return await db
-        .insert(table, row, conflictAlgorithm: ConflictAlgorithm.replace)
-        .onError((error, stackTrace) {
-      print(error);
-      return -1;
-    });
+    return await db.transaction<int>((txn) => txn
+            .insert(table, row, conflictAlgorithm: ConflictAlgorithm.replace)
+            .onError((error, stackTrace) {
+          print(error);
+          return -1;
+        }).then((value) {
+          print('El valor es $value');
+          return value;
+        }));
   }
 
   // All of the rows are returned as a list of maps, where each map is
@@ -223,8 +227,11 @@ class DatabaseHelper {
     return await db.update(table, row,
         where: '$nombreColumnId = ?',
         whereArgs: [value]).onError((error, stackTrace) {
-      log(error, level: 1);
+      print('Error en update: $error, ID: ');
       return -1;
+    }).then((value) {
+      print('Updated ok: $value');
+      return value;
     });
     ;
   }
@@ -387,9 +394,8 @@ class DatabaseHelper {
             $fechaGps TEXT,
             $accuracyGps TEXT,
             $providerGps REAL,
-            $listaPrecios REAL,
-            $idFormaPago INTEGER,
-            FOREIGN KEY($clienteIDPedido) REFERENCES ${DatabaseHelper.tableClientes}(${DatabaseHelper.clienteID})
+            $listaPrecios INTEGER,
+            $idFormaPago INTEGER
           )
           ''');
   }
@@ -419,18 +425,17 @@ class DatabaseHelper {
           ''');
   }
 
-  Future<dynamic> getLastID(
-      String table, String columnId, String orderBy) async {
+  Future<int> getLastID(String table, String columnId, String orderBy) async {
     Database db = await instance.database;
 
-    final rowLastId =
-        await db.query(table, columns: [columnId], orderBy: orderBy, limit: 1);
+    // final rowLastId =
+    //     await db.query(table, columns: [columnId], orderBy: orderBy, limit: 1);
 
-    print(rowLastId);
+    final rowLastId = await db.rawQuery('SELECT MAX($columnId) FROM $table');
 
     if (rowLastId.length == 0) return 0;
 
-    final id = rowLastId[0];
+    int id = rowLastId[0]['MAX($columnId)'];
 
     return id;
   }

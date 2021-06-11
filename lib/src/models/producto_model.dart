@@ -1,6 +1,7 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:torres_y_liva/src/utils/database_helper.dart';
 import 'package:torres_y_liva/src/utils/globals.dart';
+import 'package:torres_y_liva/src/utils/string_helper.dart';
 
 class Productos {
   static List<Producto> productos = [];
@@ -131,15 +132,8 @@ class Producto {
 
   Future<int> insertOrUpdate() async {
     final dbHelper = DatabaseHelper.instance;
-    final existe = await dbHelper.exists(
-        DatabaseHelper.tableProductos, this.id, DatabaseHelper.idProducto);
-    if (existe) {
-      await dbHelper.update(this.toMap(), DatabaseHelper.tableProductos,
-          DatabaseHelper.idProducto);
-    } else {
-      await dbHelper.insert(this.toMap(), DatabaseHelper.tableProductos);
-    }
-    return existe ? 0 : 1;
+    await dbHelper.insert(this.toMap(), DatabaseHelper.tableProductos);
+    return 1;
   }
 
   double getPriceFromList(int clientPriceList) {
@@ -191,17 +185,8 @@ class Producto {
     var fechaUltCompraString = '';
     var fechaUltModString = '';
 
-    if (this.fechaUltimaCompraProducto != null) {
-      fechaUltCompraString = this.fechaUltimaCompraProducto.year.toString() +
-          this.fechaUltimaCompraProducto.month.toString().padLeft(2, '0') +
-          this.fechaUltimaCompraProducto.day.toString().padLeft(2, '0');
-    }
-
-    if (this.fechaModificadoProducto != null) {
-      fechaUltModString = this.fechaModificadoProducto.year.toString() +
-          this.fechaModificadoProducto.month.toString().padLeft(2, '0') +
-          this.fechaModificadoProducto.day.toString().padLeft(2, '0');
-    }
+    fechaUltCompraString = toDBString(this.fechaUltimaCompraProducto);
+    fechaUltModString = toDBString(this.fechaModificadoProducto);
 
     return {
       DatabaseHelper.idProducto: this.id,
@@ -326,14 +311,7 @@ class Producto {
     this.listaPreciosDefault = json[DatabaseHelper.listaPreciosDefault] ?? 0;
   }
 
-  DateTime datetimeFromDBString(String fechaUltCompra) {
-    print(fechaUltCompra);
-    final year = int.parse(fechaUltCompra.substring(0, 4));
-    final month = int.parse(fechaUltCompra.substring(4, 6));
-    final day = int.parse(fechaUltCompra.substring(6));
-
-    return DateTime(year, month, day);
-  }
+  
 
   DateTime dateTimeFromWSString(fechaUltCompra) {
     final arrFech = fechaUltCompra.toString().split('-') ?? null;

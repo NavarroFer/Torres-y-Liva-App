@@ -108,8 +108,6 @@ class _DatosPedidoPageState extends State<DatosPedidoPage> {
           direccion = value?.domicilio;
           telefono = value?.telefono;
           email = value?.email;
-          print(NuevoPedidoPage.pedido);
-          // print(NuevoPedidoPage.pedido.cliente);
           switch (value.formaPago) {
             case 'CONTADO':
               idFormaPago = 0;
@@ -274,7 +272,7 @@ class _DatosPedidoPageState extends State<DatosPedidoPage> {
           height: size.height * 0.01,
         ),
         Text(
-          "\$ ${importe.toStringAsFixed(2)}",
+          "\$ ${importe?.toStringAsFixed(2)}",
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
       ],
@@ -286,9 +284,9 @@ class _DatosPedidoPageState extends State<DatosPedidoPage> {
       crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
-        _columnaTotal(context, 'NETO', NuevoPedidoPage.neto),
-        _columnaTotal(context, 'IVA', NuevoPedidoPage.iva),
-        _columnaTotal(context, 'TOTAL', NuevoPedidoPage.total),
+        _columnaTotal(context, 'NETO', NuevoPedidoPage.pedido.neto),
+        _columnaTotal(context, 'IVA', NuevoPedidoPage.pedido.iva),
+        _columnaTotal(context, 'TOTAL', NuevoPedidoPage.pedido.totalPedido),
       ],
     );
   }

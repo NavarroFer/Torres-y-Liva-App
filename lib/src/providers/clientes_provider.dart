@@ -25,7 +25,6 @@ class ClientesProvider {
           )
           .timeout(Duration(seconds: 10));
       final decodedData = jsonDecode(resp.body);
-      print(decodedData);
       final respuesta = Respuesta.fromJsonMap(decodedData);
       if (respuesta.success) {
         Clientes.fromJsonList(decodedData['data']);

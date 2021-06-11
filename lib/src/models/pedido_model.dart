@@ -1,5 +1,6 @@
 import 'package:torres_y_liva/src/pages/nuevo_pedido_page.dart';
 import 'package:torres_y_liva/src/utils/database_helper.dart';
+import 'package:torres_y_liva/src/utils/string_helper.dart';
 
 import 'cliente_model.dart';
 import 'producto_model.dart';
@@ -194,7 +195,7 @@ class Pedido {
 
   @override
   String toString() {
-    return "ID: ${this.id?.toString()} - TOT: ${this.totalPedido} - IVA: ${this.iva} - NETO: ${this.neto} - CLIENTE: ${this.cliente} - ITEMS: ${this.items.asMap()}";
+    return ' - ID: ${this.id?.toString()}\n - ESTADO: ${this.estado}\n - USUARIOWEBID: ${this.usuarioWebId}\n - ClienteID: ${this.clienteID}\n - DomCliID: ${this.domicilioClienteID}\n - OperadorID: ${this.operadorID}\n - TOT: ${this.totalPedido}\n - NETO: ${this.neto}\n - IVA: ${this.iva}\n - CLIENTE: ${this.cliente}\n - Descuento: ${this.descuento}\n - FechaPed: ${this.fechaPedido}\n - Obs: ${this.observaciones}\n - DomDespacho: ${this.domicilioDespacho}\n - Lat: ${this.latitud}\n - Long: ${this.longitud}\n - FechaGps: ${this.fechaGps}\n - AcyracyGps: ${this.accuracyGps}\n - ProviderGps: ${this.providerGps}\n - ListaPrecios: ${this.listaPrecios}\n - IDFormaPago: ${this.idFormaPago}\n - ITEMS: ${this.items.asMap()}';
   }
 
   Pedido(
@@ -236,79 +237,84 @@ class Pedido {
         'itemsPedidos': this.items.map((e) => e.toJson()).toList()
       };
 
-  static Map<String, dynamic> toMap(Pedido ped) {
-    //to DB
-    print(ped.totalPedido);
-    Pedido pedi = Pedido().copyWith(pedido: ped);
-    print(pedi.cliente);
+  Map<String, dynamic> toMap() {
+    String fechaPedidoString, fechaGpsString;
+
+    fechaPedidoString = toDBString(this.fechaPedido);
+    // fechaGpsString = toDBString(this.fechaGps); TODO pasar fechaGps a datetime
+
     final map = {
-      'primaryKey': '1',
-      DatabaseHelper.estado: pedi.estado,
-      DatabaseHelper.usuarioWebId: pedi.usuarioWebId,
-      DatabaseHelper.clienteIDPedido: pedi.cliente?.clientId ?? pedi.clienteID,
-      DatabaseHelper.domicilioClienteID: pedi.domicilioClienteID,
-      DatabaseHelper.operadorID: pedi.operadorID ?? 0,
-      DatabaseHelper.totalPedido: pedi.totalPedido ?? 0.0,
-      DatabaseHelper.netoPedido: pedi.neto ?? 0.0,
-      DatabaseHelper.ivaPedido: pedi.iva ?? 0.0,
-      DatabaseHelper.descuentoPedido: ped.descuento ?? 0.0,
-      DatabaseHelper.fechaPedido: pedi.fechaPedido ?? 0,
-      DatabaseHelper.obsPedido: pedi.observaciones ?? 's',
-      DatabaseHelper.domicilioDespacho: pedi.domicilioDespacho ?? 'f',
-      DatabaseHelper.latitudPedido: pedi.latitud ?? 'a',
-      DatabaseHelper.longitudPedido: pedi.longitud ?? 's',
-      DatabaseHelper.fechaGps: pedi.fechaGps ?? 0,
-      DatabaseHelper.accuracyGps: pedi.accuracyGps ?? 'd',
-      DatabaseHelper.providerGps: pedi.providerGps ?? 'f',
-      DatabaseHelper.listaPrecios: pedi.listaPrecios ?? 0,
-      DatabaseHelper.idFormaPago: pedi.idFormaPago ?? 0,
+      DatabaseHelper.idPedido: this.id ?? 0,
+      DatabaseHelper.estado: this.estado ?? 0,
+      DatabaseHelper.usuarioWebId: this.usuarioWebId ?? 0,
+      DatabaseHelper.clienteIDPedido: this.cliente?.clientId ?? this.clienteID,
+      DatabaseHelper.domicilioClienteID: this.domicilioClienteID ?? 0,
+      DatabaseHelper.operadorID: this.operadorID ?? 0,
+      DatabaseHelper.totalPedido: this.totalPedido ?? 0.0,
+      DatabaseHelper.netoPedido: this.neto ?? 0.0,
+      DatabaseHelper.ivaPedido: this.iva ?? 0.0,
+      DatabaseHelper.descuentoPedido: this.descuento ?? 0.0,
+      DatabaseHelper.fechaPedido: fechaPedidoString,
+      DatabaseHelper.obsPedido: this.observaciones ?? '',
+      DatabaseHelper.domicilioDespacho: this.domicilioDespacho ?? '',
+      DatabaseHelper.latitudPedido: this.latitud ?? '',
+      DatabaseHelper.longitudPedido: this.longitud ?? '',
+      DatabaseHelper.fechaGps: this.fechaGps ?? '',
+      DatabaseHelper.accuracyGps: this.accuracyGps ?? '',
+      DatabaseHelper.providerGps: this.providerGps ?? '',
+      DatabaseHelper.listaPrecios: this.listaPrecios ??
+          this.cliente?.priceList ??
+          this.cliente?.priceListAux ??
+          1,
+      DatabaseHelper.idFormaPago: this.idFormaPago ?? 0,
     };
-    print(map);
     return map;
   }
 
   Pedido.fromJsonMap(Map<String, dynamic> json) {
-    this.id = int.tryParse(json[DatabaseHelper.idPedido]) ?? -1;
-    this.usuarioWebId =
-        int.tryParse(json[DatabaseHelper.usuarioWebId]) ?? -1; //
-    this.clienteID =
-        int.tryParse(json[DatabaseHelper.clienteIDPedido]) ?? -1; //
-    this.domicilioClienteID =
-        int.tryParse(json[DatabaseHelper.domicilioClienteID]) ?? -1; //
-    this.operadorID = int.tryParse(json[DatabaseHelper.operadorID]) ?? -1; //
+    DateTime fechaPedFromDB;
+
+    var fechaStringPed = json[DatabaseHelper.fechaPedido];
+    if (fechaStringPed != null) {
+      fechaPedFromDB = datetimeFromDBString(fechaStringPed);
+    }
+    this.id = json[DatabaseHelper.idPedido] ?? -1;
+    this.estado = json[DatabaseHelper.estado] ?? 0;
+    this.usuarioWebId = json[DatabaseHelper.usuarioWebId] ?? -1; //
+    this.clienteID = json[DatabaseHelper.clienteIDPedido] ?? -1; //
+    this.domicilioClienteID = json[DatabaseHelper.domicilioClienteID] ?? -1; //
+    this.operadorID = json[DatabaseHelper.operadorID] ?? -1; //
+    this.totalPedido = json[DatabaseHelper.totalPedido] ?? 0.0; //
+    this.neto = json[DatabaseHelper.netoPedido] ?? 0.0; //
+    this.iva = json[DatabaseHelper.ivaPedido] ?? 0.0; //
+    this.descuento = json[DatabaseHelper.descuentoPedido] ?? 0.0; //
+    this.fechaPedido = fechaPedFromDB; //
+    this.observaciones = json[DatabaseHelper.obsPedido] ?? ''; //
     this.domicilioDespacho = json[DatabaseHelper.domicilioDespacho]; //
-    this.descuento =
-        double.tryParse(json[DatabaseHelper.descuentoPedido]) ?? 0.0; //
-    this.fechaPedido = json[DatabaseHelper.fechaPedido]; //
+    this.latitud = json[DatabaseHelper.latitudPedido] ?? ''; //
+    this.longitud = json[DatabaseHelper.longitudPedido] ?? ''; //
+    this.fechaGps = json[DatabaseHelper.fechaGps] ?? null; //
+    this.accuracyGps = json[DatabaseHelper.accuracyGps] ?? ''; //
+    this.providerGps = json[DatabaseHelper.providerGps] ?? ''; //
+    this.listaPrecios = json[DatabaseHelper.listaPrecios] ?? 1; //
+    this.cliente = Clientes.clientes
+        .firstWhere((element) => element.clientId == this.clienteID);
+
     //fechaAltaMovil ??
-    this.items = itemsFromJsonList(json['itemsPedidos']);
-    this.observaciones = json[DatabaseHelper.obsPedido]; //
-    this.latitud = json[DatabaseHelper.latitudPedido]; //
-    this.longitud = json[DatabaseHelper.longitudPedido]; //
-    this.fechaGps = json[DatabaseHelper.fechaGps]; //
-    this.accuracyGps = json[DatabaseHelper.accuracyGps]; //
-    this.providerGps = json[DatabaseHelper.providerGps]; //
-    this.listaPrecios = int.tryParse(json[DatabaseHelper.listaPrecios]) ?? 1; //
-    this.totalPedido =
-        double.tryParse(json[DatabaseHelper.totalPedido]) ?? 0.0; //
+    var itemsPed = json['itemsPedidos'];
+    if (itemsPed != null)
+      this.items = itemsFromJsonList(json['itemsPedidos']);
+    else
+      this.items = [];
     this.enviado = json['enviado'] ?? false;
   }
 
   Future<bool> insertOrUpdate() async {
     if (this.items.length > 0) {
       final dbHelper = DatabaseHelper.instance;
-      // print(this.toMap());
-      await dbHelper.insert(
-          Pedido.toMap(NuevoPedidoPage.pedido), DatabaseHelper.tablePedidos);
-      // final existe = await dbHelper.exists(
-      //     DatabaseHelper.tablePedidos, this.id, DatabaseHelper.idPedido);
-      // if (existe) {
-      //   await dbHelper.update(
-      //       this.toMap(), DatabaseHelper.tablePedidos, DatabaseHelper.idPedido);
-      // } else {
-      //   await dbHelper.insert(this.toMap(), DatabaseHelper.tablePedidos);
-      // }
-
+      final map = this.toMap();
+      await dbHelper.insert(map, DatabaseHelper.tablePedidos);
+      final idNuevoPedido = await Pedido.getNextId();
       //borrar items
 
       // await dbHelper.delete(DatabaseHelper.tableItemsPedido,
@@ -328,8 +334,32 @@ class Pedido {
   static Future<int> getNextId() async {
     final dbHelper = DatabaseHelper.instance;
 
-    return await dbHelper.getLastID(DatabaseHelper.tablePedidos,
-            DatabaseHelper.idPedido, DatabaseHelper.fechaPedido) +
-        1;
+    int id;
+
+    id = await dbHelper.getLastID(DatabaseHelper.tablePedidos,
+        DatabaseHelper.idPedido, DatabaseHelper.fechaPedido);
+
+    if (id != null) return id + 1;
+
+    return 1;
+  }
+
+  Future<bool> update() async {
+    final dbHelper = DatabaseHelper.instance;
+    final map = this.toMap();
+    print(map);
+    await dbHelper.update(
+        map, DatabaseHelper.tablePedidos, DatabaseHelper.idPedido);
+    //borrar items
+
+    // await dbHelper.delete(DatabaseHelper.tableItemsPedido,
+    //     id: this.id, nombreColumnId: DatabaseHelper.pedidoIDItemPedido);
+
+    // //poner nuevos
+
+    // this.items.forEach((element) async {
+    //   await dbHelper.insert(element.toMap(), DatabaseHelper.tableItemsPedido);
+    // });
+    return true;
   }
 }

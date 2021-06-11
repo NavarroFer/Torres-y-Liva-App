@@ -13,8 +13,16 @@ class NuevoPedidoPage extends StatefulWidget {
 
   static double neto = 0, iva = 0, total = 0;
 
-  static Pedido pedido =
-      Pedido(cliente: Cliente(), items: List<ItemPedido>.empty(growable: true));
+  static Pedido pedido = Pedido(
+      totalPedido: 0,
+      neto: 0,
+      iva: 0,
+      checked: false,
+      descuento: 0,
+      observaciones: '',
+      clienteID: 0,
+      cliente: Cliente(),
+      items: List<ItemPedido>.empty(growable: true));
 
   static bool nuevo;
 
@@ -33,7 +41,15 @@ class _NuevoPedidoPageState extends State<NuevoPedidoPage>
   @override
   void dispose() {
     NuevoPedidoPage.pedido = Pedido(
-        cliente: Cliente(), items: List<ItemPedido>.empty(growable: true));
+        totalPedido: 0,
+        neto: 0,
+        iva: 0,
+        checked: false,
+        descuento: 0,
+        observaciones: '',
+        clienteID: 0,
+        cliente: Cliente(),
+        items: List<ItemPedido>.empty(growable: true));
     super.dispose();
   }
 
@@ -128,29 +144,26 @@ class _NuevoPedidoPageState extends State<NuevoPedidoPage>
     final idNuevoPedido = await Pedido.getNextId();
     NuevoPedidoPage.pedido.id = idNuevoPedido;
 
-    double total = 0;
-    double iva = 0;
-    double neto = 0;
+    //Asociamos los items con el pedido
     NuevoPedidoPage.pedido.items.forEach((element) {
       element.pedidoID = NuevoPedidoPage.pedido.id;
-
-      total += element.precioTotal;
-      iva += element.precioTotal * element.iva;
-      neto += element.precioTotal * (1 - element.iva);
     });
+    NuevoPedidoPage.pedido.fechaPedido = DateTime.now();
 
-    NuevoPedidoPage.pedido.totalPedido = total;
-    NuevoPedidoPage.pedido.iva = iva;
-    NuevoPedidoPage.pedido.neto = neto;
+    NuevoPedidoPage.pedido.insertOrUpdate();
 
-    final a = Pedido.toMap(NuevoPedidoPage.pedido);
+    NuevoPedidoPage.pedido = Pedido(
+        totalPedido: 0,
+        neto: 0,
+        iva: 0,
+        checked: false,
+        descuento: 0,
+        observaciones: '',
+        clienteID: 0,
+        cliente: Cliente(),
+        items: List<ItemPedido>.empty(growable: true));
 
-    // NuevoPedidoPage.pedido.insertOrUpdate();
-
-    // NuevoPedidoPage.pedido = Pedido(
-    //     cliente: Cliente(), items: List<ItemPedido>.empty(growable: true));
-
-    // Navigator.pop(context);
+    Navigator.pop(context);
   }
 
   _acciones(BuildContext context) {

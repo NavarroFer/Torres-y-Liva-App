@@ -1,4 +1,3 @@
-import 'package:sqflite/sqflite.dart';
 import 'package:torres_y_liva/src/utils/database_helper.dart';
 
 class Categorias {
@@ -28,9 +27,6 @@ class Categorias {
     List<Categoria> cat = [];
     final dbHelper = DatabaseHelper.instance;
     List<Map<String, dynamic>> list;
-    final a = await dbHelper.queryRowCount(DatabaseHelper.tableCategorias);
-    final b = await dbHelper.queryRowCount(DatabaseHelper.tableProductos);
-    final c = await dbHelper.queryRowCount(DatabaseHelper.tablePedidos);
     list = await dbHelper.queryAllRows(DatabaseHelper.tableCategorias);
     final listObject = Categorias.fromJson(list);
 

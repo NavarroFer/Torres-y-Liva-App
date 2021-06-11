@@ -49,8 +49,6 @@ class _PedidoPageState extends State<PedidoPage> {
 
   int _vista = 0;
 
-  // bool _listaInit = false;
-
   bool _listaInitSinEnviar = false;
 
   bool _listaInitEnviados = false;
@@ -58,13 +56,11 @@ class _PedidoPageState extends State<PedidoPage> {
   bool _listaInitCotizados = false;
 
   @override
-  void initState() {
-    _initListaPedidosSinEnviar();
-
-    // _listaInit = true;
-
-    listaPedidosShow.addAll(listaPedidos);
-    super.initState();
+  void dispose() {
+    _listaInitSinEnviar = false;
+    _listaInitEnviados = false;
+    _listaInitCotizados = false;
+    super.dispose();
   }
 
   @override
@@ -212,7 +208,10 @@ class _PedidoPageState extends State<PedidoPage> {
   void _nuevoPedidoPressed(BuildContext context, int vista) async {
     Categorias.categorias = await Categorias.getCategorias();
     NuevoPedidoPage.nuevo = true;
-    Navigator.of(context).pushNamed(NuevoPedidoPage.route, arguments: [vista]);
+    Navigator.of(context)
+        .pushNamed(NuevoPedidoPage.route, arguments: [vista]).then((value) {
+      setState(() {});
+    });
   }
 
   void _actualizarPressed() {}
@@ -220,7 +219,7 @@ class _PedidoPageState extends State<PedidoPage> {
   void _enviarPedidosPressed(BuildContext context) async {
     final ventasProvider = VentasProvider();
 
-    final enviados = await ventasProvider
+    await ventasProvider
         .enviarPedidos(tokenEmpresa, usuario.tokenWs, this.listaPedidos)
         .then((value) {
       if (value) {
@@ -238,16 +237,11 @@ class _PedidoPageState extends State<PedidoPage> {
   void _pedidosEnviadosPressed(BuildContext context) {
     _vista = 1; //enviados
     setState(() {});
-    // Navigator.of(context).pushNamed(PedidosEnviadosPage.route);
   }
 
   void _cotizacionesPressed(BuildContext context) {
     _vista = 2; //cotizaciones
     setState(() {});
-  }
-
-  void _calculadoraPressed(BuildContext context) {
-    Navigator.of(context).pushNamed(CalculatorPage.route);
   }
 
   void _cerrarSesionPressed(BuildContext context) {
@@ -333,7 +327,7 @@ class _PedidoPageState extends State<PedidoPage> {
       width: double.infinity,
       child: DataTable(
           columnSpacing: size.width * 0.05,
-          dataRowHeight: size.height * 0.1,
+          dataRowHeight: size.height * 0.08,
           columns: [
             DataColumn(label: Text('CLIENTE')),
             DataColumn(label: Text('TOTAL')),
@@ -362,8 +356,13 @@ class _PedidoPageState extends State<PedidoPage> {
             } else {
               NuevoPedidoPage.pedido = pedido;
               NuevoPedidoPage.nuevo = false;
-              Navigator.of(context)
-                  .pushNamed(NuevoPedidoPage.route, arguments: [_vista]);
+              Navigator.of(context).pushNamed(NuevoPedidoPage.route,
+                  arguments: [_vista]).then((value) {
+                _listaInitCotizados = false;
+                _listaInitSinEnviar = false;
+                _listaInitEnviados = false;
+                setState(() {});
+              });
             }
           },
           cells: [
@@ -407,8 +406,13 @@ class _PedidoPageState extends State<PedidoPage> {
   }
 
   Widget _celdaCliente(BuildContext context, String nombre, String fechaHora) {
+    String fecha = '';
+    if (fechaHora != null) {
+      fecha = fechaHora.split(' ')[0];
+    }
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           nombre,
@@ -417,11 +421,12 @@ class _PedidoPageState extends State<PedidoPage> {
         // SizedBox(
         //   height: MediaQuery.of(context).size.height * 0.01,
         // ),
-        Text(fechaHora.split(' ')[0]),
+        Text(
+          fecha,
+        ),
         // SizedBox(
         //   height: MediaQuery.of(context).size.height * 0.01,
         // ),
-        Text(fechaHora.split(' ')[1])
       ],
     );
   }
@@ -462,6 +467,13 @@ class _PedidoPageState extends State<PedidoPage> {
 
   void _convertirACotizacionesPressed(BuildContext context) {
     setState(() {
+      listaPedidosShow.forEach((element) {
+        if (element.checked) {
+          element.estado = Pedido.ESTADO_COTIZADO;
+          element.update();
+        }
+      });
+      _updateList();
       _unCheckPedidos();
     });
   }
@@ -598,7 +610,7 @@ class _PedidoPageState extends State<PedidoPage> {
 
   void _unCheckPedidos() {
     _cantChecked = 0;
-    listaPedidos.forEach((pedido) => pedido.checked = false);
+    listaPedidosShow.forEach((pedido) => pedido.checked = false);
   }
 
   _logoPdf(
@@ -727,93 +739,28 @@ class _PedidoPageState extends State<PedidoPage> {
   }
 
   Future<List<Pedido>> _getPedidosSegunVista() async {
-    final List<Pedido> lista = List<Pedido>.empty(growable: true);
     switch (_vista) {
       case Pedido.ESTADO_SIN_ENVIAR:
-        //TODO hacer un select en la base de datos de los pedidos sin enviar
-        if (!_listaInitSinEnviar) await _initListaPedidosSinEnviar();
+        // await _initListaPedidosSinEnviar();
+        if (_listaInitSinEnviar == false) await _initListaPedidosSinEnviar();
         return listaPedidosSinEnviar;
         break;
       case Pedido.ESTADO_ENVIADO:
-        //TODO hacer un select en la base de datos de los pedidos enviados
         if (!_listaInitEnviados) await _initListaPedidosEnviados();
         return listaPedidosEnviados;
         break;
       case Pedido.ESTADO_COTIZADO:
-        //TODO hacer un select en la base de datos de los pedidos cotizados
         if (!_listaInitCotizados) await _initListaPedidosCotizados();
         return listaPedidosCotizaciones;
         break;
       default:
-        return [];
+        if (!_listaInitSinEnviar) await _initListaPedidosSinEnviar();
+        return listaPedidosSinEnviar;
     }
   }
 
   Future _initListaPedidosSinEnviar() async {
-    final c1 = Cliente(
-        clientId: 16262,
-        nombre: "BAJO JAVIER",
-        domicilio: "PEHUAJO",
-        email: "bajojavier@gmail.com");
-    final c2 = Cliente(
-        clientId: 7283,
-        nombre: "BARUK S.R.L",
-        domicilio: "CALLE 59 ENTRE 520 521 LA PLATA",
-        email: "baruk@gmail.com",
-        telefono: "4673423");
-
-    final c3 = Cliente(
-        clientId: 7284, nombre: "BENITEZ MARCELO", domicilio: "RUTA 88");
-    final p1 = ItemPedido(
-        id: 1,
-        cantidad: 2,
-        precio: 1230,
-        producto: Producto(
-            id: 1, descripcion: 'CUCHARON ALUMINIO 1 PIEZA', precio: 354.85));
-    final p2 = ItemPedido(
-        id: 2,
-        cantidad: 1,
-        precio: 231,
-        producto: Producto(
-            id: 2, descripcion: 'ESPUMADERA ALUM. 1 PIEZA', precio: 336.38));
-    final p3 = ItemPedido(
-        id: 3,
-        cantidad: 2,
-        precio: 200,
-        producto: Producto(
-            id: 3,
-            descripcion: 'CUCHARON ALUMINIO 16CM HOTEL',
-            precio: 570.05));
-    listaPedidos.addAll([
-      Pedido(
-          id: 1,
-          cliente: c1,
-          items: List.of([p1, p2]),
-          iva: p1.precio * 0.21 + p2.precio * 0.21,
-          neto: p1.precio * 0.79 + p2.precio * 0.79,
-          totalPedido: p1.precio + p2.precio,
-          checked: false,
-          fechaPedido: DateTime.now()),
-      Pedido(
-          id: 2,
-          cliente: c2,
-          items: List.of([p2, p3]),
-          iva: p3.precio * 0.21 + p2.precio * 0.21,
-          neto: p3.precio * 0.79 + p2.precio * 0.79,
-          totalPedido: p3.precio + p2.precio,
-          checked: false,
-          fechaPedido: DateTime.now()),
-      Pedido(
-          id: 3,
-          cliente: c3,
-          items: List.of([p1, p2, p3]),
-          iva: p1.precio * 0.21 + p2.precio * 0.21 + p3.precio * 0.21,
-          neto: p1.precio * 0.79 + p2.precio * 0.79 + p3.precio * 0.79,
-          totalPedido: p1.precio + p2.precio + p3.precio,
-          checked: false,
-          fechaPedido: DateTime.now()),
-    ]);
-
+    listaPedidosSinEnviar.clear();
     _listaInitSinEnviar = true;
 
     final dbHelper = DatabaseHelper.instance;
@@ -827,6 +774,7 @@ class _PedidoPageState extends State<PedidoPage> {
   }
 
   Future _initListaPedidosEnviados() async {
+    listaPedidosEnviados.clear();
     _listaInitEnviados = true;
 
     final dbHelper = DatabaseHelper.instance;
@@ -840,12 +788,13 @@ class _PedidoPageState extends State<PedidoPage> {
   }
 
   Future<void> _initListaPedidosCotizados() async {
+    listaPedidosCotizaciones.clear();
     _listaInitCotizados = true;
 
     final dbHelper = DatabaseHelper.instance;
 
     final listaJson = await dbHelper.queryRows(DatabaseHelper.tablePedidos,
-        DatabaseHelper.estado, Pedido.ESTADO_SIN_ENVIAR);
+        DatabaseHelper.estado, Pedido.ESTADO_COTIZADO);
 
     List<Pedido> listaObjects = Pedidos.fromJson(listaJson);
 
@@ -872,5 +821,22 @@ class _PedidoPageState extends State<PedidoPage> {
     return [
       _buscarPedido(context),
     ];
+  }
+
+  Future<void> _updateList() async {
+    switch (_vista) {
+      case Pedido.ESTADO_SIN_ENVIAR:
+        // await _initListaPedidosSinEnviar();
+        await _initListaPedidosSinEnviar();
+        break;
+      case Pedido.ESTADO_ENVIADO:
+        await _initListaPedidosEnviados();
+        break;
+      case Pedido.ESTADO_COTIZADO:
+        await _initListaPedidosCotizados();
+        break;
+      default:
+        await _initListaPedidosSinEnviar();
+    }
   }
 }
