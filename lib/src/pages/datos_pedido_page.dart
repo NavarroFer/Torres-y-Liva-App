@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:searchable_dropdown/searchable_dropdown.dart';
 import 'package:torres_y_liva/src/models/cliente_model.dart';
-import 'package:torres_y_liva/src/models/pedido_model.dart';
 import 'package:torres_y_liva/src/utils/globals.dart';
 
 import 'nuevo_pedido_page.dart';

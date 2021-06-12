@@ -224,34 +224,6 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
     );
   }
 
-  Widget _autoCompleteInput({double height, double width}) {
-    return Container(
-        height: height,
-        width: width,
-        child: AutoCompleteTextField<Producto>(
-          decoration: new InputDecoration(
-              hintText: "", suffixIcon: new Icon(Icons.search)),
-          itemSubmitted: (item) => setState(() => _productoSelected = item),
-          key: key,
-          suggestionsAmount: 10,
-          suggestions: Productos.productos,
-          itemBuilder: (context, suggestion) {
-            return ListTile(
-              title: Container(
-                  width: double.infinity, child: Text(suggestion.descripcion)),
-            );
-          },
-          itemSorter: (a, b) {
-            return a.descripcion.compareTo(b.descripcion);
-          },
-          itemFilter: (suggestion, input) {
-            return suggestion.descripcion
-                .toLowerCase()
-                .contains(input.toLowerCase());
-          },
-        ));
-  }
-
   Widget _inputText(FocusNode focus, String s, TextEditingController controller,
       IconData icon, TextInputType inputType,
       {double height, double width}) {
@@ -344,7 +316,6 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
   }
 
   Widget _buttonBuscarProd(BuildContext context) {
-    final size = MediaQuery.of(context).size;
     return Container(
       // height: size.height * 0.1,
       // width: size.width * 0.13,
@@ -359,16 +330,6 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
           color: Colors.white,
           onPressed: () => _buscarProducto(context),
           icon: Icon(Icons.search)),
-    );
-
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-          alignment: Alignment.center,
-          primary: Colors.red, // background
-          onPrimary: Colors.white, // foreground
-          minimumSize: Size(size.width * 0.0005, size.height * 0.05)),
-      child: Icon(Icons.search),
-      onPressed: () => _buscarProducto(context),
     );
   }
 
@@ -412,7 +373,6 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
   }
 
   Widget _checkBox(BuildContext context, ItemPedido itemPedido) {
-    //TODO test funcionamiento
     return Checkbox(
         value: itemPedido.checked,
         onChanged: (value) {
@@ -564,6 +524,7 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
                 "\$ ${item.producto?.precio?.toStringAsFixed(2)} - Stock: ${item.producto?.stock?.toStringAsFixed(2)}",
             textBtn1: "Cancelar",
             textBtn2: "Aceptar",
+            alert: false,
             img: Image.asset('assets/img/ic_launcher_round.png'),
           );
         }).then((value) {

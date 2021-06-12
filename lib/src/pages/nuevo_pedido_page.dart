@@ -6,6 +6,7 @@ import 'package:torres_y_liva/src/pages/catalogo_productos_page.dart';
 import 'package:torres_y_liva/src/pages/datos_pedido_page.dart';
 import 'package:torres_y_liva/src/pages/items_pedido_page.dart';
 import 'package:torres_y_liva/src/widgets/base_widgets.dart';
+import 'package:torres_y_liva/src/widgets/dialog_box_widget.dart';
 
 class NuevoPedidoPage extends StatefulWidget {
   static final String route = 'nuevoPedido';
@@ -141,29 +142,36 @@ class _NuevoPedidoPageState extends State<NuevoPedidoPage>
   void _buscarProductosPressed(BuildContext cotext) {}
 
   void _guardarPedidoPressed(BuildContext context) async {
-    final idNuevoPedido = await Pedido.getNextId();
-    NuevoPedidoPage.pedido.id = idNuevoPedido;
+    if (NuevoPedidoPage.pedido.cliente.clientId == null) {
+      showError('No se ha seleccionado un cliente', context);
+    } else if (NuevoPedidoPage.pedido.items.isEmpty) {
+      showError('No se han agregado items', context);
+    } else {
+      final idNuevoPedido = await Pedido.getNextId();
 
-    //Asociamos los items con el pedido
-    NuevoPedidoPage.pedido.items.forEach((element) {
-      element.pedidoID = NuevoPedidoPage.pedido.id;
-    });
-    NuevoPedidoPage.pedido.fechaPedido = DateTime.now();
+      NuevoPedidoPage.pedido.id = idNuevoPedido;
 
-    NuevoPedidoPage.pedido.insertOrUpdate();
+      //Asociamos los items con el pedido
+      NuevoPedidoPage.pedido.items.forEach((element) {
+        element.pedidoID = idNuevoPedido;
+      });
+      NuevoPedidoPage.pedido.fechaPedido = DateTime.now();
 
-    NuevoPedidoPage.pedido = Pedido(
-        totalPedido: 0,
-        neto: 0,
-        iva: 0,
-        checked: false,
-        descuento: 0,
-        observaciones: '',
-        clienteID: 0,
-        cliente: Cliente(),
-        items: List<ItemPedido>.empty(growable: true));
+      await NuevoPedidoPage.pedido.insertOrUpdate();
 
-    Navigator.pop(context);
+      NuevoPedidoPage.pedido = Pedido(
+          totalPedido: 0,
+          neto: 0,
+          iva: 0,
+          checked: false,
+          descuento: 0,
+          observaciones: '',
+          clienteID: 0,
+          cliente: Cliente(),
+          items: List<ItemPedido>.empty(growable: true));
+
+      Navigator.pop(context);
+    }
   }
 
   _acciones(BuildContext context) {
@@ -206,5 +214,19 @@ class _NuevoPedidoPageState extends State<NuevoPedidoPage>
   void _eliminarItemsPressed(BuildContext context) {
     NuevoPedidoPage.pedido?.items?.removeWhere((element) => element?.checked);
     setState(() {});
+  }
+
+  void showError(String s, BuildContext context) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return CustomDialogBox(
+            title: 'Error',
+            descriptions: s ?? '',
+            textBtn1: "Aceptar",
+            icon: Icons.warning,
+            alert: true,
+          );
+        });
   }
 }

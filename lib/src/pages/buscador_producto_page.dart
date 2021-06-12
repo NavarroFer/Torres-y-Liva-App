@@ -161,8 +161,6 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
   }
 
   Widget _gridProductos(BuildContext context) {
-    List<Widget> listaProdGrilla = List<Widget>.filled(0, null, growable: true);
-
     return ListView.builder(
       itemCount: listaBusqueda.length,
       shrinkWrap: true,
@@ -182,7 +180,6 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
 
   Widget _listaProductos(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    List<Widget> listaProdGrilla = List<Widget>.filled(0, null, growable: true);
 
     return ListView.builder(
       itemCount: listaBusqueda.length,
@@ -278,9 +275,10 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
           return CustomDialogBox(
             title: producto.descripcion,
             descriptions:
-                "\$ ${producto?.precio.toStringAsFixed(2)} - Stock: ${producto?.stock?.toStringAsFixed(2)}",
+                "\$ ${producto?.precio?.toStringAsFixed(2)} - Stock: ${producto?.stock?.toStringAsFixed(2)}",
             textBtn1: "Cancelar",
             textBtn2: "Agregar",
+            alert: false,
             img: Image.asset('assets/img/ic_launcher_round.png'),
           );
         }).then((value) {
@@ -298,6 +296,7 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
             precio: producto.precio * 0.79,
             precioTotal: producto.precio,
             fraccion: 0.0,
+            // ignore: null_aware_before_operator
             id: NuevoPedidoPage.pedido?.items?.last?.id + 1,
             iva: producto.precio * 0.21,
             pedidoID: 23);
@@ -305,10 +304,6 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
         itemsParaPedido.add(itemPedido);
       }
     });
-  }
-
-  void _calculadoraPressed(BuildContext context) {
-    // Navigator.of(context).pushNamed(CalculatorPage.route);
   }
 
   void _listaPressed() {
@@ -381,7 +376,6 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
 
     if (idCat != null) {
       if (int.parse(idCategoria) > 0) {
-        int cant = 0;
         listaCat.clear();
         _getCatHijas(idCategoria, nivelCat);
 

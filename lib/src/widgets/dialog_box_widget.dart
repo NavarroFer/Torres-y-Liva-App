@@ -2,18 +2,20 @@ import 'dart:ui';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
-import 'package:torres_y_liva/src/models/pedido_model.dart';
 
 class CustomDialogBox extends StatefulWidget {
   final String title, descriptions, textBtn1, textBtn2;
   final Image img;
-
+  final IconData icon;
+  final bool alert;
   const CustomDialogBox(
       {Key key,
-      this.title,
-      this.descriptions,
-      this.textBtn1,
-      this.textBtn2,
+      this.title = '',
+      this.descriptions = '',
+      this.textBtn1 = '',
+      this.textBtn2 = '',
+      this.icon,
+      this.alert = false,
       this.img})
       : super(key: key);
 
@@ -27,6 +29,7 @@ class _CustomDialogBoxState extends State<CustomDialogBox> {
 
   TextEditingController _observacionesController = TextEditingController();
   TextEditingController _cantController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Dialog(
@@ -35,11 +38,12 @@ class _CustomDialogBoxState extends State<CustomDialogBox> {
       ),
       elevation: 0,
       backgroundColor: Colors.transparent,
-      child: contentBox(context),
+      child: widget.alert ? contentBoxAlert(context) : contentBox(context),
     );
   }
 
-  contentBox(context) {
+  Widget contentBoxAlert(context) {
+    final size = MediaQuery.of(context).size;
     return Stack(
       children: <Widget>[
         Container(
@@ -61,19 +65,110 @@ class _CustomDialogBoxState extends State<CustomDialogBox> {
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               Text(
-                widget.title,
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600),
+                widget.title ?? '',
+                style: TextStyle(
+                    fontSize: size.width * size.aspectRatio * 0.15,
+                    fontWeight: FontWeight.w600),
+              ),
+              SizedBox(
+                height: size.height * 0.015,
+              ),
+              Text(
+                widget.descriptions ?? '',
+                style: TextStyle(
+                  fontSize: size.width * size.aspectRatio * 0.1,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(
+                height: size.height * 0.025,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  FlatButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: Text(
+                        widget.textBtn1,
+                        style: TextStyle(
+                            fontSize: size.width * size.aspectRatio * 0.1,
+                            fontWeight: FontWeight.bold),
+                      )),
+                  FlatButton(
+                      onPressed: () {
+                        final cant = double.tryParse(_cantController.text);
+                        if (cant != null && cant > 0) {
+                          //Agregar item a pedido
+                          final res = [cant, _observacionesController.text];
+                          Navigator.of(context).pop(res);
+                        }
+                      },
+                      child: Text(
+                        widget.textBtn2,
+                        style: TextStyle(
+                            fontSize: size.width * size.aspectRatio * 0.1,
+                            fontWeight: FontWeight.bold),
+                      )),
+                ],
+              ),
+            ],
+          ),
+        ),
+        Positioned(
+            left: padding,
+            right: padding,
+            // top: 100,
+            child: Icon(
+              widget.icon,
+              color: Colors.red,
+              size: size.width * size.aspectRatio * 0.3,
+            )),
+      ],
+    );
+  }
+
+  Widget contentBox(context) {
+    final size = MediaQuery.of(context).size;
+    return Stack(
+      children: <Widget>[
+        Container(
+          padding: EdgeInsets.only(
+              left: padding,
+              top: avatarRadius + padding,
+              right: padding,
+              bottom: padding),
+          margin: EdgeInsets.only(top: avatarRadius),
+          decoration: BoxDecoration(
+              shape: BoxShape.rectangle,
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(padding),
+              boxShadow: [
+                BoxShadow(
+                    color: Colors.black, offset: Offset(0, 10), blurRadius: 10),
+              ]),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Text(
+                widget.title ?? '',
+                style: TextStyle(
+                    fontSize: size.width * size.aspectRatio * 0.15,
+                    fontWeight: FontWeight.w600),
               ),
               SizedBox(
                 height: 15,
               ),
               Text(
-                widget.descriptions,
-                style: TextStyle(fontSize: 14),
+                widget.descriptions ?? '',
+                style: TextStyle(
+                  fontSize: size.width * size.aspectRatio * 0.1,
+                ),
                 textAlign: TextAlign.center,
               ),
               SizedBox(
-                height: 22,
+                height: size.height * 0.025,
               ),
               TextField(
                 controller: _observacionesController,
@@ -106,7 +201,9 @@ class _CustomDialogBoxState extends State<CustomDialogBox> {
                       },
                       child: Text(
                         widget.textBtn1,
-                        style: TextStyle(fontSize: 18),
+                        style: TextStyle(
+                          fontSize: size.width * size.aspectRatio * 0.1,
+                        ),
                       )),
                   FlatButton(
                       onPressed: () {
@@ -119,7 +216,9 @@ class _CustomDialogBoxState extends State<CustomDialogBox> {
                       },
                       child: Text(
                         widget.textBtn2,
-                        style: TextStyle(fontSize: 18),
+                        style: TextStyle(
+                          fontSize: size.width * size.aspectRatio * 0.1,
+                        ),
                       )),
                 ],
               ),

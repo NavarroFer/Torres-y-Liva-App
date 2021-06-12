@@ -157,6 +157,8 @@ class ProductosProvider {
       final respuesta = Respuesta.fromJsonMap(decodedData);
       if (respuesta.success) {
         CodigosBarra.fromJsonList(decodedData['data']['objects']);
+
+        log('GET CodigosBarra - count: ${CodigosBarra.codigos.length}');
         return CodigosBarra.codigos;
       } else
         return Future.error(respuesta.mensaje);

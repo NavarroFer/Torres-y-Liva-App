@@ -24,7 +24,7 @@ class ItemPedido {
 
   @override
   String toString() {
-    return "ItemID: ${this.id} - Detalle: ${this.detalle} - Precio: ${this.precio} - PrecioTot: ${this.precioTotal} - Descuento: ${this.descuento} - Cantidad: ${this.cantidad}";
+    return "ItemID: ${this.id} - Detalle: ${this.detalle} - Precio: ${this.precio} - PrecioTot: ${this.precioTotal} - Descuento: ${this.descuento} - Cantidad: ${this.cantidad} - ProdID: ${this.productoID} - PedID: ${this.pedidoID}";
   }
 
   ItemPedido(
@@ -71,16 +71,33 @@ class ItemPedido {
   }
 
   ItemPedido.fromJsonMap(Map<String, dynamic> json) {
-    this.id = (json['itemID']) ?? -1;
-    this.cantidad = (json['cantidad']) ?? 0;
-    this.fraccion = (json['fraccion']) ?? 0.0;
-    this.precio = (json['precio']) ?? 0.0;
-    this.descuento = (json['descuento']) ?? 0.0;
-    this.precioTotal = (json['precioTotal']) ?? 0.0;
-    this.observacion = json['observacion'] ?? '';
-    this.detalle = json['detalle'] ?? '';
-    this.listaPrecios = (json['listaPrecios']) ?? 0;
-    this.pedidoID = (json['pedidoid']) ?? 0;
+    this.id = (json[DatabaseHelper.idItemPedido]) ?? -1;
+    this.cantidad = (json[DatabaseHelper.cantidadItemPedido]) ?? 0;
+    this.fraccion = (json[DatabaseHelper.fraccionItemPedido]) ?? 0.0;
+    this.precio = (json[DatabaseHelper.precioItemPedido]) ?? 0.0;
+    this.descuento = (json[DatabaseHelper.descuentoItemPedido]) ?? 0.0;
+    this.precioTotal = (json[DatabaseHelper.precioTotalItemPedido]) ?? 0.0;
+    this.observacion = json[DatabaseHelper.obsItemPedido] ?? '';
+    this.detalle = json[DatabaseHelper.detalleItemPedido] ?? '';
+    this.listaPrecios = (json[DatabaseHelper.listaPreciosItemPedido]) ?? 0;
+    this.pedidoID = (json[DatabaseHelper.pedidoIDItemPedido]) ?? 0;
+    this.productoID = json[DatabaseHelper.productoIDItemPedido] ?? 0;
+    this.checked = false;
+    this.iva = json[DatabaseHelper.ivaItemPedido] ?? 0.0;
+  }
+
+  Future<Producto> productFromDB() async {
+    final dbHelper = DatabaseHelper.instance;
+
+    final rows = await dbHelper.queryRows(DatabaseHelper.tableProductos,
+        DatabaseHelper.idProducto, this.productoID);
+
+    Producto prod;
+    if (rows.length > 0) {
+      prod = Producto.fromJsonMap(rows[0]);
+    }
+
+    return prod;
   }
 }
 
@@ -276,7 +293,8 @@ class Pedido {
 
     var fechaStringPed = json[DatabaseHelper.fechaPedido];
     if (fechaStringPed != null) {
-      fechaPedFromDB = datetimeFromDBString(fechaStringPed);
+      if (!fechaStringPed.toString().contains('-'))
+        fechaPedFromDB = datetimeFromDBString(fechaStringPed);
     }
     this.id = json[DatabaseHelper.idPedido] ?? -1;
     this.estado = json[DatabaseHelper.estado] ?? 0;
@@ -297,15 +315,19 @@ class Pedido {
     this.accuracyGps = json[DatabaseHelper.accuracyGps] ?? ''; //
     this.providerGps = json[DatabaseHelper.providerGps] ?? ''; //
     this.listaPrecios = json[DatabaseHelper.listaPrecios] ?? 1; //
-    this.cliente = Clientes.clientes
-        .firstWhere((element) => element.clientId == this.clienteID);
+    this.cliente = Clientes.clientes.firstWhere(
+        (element) => element.clientId == this.clienteID,
+        orElse: () => null);
 
     //fechaAltaMovil ??
     var itemsPed = json['itemsPedidos'];
     if (itemsPed != null)
       this.items = itemsFromJsonList(json['itemsPedidos']);
-    else
+    else {
+      //rellenar items
+      // this.items = itemsFromDB() as List<ItemPedido>;
       this.items = [];
+    }
     this.enviado = json['enviado'] ?? false;
   }
 
@@ -314,17 +336,18 @@ class Pedido {
       final dbHelper = DatabaseHelper.instance;
       final map = this.toMap();
       await dbHelper.insert(map, DatabaseHelper.tablePedidos);
-      final idNuevoPedido = await Pedido.getNextId();
-      //borrar items
+
+      // borrar items ?? por si se modifica el pedido??
 
       // await dbHelper.delete(DatabaseHelper.tableItemsPedido,
       //     id: this.id, nombreColumnId: DatabaseHelper.pedidoIDItemPedido);
 
-      // //poner nuevos
+      //poner nuevos
 
-      // this.items.forEach((element) async {
-      //   await dbHelper.insert(element.toMap(), DatabaseHelper.tableItemsPedido);
-      // });
+      for (var element in this.items) {
+        await dbHelper.insert(element.toMap(), DatabaseHelper.tableItemsPedido);
+      }
+
       return true;
     } else {
       return false;
@@ -347,7 +370,6 @@ class Pedido {
   Future<bool> update() async {
     final dbHelper = DatabaseHelper.instance;
     final map = this.toMap();
-    print(map);
     await dbHelper.update(
         map, DatabaseHelper.tablePedidos, DatabaseHelper.idPedido);
     //borrar items
@@ -361,5 +383,19 @@ class Pedido {
     //   await dbHelper.insert(element.toMap(), DatabaseHelper.tableItemsPedido);
     // });
     return true;
+  }
+
+  Future<List<ItemPedido>> itemsFromDB() async {
+    final dbHelper = DatabaseHelper.instance;
+
+    final rows = await dbHelper.queryRows(DatabaseHelper.tableItemsPedido,
+        DatabaseHelper.pedidoIDItemPedido, NuevoPedidoPage.pedido.id);
+
+    List<ItemPedido> items = List<ItemPedido>.empty(growable: true);
+    rows.forEach((element) {
+      items.add(ItemPedido.fromJsonMap(element));
+    });
+
+    return items;
   }
 }

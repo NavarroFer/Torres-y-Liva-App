@@ -16,8 +16,6 @@ class VentasProvider {
         return false;
       });
 
-      var a = 2;
-      a++;
     });
 
     return enviado;

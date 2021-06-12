@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../pages/nuevo_pedido_page.dart';
-
 Widget action(BuildContext context,
     {IconData icon, double size = 24.0, void onPressed(BuildContext context)}) {
   return IconButton(

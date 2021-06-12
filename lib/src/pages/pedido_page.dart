@@ -18,11 +18,7 @@ import 'package:torres_y_liva/src/utils/database_helper.dart';
 import 'package:torres_y_liva/src/utils/shared_pref_helper.dart';
 import 'package:torres_y_liva/src/widgets/base_widgets.dart';
 import 'package:torres_y_liva/src/utils/globals.dart';
-
-import '../models/cliente_model.dart';
-import '../models/producto_model.dart';
 import 'nuevo_pedido_page.dart';
-import 'utils/calculator_page.dart';
 
 class PedidoPage extends StatefulWidget {
   static final String route = 'pedido';
@@ -82,9 +78,9 @@ class _PedidoPageState extends State<PedidoPage> {
               if (snapshot.data != null)
                 return snapshot.data;
               else
-                return CircularProgressIndicator();
+                return Center(child: CircularProgressIndicator());
             } else {
-              return CircularProgressIndicator();
+              return Center(child: CircularProgressIndicator());
             }
           },
         ));
@@ -210,6 +206,9 @@ class _PedidoPageState extends State<PedidoPage> {
     NuevoPedidoPage.nuevo = true;
     Navigator.of(context)
         .pushNamed(NuevoPedidoPage.route, arguments: [vista]).then((value) {
+      _listaInitCotizados = false;
+      _listaInitSinEnviar = false;
+      _listaInitEnviados = false;
       setState(() {});
     });
   }
@@ -356,6 +355,12 @@ class _PedidoPageState extends State<PedidoPage> {
             } else {
               NuevoPedidoPage.pedido = pedido;
               NuevoPedidoPage.nuevo = false;
+              NuevoPedidoPage.pedido.items =
+                  await NuevoPedidoPage.pedido.itemsFromDB();
+
+              for (var item in NuevoPedidoPage.pedido.items) {
+                  item.producto = await item.productFromDB();
+              }
               Navigator.of(context).pushNamed(NuevoPedidoPage.route,
                   arguments: [_vista]).then((value) {
                 _listaInitCotizados = false;
@@ -366,7 +371,7 @@ class _PedidoPageState extends State<PedidoPage> {
             }
           },
           cells: [
-            _datosCliente(context, pedido, pedido.cliente.nombre,
+            _datosCliente(context, pedido, pedido.cliente?.nombre,
                 pedido.fechaPedido?.toString()),
             _totalPedido(context, pedido.totalPedido),
           ]);
@@ -415,14 +420,14 @@ class _PedidoPageState extends State<PedidoPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          nombre,
+          nombre ?? '',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         // SizedBox(
         //   height: MediaQuery.of(context).size.height * 0.01,
         // ),
         Text(
-          fecha,
+          fecha ?? '',
         ),
         // SizedBox(
         //   height: MediaQuery.of(context).size.height * 0.01,

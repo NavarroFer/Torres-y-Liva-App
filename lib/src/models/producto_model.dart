@@ -1,4 +1,3 @@
-import 'package:sqflite/sqflite.dart';
 import 'package:torres_y_liva/src/utils/database_helper.dart';
 import 'package:torres_y_liva/src/utils/globals.dart';
 import 'package:torres_y_liva/src/utils/string_helper.dart';
@@ -42,7 +41,6 @@ class Productos {
   }
 
   static Future<List<Producto>> getSuggesttionsDB(String input) async {
-    List<Producto> prod = [];
     final dbHelper = DatabaseHelper.instance;
     List<Map<String, dynamic>> list;
     list = await dbHelper.queryRows(

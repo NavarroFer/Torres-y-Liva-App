@@ -24,7 +24,6 @@ class Categorias {
   }
 
   static Future<List<Categoria>> getCategorias() async {
-    List<Categoria> cat = [];
     final dbHelper = DatabaseHelper.instance;
     List<Map<String, dynamic>> list;
     list = await dbHelper.queryAllRows(DatabaseHelper.tableCategorias);

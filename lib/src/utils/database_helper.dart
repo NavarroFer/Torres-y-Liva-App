@@ -1,7 +1,5 @@
 import 'dart:async';
-import 'dart:developer';
 import 'dart:io';
-
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart';
@@ -123,18 +121,18 @@ class DatabaseHelper {
 //item pedido
   static final tableItemsPedido = 'itemsPedidos';
 
-  static final idItemPedido = 'id';
+  static final idItemPedido = 'itemID';
   static final cantidadItemPedido = 'cantidad';
   static final precioItemPedido = 'precio';
   static final descuentoItemPedido = 'descuento';
   static final precioTotalItemPedido = 'precioTotal';
-  static final obsItemPedido = 'obs';
+  static final obsItemPedido = 'observacion';
   static final detalleItemPedido = 'detalle';
   static final fraccionItemPedido = 'fraccion';
   static final ivaItemPedido = 'iva';
   static final listaPreciosItemPedido = 'listaPrecios';
   static final productoIDItemPedido = 'productoID';
-  static final pedidoIDItemPedido = 'pedidoID';
+  static final pedidoIDItemPedido = 'pedidoid';
 //item pedido//
 
   // make this a singleton class
@@ -184,7 +182,6 @@ class DatabaseHelper {
   // inserted row.
   Future<int> insert(Map<String, dynamic> row, String table) async {
     Database db = await instance.database;
-    print('ROWWW: $row');
 
     return await db.transaction<int>((txn) => txn
             .insert(table, row, conflictAlgorithm: ConflictAlgorithm.replace)
@@ -192,7 +189,6 @@ class DatabaseHelper {
           print(error);
           return -1;
         }).then((value) {
-          print('El valor es $value');
           return value;
         }));
   }
@@ -224,16 +220,15 @@ class DatabaseHelper {
     } else if (id is int) {
       value = id.toString();
     }
-    return await db.update(table, row,
-        where: '$nombreColumnId = ?',
-        whereArgs: [value]).onError((error, stackTrace) {
-      print('Error en update: $error, ID: ');
-      return -1;
-    }).then((value) {
-      print('Updated ok: $value');
-      return value;
-    });
-    ;
+
+    return await db.transaction((txn) => txn.update(table, row,
+            where: '$nombreColumnId = ?',
+            whereArgs: [value]).onError((error, stackTrace) {
+          print('Error en update: $error, ID: ');
+          return -1;
+        }).then((value) {
+          return value;
+        }));
   }
 
   // Deletes the row specified by the id. The number of affected rows is
@@ -241,10 +236,10 @@ class DatabaseHelper {
   Future<int> delete(String table, {int id, String nombreColumnId}) async {
     Database db = await instance.database;
     if (nombreColumnId != null && nombreColumnId != '')
-      return await db
-          .delete(table, where: '$nombreColumnId = ?', whereArgs: [id]);
+      return await db.transaction((txn) =>
+          txn.delete(table, where: '$nombreColumnId = ?', whereArgs: [id]));
     else
-      return await db.delete(table);
+      return await db.transaction((txn) => txn.delete(table));
   }
 
   Future<bool> exists(String table, var id, String nombreColumnId) async {
@@ -256,23 +251,21 @@ class DatabaseHelper {
       String table, String nombreColumnId, var id,
       {String descLike}) async {
     Database db = await instance.database;
-    // final res =
-    //     await db.query(table, where: '$nombreColumnId = ?', whereArgs: [id]);
-    String value;
 
     var res;
+
     if (descLike != null) {
       res = await db.rawQuery(
           "SELECT * FROM $table where $nombreColumnId like '%$descLike%'");
     } else {
+      String value;
       if (id is String) {
         value = "'$id'";
       } else if (id is int) {
         value = id.toString();
       }
 
-      res = await db
-          .rawQuery("SELECT * FROM $table where $nombreColumnId = $value");
+      res = await db.query(table, where: '$nombreColumnId = $value');
     }
     return res;
   }
@@ -407,7 +400,7 @@ class DatabaseHelper {
   Future _createTableItemsPedidos(Database db) async {
     return await db.execute('''
           CREATE TABLE IF NOT EXISTS $tableItemsPedido (
-            $idItemPedido INTEGER PRIMARY KEY,
+            $idItemPedido INTEGER,
             $cantidadItemPedido REAL,
             $precioItemPedido REAL,
             $descuentoItemPedido REAL,
@@ -418,9 +411,10 @@ class DatabaseHelper {
             $ivaItemPedido REAL,
             $listaPreciosItemPedido INTEGER,
             $productoIDItemPedido INTEGER,
-            $pedidoIDItemPedido REAL,
+            $pedidoIDItemPedido INTEGER,
             FOREIGN KEY($productoIDItemPedido) REFERENCES ${DatabaseHelper.tableProductos}(${DatabaseHelper.idProducto}),
-            FOREIGN KEY($pedidoIDItemPedido) REFERENCES ${DatabaseHelper.tablePedidos}(${DatabaseHelper.idPedido})
+            FOREIGN KEY($pedidoIDItemPedido) REFERENCES ${DatabaseHelper.tablePedidos}(${DatabaseHelper.idPedido}),
+            PRIMARY KEY ($pedidoIDItemPedido, $idItemPedido)
           )
           ''');
   }

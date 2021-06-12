@@ -30,7 +30,6 @@ class _LoginPageState extends State<LoginPage> {
   FocusNode passwordFocusNode = new FocusNode();
 
   String _msgEstadoActual = '';
-  bool _priveraVezLogin = false;
 
   TextEditingController _controllerUsuario = TextEditingController();
 
@@ -331,30 +330,14 @@ class _LoginPageState extends State<LoginPage> {
       final productosProvider = ProductosProvider();
 
       if (!dbInicializada) {
-        // if (true) {
-        _msgEstadoActual = 'Obteniendo informacion de categorias';
-
-        setState(() {});
-        await productosProvider.getCategorias(tokenEmpresa, usuario.tokenWs);
-
-        await updateCategoriasTable();
-
-        _msgEstadoActual = 'Obteniendo informacion de productos';
-
-        setState(() {});
-        Productos.productos =
-            await productosProvider.getProductos(tokenEmpresa, usuario.tokenWs);
+      // if (true) {
+        await _getAndSaveCategorias(productosProvider);
+        await _getAndSaveProductos(productosProvider);
+        await _getAndSaveCodBarra(productosProvider);
         dbInicializada = true;
       } else {
-        _msgEstadoActual = 'Obteniendo informacion de productos';
-
-        setState(() {});
-        Productos.productos = await productosProvider.getProductosActualizados(
-            tokenEmpresa, usuario.tokenWs);
+        await _getAndSaveUpdatedProductos(productosProvider);
       }
-      await updateProductTable();
-
-      await productosProvider.ackUpdateProductos(tokenEmpresa, usuario.tokenWs);
 
       _ingresando = false;
       await guardarDatos(username, password);
@@ -366,6 +349,40 @@ class _LoginPageState extends State<LoginPage> {
       });
       log('${DateTime.now()} - Error en login user: $username psw: $password');
     }
+  }
+
+  Future _getAndSaveUpdatedProductos(ProductosProvider productosProvider) async {
+     _msgEstadoActual = 'Obteniendo informacion de productos';
+    setState(() {});
+    Productos.productos = await productosProvider.getProductosActualizados(
+        tokenEmpresa, usuario.tokenWs);
+    await updateProductTable();
+    await productosProvider.ackUpdateProductos(
+        tokenEmpresa, usuario.tokenWs);
+  }
+
+  Future _getAndSaveCodBarra(ProductosProvider productosProvider) async {
+     _msgEstadoActual = 'Obteniendo informacion de codigo de barras';
+    setState(() {});
+    await productosProvider.getCodigosBarra(tokenEmpresa, usuario.tokenWs);
+    await updateCodigosBarraTable();
+  }
+
+  Future _getAndSaveProductos(ProductosProvider productosProvider) async {
+    _msgEstadoActual = 'Obteniendo informacion de productos';
+    setState(() {});
+    Productos.productos =
+        await productosProvider.getProductos(tokenEmpresa, usuario.tokenWs);
+    await updateProductTable();
+    await productosProvider.ackUpdateProductos(
+        tokenEmpresa, usuario.tokenWs);
+  }
+
+  Future _getAndSaveCategorias(ProductosProvider productosProvider) async {
+    _msgEstadoActual = 'Obteniendo informacion de categorias';
+    setState(() {});
+    await productosProvider.getCategorias(tokenEmpresa, usuario.tokenWs);
+    await updateCategoriasTable();
   }
 
   Future<bool> updateProductTable() async {
@@ -429,7 +446,8 @@ class _LoginPageState extends State<LoginPage> {
     for (var categoria in Categorias.categorias) {
       await categoria.insertOrUpdate();
     }
-    log('${DateTime.now()} - Tabla categorias actualizada', time: DateTime.now());
+    log('${DateTime.now()} - Tabla categorias actualizada',
+        time: DateTime.now());
     return true;
   }
 
@@ -438,8 +456,7 @@ class _LoginPageState extends State<LoginPage> {
     List<Map<String, dynamic>> list;
     list = await dbHelper.queryAllRows(DatabaseHelper.tableClientes);
     Clientes.fromJsonList(list);
-
-    // list = await dbHelper.queryAllRows(DatabaseHelper.tableProductos);
-    // Productos.fromJsonList(list);
   }
+
+  updateCodigosBarraTable() {}
 }

@@ -432,8 +432,6 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
   }
 
   _buttonCatalogo(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-
     final categoria = _pathCategorias[_pathCategorias.length - 1];
 
     return ElevatedButton(
