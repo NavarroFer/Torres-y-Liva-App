@@ -48,7 +48,6 @@ class ItemPedido {
         'precio': this.precio ?? 0,
         'descuento': this.descuento ?? 0,
         'precioTotal': this.precioTotal ?? 0,
-        // 'detalle': this.detalle ?? '',
         'listaPrecios': this.listaPrecios ?? 1
       };
 
@@ -147,9 +146,6 @@ class Pedido {
   String domicilioDespacho = '';
   String latitud = '';
   String longitud = '';
-  String fechaGps = '';
-  String accuracyGps = '';
-  String providerGps = '';
   int listaPrecios;
   bool enviado;
   int idFormaPago;
@@ -186,7 +182,6 @@ class Pedido {
 
   Pedido copyWith({Pedido pedido}) {
     return Pedido(
-        accuracyGps: pedido.accuracyGps,
         checked: false,
         cliente: pedido.cliente,
         clienteID: pedido.clienteID,
@@ -194,7 +189,6 @@ class Pedido {
         domicilioClienteID: pedido.domicilioClienteID,
         domicilioDespacho: pedido.domicilioDespacho,
         enviado: pedido.enviado,
-        fechaGps: pedido.fechaGps,
         fechaPedido: pedido.fechaPedido,
         id: 1, //get last id,
         items: pedido.items,
@@ -205,14 +199,13 @@ class Pedido {
         neto: pedido.neto,
         observaciones: pedido.observaciones,
         operadorID: pedido.operadorID,
-        providerGps: pedido.providerGps,
         totalPedido: pedido.totalPedido,
         usuarioWebId: pedido.usuarioWebId);
   }
 
   @override
   String toString() {
-    return ' - ID: ${this.id?.toString()}\n - ESTADO: ${this.estado}\n - USUARIOWEBID: ${this.usuarioWebId}\n - ClienteID: ${this.clienteID}\n - DomCliID: ${this.domicilioClienteID}\n - OperadorID: ${this.operadorID}\n - TOT: ${this.totalPedido}\n - NETO: ${this.neto}\n - IVA: ${this.iva}\n - CLIENTE: ${this.cliente}\n - Descuento: ${this.descuento}\n - FechaPed: ${this.fechaPedido}\n - Obs: ${this.observaciones}\n - DomDespacho: ${this.domicilioDespacho}\n - Lat: ${this.latitud}\n - Long: ${this.longitud}\n - FechaGps: ${this.fechaGps}\n - AcyracyGps: ${this.accuracyGps}\n - ProviderGps: ${this.providerGps}\n - ListaPrecios: ${this.listaPrecios}\n - IDFormaPago: ${this.idFormaPago}\n - ITEMS: ${this.items.asMap()}';
+    return ' - ID: ${this.id?.toString()}\n - ESTADO: ${this.estado}\n - USUARIOWEBID: ${this.usuarioWebId}\n - ClienteID: ${this.clienteID}\n - DomCliID: ${this.domicilioClienteID}\n - OperadorID: ${this.operadorID}\n - TOT: ${this.totalPedido}\n - NETO: ${this.neto}\n - IVA: ${this.iva}\n - CLIENTE: ${this.cliente}\n - Descuento: ${this.descuento}\n - FechaPed: ${this.fechaPedido}\n - Obs: ${this.observaciones}\n - DomDespacho: ${this.domicilioDespacho}\n - Lat: ${this.latitud}\n - Long: ${this.longitud}\n - ListaPrecios: ${this.listaPrecios}\n - IDFormaPago: ${this.idFormaPago}\n - ITEMS: ${this.items.asMap()}';
   }
 
   Pedido(
@@ -230,35 +223,32 @@ class Pedido {
       this.operadorID,
       this.usuarioWebId,
       this.domicilioDespacho,
-      this.accuracyGps,
       this.enviado,
-      this.fechaGps,
       this.latitud,
       this.longitud,
       this.listaPrecios,
-      this.providerGps,
       this.totalPedido});
 
   Map toJson() => {
         'usuarioWebID': this.usuarioWebId ?? 0,
-        'clienteID': this.cliente.id ?? 0,
+        'clienteID': this.cliente.clientId ?? 0,
         'domicilioClienteID': this.cliente?.domicilioID ?? 0,
         'domicilioDespacho': this.cliente.domicilio ?? '',
         'descuento': this.descuento ?? 0,
-        'fechaPedido':
-            fechaPedido.microsecondsSinceEpoch ?? 0, // Creo que va en segundos
-        'fechaAltaMovil': 0,
+        'fechaPedido': fechaPedido.millisecondsSinceEpoch ?? 0,
+        'fechaAltaMovil': fechaPedido.millisecondsSinceEpoch ??
+            0, // poner fecha alta, que queda guardado en preffs
         'observaciones': this.observaciones ?? '',
-        'listaPrecios': this.cliente?.priceList ?? 1,
+        'listaPrecios':
+            this.cliente?.priceList ?? this.cliente?.priceListAux ?? 1,
         'telefonoContacto': this.cliente?.telefonoCel ?? '',
         'itemsPedidos': this.items.map((e) => e.toJson()).toList()
       };
 
   Map<String, dynamic> toMap() {
-    String fechaPedidoString, fechaGpsString;
+    String fechaPedidoString;
 
     fechaPedidoString = toDBString(this.fechaPedido);
-    // fechaGpsString = toDBString(this.fechaGps); TODO pasar fechaGps a datetime
 
     final map = {
       DatabaseHelper.idPedido: this.id ?? 0,
@@ -276,9 +266,6 @@ class Pedido {
       DatabaseHelper.domicilioDespacho: this.domicilioDespacho ?? '',
       DatabaseHelper.latitudPedido: this.latitud ?? '',
       DatabaseHelper.longitudPedido: this.longitud ?? '',
-      DatabaseHelper.fechaGps: this.fechaGps ?? '',
-      DatabaseHelper.accuracyGps: this.accuracyGps ?? '',
-      DatabaseHelper.providerGps: this.providerGps ?? '',
       DatabaseHelper.listaPrecios: this.listaPrecios ??
           this.cliente?.priceList ??
           this.cliente?.priceListAux ??
@@ -311,9 +298,6 @@ class Pedido {
     this.domicilioDespacho = json[DatabaseHelper.domicilioDespacho]; //
     this.latitud = json[DatabaseHelper.latitudPedido] ?? ''; //
     this.longitud = json[DatabaseHelper.longitudPedido] ?? ''; //
-    this.fechaGps = json[DatabaseHelper.fechaGps] ?? null; //
-    this.accuracyGps = json[DatabaseHelper.accuracyGps] ?? ''; //
-    this.providerGps = json[DatabaseHelper.providerGps] ?? ''; //
     this.listaPrecios = json[DatabaseHelper.listaPrecios] ?? 1; //
     this.cliente = Clientes.clientes.firstWhere(
         (element) => element.clientId == this.clienteID,

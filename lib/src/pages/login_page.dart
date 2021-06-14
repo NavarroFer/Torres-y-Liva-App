@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
@@ -15,7 +16,9 @@ import 'package:torres_y_liva/src/providers/productos_providers.dart';
 import 'package:torres_y_liva/src/providers/usuario_provider.dart';
 import 'package:torres_y_liva/src/utils/database_helper.dart';
 import 'package:torres_y_liva/src/utils/globals.dart';
+import 'package:torres_y_liva/src/utils/image_helper.dart';
 import 'package:torres_y_liva/src/utils/shared_pref_helper.dart';
+import 'package:image_downloader/image_downloader.dart';
 
 class LoginPage extends StatefulWidget {
   static final String route = 'login';
@@ -35,10 +38,20 @@ class _LoginPageState extends State<LoginPage> {
 
   TextEditingController _controllerPassword = TextEditingController();
 
+  int _progress;
+
+  Image img;
+
   @override
   void initState() {
     super.initState();
     _cargarDatos();
+
+    ImageDownloader.callback(onProgressUpdate: (String imageId, int progress) {
+      setState(() {
+        _progress = progress;
+      });
+    });
   }
 
   @override
@@ -276,23 +289,6 @@ class _LoginPageState extends State<LoginPage> {
                   ),
           ),
         );
-        // RaisedButton(
-        //   //el container es para poder darle padding
-        //   child: Container(
-        //     padding: EdgeInsets.symmetric(horizontal: 80.0, vertical: 15.0),
-        //     child: Text(
-        //       'INGRESAR',
-        //     ),
-        //   ),
-        //   onPressed:
-        //   elevation: 0.0,
-        //   shape: RoundedRectangleBorder(
-        //     borderRadius: BorderRadius.circular(5.0),
-        //   ),
-        //   color: Colors.red,
-        //   textColor: Colors.white,
-        //   disabledColor: Colors.grey[400],
-        // );
       },
     );
   }
@@ -328,9 +324,10 @@ class _LoginPageState extends State<LoginPage> {
           tokenEmpresa, usuario.tokenWs, usuario.vendedorID);
 
       final productosProvider = ProductosProvider();
-
+      print(dbInicializada);
+      final db = DatabaseHelper.instance;
       if (!dbInicializada) {
-      // if (true) {
+        // if (true) {
         await _getAndSaveCategorias(productosProvider);
         await _getAndSaveProductos(productosProvider);
         await _getAndSaveCodBarra(productosProvider);
@@ -340,7 +337,10 @@ class _LoginPageState extends State<LoginPage> {
       }
 
       _ingresando = false;
-      await guardarDatos(username, password);
+      initLists();
+      await guardarDatos(
+          {'username': username, 'password': password, 'logged': true});
+
       Navigator.of(context).pushReplacementNamed(HomePage.route);
     } else {
       setState(() {
@@ -351,18 +351,18 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  Future _getAndSaveUpdatedProductos(ProductosProvider productosProvider) async {
-     _msgEstadoActual = 'Obteniendo informacion de productos';
+  Future _getAndSaveUpdatedProductos(
+      ProductosProvider productosProvider) async {
+    _msgEstadoActual = 'Obteniendo informacion de productos';
     setState(() {});
     Productos.productos = await productosProvider.getProductosActualizados(
         tokenEmpresa, usuario.tokenWs);
     await updateProductTable();
-    await productosProvider.ackUpdateProductos(
-        tokenEmpresa, usuario.tokenWs);
+    await productosProvider.ackUpdateProductos(tokenEmpresa, usuario.tokenWs);
   }
 
   Future _getAndSaveCodBarra(ProductosProvider productosProvider) async {
-     _msgEstadoActual = 'Obteniendo informacion de codigo de barras';
+    _msgEstadoActual = 'Obteniendo informacion de codigo de barras';
     setState(() {});
     await productosProvider.getCodigosBarra(tokenEmpresa, usuario.tokenWs);
     await updateCodigosBarraTable();
@@ -374,8 +374,7 @@ class _LoginPageState extends State<LoginPage> {
     Productos.productos =
         await productosProvider.getProductos(tokenEmpresa, usuario.tokenWs);
     await updateProductTable();
-    await productosProvider.ackUpdateProductos(
-        tokenEmpresa, usuario.tokenWs);
+    await productosProvider.ackUpdateProductos(tokenEmpresa, usuario.tokenWs);
   }
 
   Future _getAndSaveCategorias(ProductosProvider productosProvider) async {
@@ -433,6 +432,12 @@ class _LoginPageState extends State<LoginPage> {
     await usuarioProvider
         .login(username, password, tokenEmpresa)
         .then((value) async {
+      final datos = {
+        'username': username,
+        'password': password,
+        'logged': true
+      };
+      guardarDatos(datos);
       await _loginOK(value, username, password, context);
     }).onError((error, stackTrace) {
       setState(() {
@@ -456,6 +461,9 @@ class _LoginPageState extends State<LoginPage> {
     List<Map<String, dynamic>> list;
     list = await dbHelper.queryAllRows(DatabaseHelper.tableClientes);
     Clientes.fromJsonList(list);
+
+    list = await dbHelper.queryAllRows(DatabaseHelper.tableProductos);
+    Productos.fromJsonList(list);
   }
 
   updateCodigosBarraTable() {}

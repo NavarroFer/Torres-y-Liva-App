@@ -1,12 +1,23 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:torres_y_liva/src/utils/globals.dart';
 
-Future guardarDatos(String username, String password) async {
+Future guardarDatos(Map<String, dynamic> datos) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  await prefs.setBool('logged', logged);
+  await prefs.setBool('logged', datos['logged'] ?? false);
   await prefs.setBool('dbinit', dbInicializada);
-  await prefs.setString('username', username);
-  await prefs.setString('password', password);
+  await prefs.setString('username', datos['username'] ?? '');
+  await prefs.setString('password', datos['password'] ?? '');
+  await grabaFechaGetDataIMG();
+}
+
+Future grabaFechaGetDataIMG() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.setString('fechaGetDataIMG', fechaGetDataIMG ?? '');
+}
+
+Future grabaFechaUpdate() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.setString('fechaUpdateIMG', fechaUpdateIMG ?? '');
 }
 
 Future cargarDatos() async {
@@ -15,4 +26,6 @@ Future cargarDatos() async {
   dbInicializada = prefs.getBool('dbinit') ?? false;
   username = prefs.getString('username') ?? '';
   password = prefs.getString('password') ?? '';
+  fechaGetDataIMG = prefs.getString('fechaGetDataIMG') ?? '';
+  fechaUpdateIMG = prefs.getString('fechaUpdateIMG') ?? '';
 }

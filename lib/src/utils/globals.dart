@@ -16,6 +16,10 @@ bool dbInicializada = false;
 
 bool productosCargados = false;
 
+int cantFotosDescargadas = 0;
+String fechaGetDataIMG = '';
+String fechaUpdateIMG = '';
+
 //////////// Constantes respuesta WS ////////////
 
 class Respuesta {

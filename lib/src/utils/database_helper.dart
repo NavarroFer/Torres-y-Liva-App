@@ -111,9 +111,6 @@ class DatabaseHelper {
   static final domicilioDespacho = 'domicilioDespacho';
   static final latitudPedido = 'latitud';
   static final longitudPedido = 'longitud';
-  static final fechaGps = 'fechaGps';
-  static final accuracyGps = 'accuracyGps';
-  static final providerGps = 'providerGps';
   static final listaPrecios = 'listaPrecios';
   static final idFormaPago = 'idFormaPago';
 //pedidos//
@@ -135,6 +132,15 @@ class DatabaseHelper {
   static final pedidoIDItemPedido = 'pedidoid';
 //item pedido//
 
+//img productos//
+  static final tableImgProductos = 'imagenesProductos';
+
+  static final idProductoImg = 'code';
+  static final fechaDescarga = 'date_modification';
+  static final downloaded = 'downloaded';
+  static final extension = 'extension';
+//img productos//
+
   // make this a singleton class
   DatabaseHelper._privateConstructor();
   static final DatabaseHelper instance = DatabaseHelper._privateConstructor();
@@ -142,7 +148,7 @@ class DatabaseHelper {
   // only have a single app-wide reference to the database
   static Database _database;
   Future<Database> get database async {
-    // if (_database != null) return _database;
+    if (_database != null) return _database;
     // lazily instantiate the db the first time it is accessed
 
     // //SACAR
@@ -170,6 +176,7 @@ class DatabaseHelper {
     await _createTableCategorias(db);
     await _createTableClientes(db);
     await _createTableProductos(db);
+    await _createTableImgProductos(db);
     await _createTableCodigoBarras(db);
     await _createTablePedidos(db);
     await _createTableItemsPedidos(db);
@@ -195,9 +202,10 @@ class DatabaseHelper {
 
   // All of the rows are returned as a list of maps, where each map is
   // a key-value list of columns.
-  Future<List<Map<String, dynamic>>> queryAllRows(String table) async {
+  Future<List<Map<String, dynamic>>> queryAllRows(String table,
+      {List<String> cols, int limit}) async {
     Database db = await instance.database;
-    return await db.query(table);
+    return await db.query(table, columns: cols, limit: limit);
   }
 
   // All of the methods (insert, query, update, delete) can also be done using
@@ -249,7 +257,7 @@ class DatabaseHelper {
 
   Future<List<Map<String, dynamic>>> queryRows(
       String table, String nombreColumnId, var id,
-      {String descLike}) async {
+      {String descLike, List<String> cols}) async {
     Database db = await instance.database;
 
     var res;
@@ -265,7 +273,8 @@ class DatabaseHelper {
         value = id.toString();
       }
 
-      res = await db.query(table, where: '$nombreColumnId = $value');
+      res = await db.query(table,
+          columns: cols, where: '$nombreColumnId = $value');
     }
     return res;
   }
@@ -384,9 +393,6 @@ class DatabaseHelper {
             $domicilioDespacho TEXT,
             $latitudPedido TEXT,
             $longitudPedido TEXT,
-            $fechaGps TEXT,
-            $accuracyGps TEXT,
-            $providerGps REAL,
             $listaPrecios INTEGER,
             $idFormaPago INTEGER
           )
@@ -432,5 +438,17 @@ class DatabaseHelper {
     int id = rowLastId[0]['MAX($columnId)'];
 
     return id;
+  }
+
+  Future _createTableImgProductos(Database db) async {
+    return await db.execute('''
+     CREATE TABLE IF NOT EXISTS $tableImgProductos (
+            $idProductoImg INTEGER PRIMARY KEY,
+            $fechaDescarga TEXT,
+            $downloaded INTEGER,
+            $extension TEXT,
+            FOREIGN KEY($idProductoImg) REFERENCES ${DatabaseHelper.tableProductos}(${DatabaseHelper.idProducto})            
+          )
+    ''');
   }
 }
