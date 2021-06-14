@@ -15,7 +15,6 @@ class VentasProvider {
           .onError((error, stackTrace) {
         return false;
       });
-
     });
 
     return enviado;
@@ -33,6 +32,8 @@ class VentasProvider {
         'tokenCliente': tokenCliente,
         'pedido': json.encode(pedidoJSON)
       };
+      print(url);
+      print(body);
       final resp = await http
           .post(
             url,
@@ -41,6 +42,7 @@ class VentasProvider {
           )
           .timeout(Duration(seconds: 10));
       final decodedData = jsonDecode(resp.body);
+      print(decodedData);
       final respuesta = Respuesta.fromJsonMap(decodedData);
       if (respuesta.success) {
         log('${DateTime.now()} - Pedido enviado');

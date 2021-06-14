@@ -69,14 +69,7 @@ class Categoria {
 
   insertOrUpdate() async {
     final dbHelper = DatabaseHelper.instance;
-    final existe = await dbHelper.exists(
-        DatabaseHelper.tableCategorias, this.categoriaID, DatabaseHelper.catID);
-    if (existe) {
-      await dbHelper.update(
-          this.toMap(), DatabaseHelper.tableCategorias, DatabaseHelper.catID);
-    } else {
-      await dbHelper.insert(this.toMap(), DatabaseHelper.tableCategorias);
-    }
-    return existe ? 0 : 1;
+
+    await dbHelper.insert(this.toMap(), DatabaseHelper.tableCategorias);
   }
 }

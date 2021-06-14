@@ -219,7 +219,8 @@ class _PedidoPageState extends State<PedidoPage> {
     final ventasProvider = VentasProvider();
 
     await ventasProvider
-        .enviarPedidos(tokenEmpresa, usuario.tokenWs, this.listaPedidos)
+        .enviarPedidos(
+            tokenEmpresa, usuario.tokenWs, this.listaPedidosSinEnviar)
         .then((value) {
       if (value) {
         mostrarSnackbar('Pedidos enviados correctamente', context);
@@ -245,7 +246,7 @@ class _PedidoPageState extends State<PedidoPage> {
 
   void _cerrarSesionPressed(BuildContext context) {
     logged = false;
-    guardarDatos(username, password);
+    guardarDatos({'username': '', 'password': '', 'logged': false});
     Navigator.of(context).pushNamedAndRemoveUntil(
         LoginPage.route, (Route<dynamic> route) => false);
   }
@@ -359,7 +360,7 @@ class _PedidoPageState extends State<PedidoPage> {
                   await NuevoPedidoPage.pedido.itemsFromDB();
 
               for (var item in NuevoPedidoPage.pedido.items) {
-                  item.producto = await item.productFromDB();
+                item.producto = await item.productFromDB();
               }
               Navigator.of(context).pushNamed(NuevoPedidoPage.route,
                   arguments: [_vista]).then((value) {

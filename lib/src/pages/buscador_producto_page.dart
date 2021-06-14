@@ -5,6 +5,7 @@ import 'package:torres_y_liva/src/models/categoria_model.dart';
 import 'package:torres_y_liva/src/models/pedido_model.dart';
 import 'package:torres_y_liva/src/pages/catalogo_productos_page.dart';
 import 'package:torres_y_liva/src/pages/nuevo_pedido_page.dart';
+import 'package:torres_y_liva/src/utils/image_helper.dart';
 import 'package:torres_y_liva/src/widgets/dialog_box_widget.dart';
 
 import '../models/producto_model.dart';
@@ -62,7 +63,6 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
     titulo = arguments[0];
     idCategoria = arguments[1];
     pageFrom = arguments[2];
-    nivelCat = arguments[3];
 
     if (primerFiltro) _filterListaBusqueda();
 
@@ -227,10 +227,30 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    MdiIcons.cameraOff,
-                    size: size.height * 0.1,
+                  FutureBuilder(
+                    future: getImage(producto.id, context, 0.4),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData) {
+                        if (snapshot.data != null)
+                          return snapshot.data;
+                        else {
+                          return Icon(
+                            MdiIcons.cameraOff,
+                            size: size.height * 0.1,
+                          );
+                        }
+                      } else {
+                        return Icon(
+                          MdiIcons.cameraOff,
+                          size: size.height * 0.1,
+                        );
+                      }
+                    },
                   ),
+                  // Icon(
+                  //   MdiIcons.cameraOff,
+                  //   size: size.height * 0.1,
+                  // ),
                   ListTile(
                     title: Text(
                       producto?.descripcion ?? '',

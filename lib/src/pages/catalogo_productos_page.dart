@@ -35,8 +35,9 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
   @override
   void initState() {
     listaCategorias.addAll(Categorias.categorias
-        ?.where((categoria) => categoria.nivel == PRIMER_NIVEL_CATEGORIA)
-        ?.toList());
+            ?.where((categoria) => categoria.nivel == PRIMER_NIVEL_CATEGORIA)
+            ?.toList() ??
+        []);
     super.initState();
   }
 
@@ -115,7 +116,6 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
     final size = MediaQuery.of(context).size;
     List<Widget> listaProdGrilla = List<Widget>.filled(0, null, growable: true);
 
-    
     listaCategorias.forEach((categoria) {
       listaProdGrilla.add(_cardCategoria(context, categoria));
     });

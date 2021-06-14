@@ -41,12 +41,12 @@ class _DatosPedidoPageState extends State<DatosPedidoPage> {
     // pedido = NuevoPedidoPage.pedido;
 
     selectedValueCliente = NuevoPedidoPage.pedido != null
-        ? NuevoPedidoPage.pedido.cliente.clientId
-        : 0;
+        ? NuevoPedidoPage.pedido?.cliente?.clientId
+        : 0 ?? 0;
 
     clientesList = clientesDelVendedor;
 
-    clientesList?.forEach((cliente) {
+    clientesDelVendedor?.forEach((cliente) {
       clientes.add(
         DropdownMenuItem(
             child: ListTile(
