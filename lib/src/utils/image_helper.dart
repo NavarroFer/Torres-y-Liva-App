@@ -49,6 +49,7 @@ Future<bool> getImages(Function() notifyParent) async {
   // rows = await dbI.query(DatabaseHelper.tableImgProductos,
   //     where:
   //         '${DatabaseHelper.downloaded} = 0 AND  ${DatabaseHelper.fechaDescarga} >= 20201228233959');
+  //
 
   print('ROWS: ${rows.length}');
   rows = [];

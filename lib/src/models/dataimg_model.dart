@@ -14,4 +14,5 @@ class DataImage {
     this.dateMod = json[DatabaseHelper.fechaDescarga] ?? '';
     this.downloaded = json[DatabaseHelper.downloaded] ?? 0;
   }
+  //
 }
