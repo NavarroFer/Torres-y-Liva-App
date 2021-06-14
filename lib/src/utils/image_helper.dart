@@ -11,8 +11,11 @@ import 'package:torres_y_liva/src/providers/productos_providers.dart';
 import 'package:torres_y_liva/src/utils/database_helper.dart';
 import 'package:torres_y_liva/src/utils/globals.dart';
 import 'package:torres_y_liva/src/utils/shared_pref_helper.dart';
+import 'package:torres_y_liva/src/widgets/base_widgets.dart';
 
-Future<bool> getImages(Function() notifyParent) async {
+int imagenesADescargar = -1;
+
+Future<bool> getImages(Function() notifyParent, BuildContext context) async {
   String idProduct;
   String url = 'http://fotos.torresyliva.com/fotosapp/$idProduct.jpg';
   final db = DatabaseHelper.instance;
@@ -24,6 +27,7 @@ Future<bool> getImages(Function() notifyParent) async {
   final productosProvider = ProductosProvider();
   //2021-06-01 23:39:54
   await productosProvider.getDataImage(fechaGetDataIMG);
+  // await productosProvider.getDataImage('');
 
   // aca ya grabo todo en la DB ("a descargar")
   DateTime ahora = DateTime.now();
@@ -31,10 +35,12 @@ Future<bool> getImages(Function() notifyParent) async {
       '${ahora.year.toString()}-${ahora.month.toString().padLeft(2, '0')}-${ahora.day.toString().padLeft(2, '0')} ${ahora.hour.toString().padLeft(2, '0')}:${ahora.minute.toString().padLeft(2, '0')}:${ahora.second.toString().padLeft(2, '0')}';
   await grabaFechaGetDataIMG();
 
-  print('FECHA GET DATAT IMG: $fechaGetDataIMG');
+  // log('FECHA GET DATA IMG: $fechaGetDataIMG');
 
   //20210601233954 Esta puede ser distina a la de arriba, siempre posterior 2021-03-27 15:42:45
   String where = '${DatabaseHelper.downloaded} = 0';
+
+  // log('FECHA UPDATE IMG: $fechaUpdateIMG');
   if (fechaUpdateIMG != '') {
     String fechaDB = fechaUpdateIMG
         .replaceAll('-', '')
@@ -43,49 +49,49 @@ Future<bool> getImages(Function() notifyParent) async {
 
     where += ' AND ${DatabaseHelper.fechaDescarga} >= $fechaDB';
   }
-  print('Where: $where');
+  // print('Where: $where');
 
   rows = await dbI.query(DatabaseHelper.tableImgProductos, where: where);
-  // rows = await dbI.query(DatabaseHelper.tableImgProductos,
-  //     where:
-  //         '${DatabaseHelper.downloaded} = 0 AND  ${DatabaseHelper.fechaDescarga} >= 20201228233959');
-  //
+  // rows = [];
+  // print('ROWS: ${rows.length}');
+  if (rows.length > 0) {
+    mostrarSnackbar('Se descargarán ${rows.length} imágenes', context);
+    imagenesADescargar = rows.length;
 
-  print('ROWS: ${rows.length}');
-  rows = [];
+    for (var element in rows) {
+      DataImage di = DataImage.fromJsonMap(element);
+      idProduct = di.code;
+      if (idProduct != null) {
+        url = 'http://fotos.torresyliva.com/fotosapp/$idProduct.jpg';
 
-  for (var element in rows) {
-    DataImage di = DataImage.fromJsonMap(element);
-    idProduct = di.code;
-    if (idProduct != null) {
-      url = 'http://fotos.torresyliva.com/fotosapp/$idProduct.jpg';
-
-      var imageId = await ImageDownloader.downloadImage(
-        url,
-        destination: AndroidDestinationType.directoryPictures
-          ..inExternalFilesDir()
-          ..subDirectory('products/$idProduct.jpg'),
-      ).onError((error, stackTrace) => null).then((value) {
-        updatePhoto(int.tryParse(idProduct) ?? 1, true, di.dateMod ?? '',
-            di.extension ?? '');
-        cantFotosDescargadas++;
-        notifyParent();
-        return value;
-      });
+        await ImageDownloader.downloadImage(
+          url,
+          destination: AndroidDestinationType.directoryPictures
+            ..inExternalFilesDir()
+            ..subDirectory('products/$idProduct.jpg'),
+        ).onError((error, stackTrace) => null).then((value) {
+          updatePhoto(int.tryParse(idProduct) ?? 1, true, di.dateMod ?? '',
+              di.extension ?? '');
+          cantFotosDescargadas++;
+          notifyParent();
+          return value;
+        });
+      }
     }
+
+    DateTime ahoraUpdate = DateTime.now();
+    ahoraUpdate = ahoraUpdate.subtract(Duration(seconds: 60));
+    fechaUpdateIMG =
+        '${ahoraUpdate.year.toString()}-${ahoraUpdate.month.toString().padLeft(2, '0')}-${ahoraUpdate.day.toString().padLeft(2, '0')} ${ahoraUpdate.hour.toString().padLeft(2, '0')}:${ahoraUpdate.minute.toString().padLeft(2, '0')}:${ahoraUpdate.second.toString().padLeft(2, '0')}';
+
+    await grabaFechaUpdate();
+
+    log('${DateTime.now()} - $cantFotosDescargadas imagenes descargadas',
+        time: DateTime.now());
+  } else {
+    log('${DateTime.now()} - No hay imagenes por descargar',
+        time: DateTime.now());
   }
-
-  DateTime ahoraUpdate = DateTime.now();
-  ahoraUpdate = ahoraUpdate.subtract(Duration(seconds: 60));
-  fechaUpdateIMG =
-      '${ahoraUpdate.year.toString()}-${ahoraUpdate.month.toString().padLeft(2, '0')}-${ahoraUpdate.day.toString().padLeft(2, '0')} ${ahoraUpdate.hour.toString().padLeft(2, '0')}:${ahoraUpdate.minute.toString().padLeft(2, '0')}:${ahoraUpdate.second.toString().padLeft(2, '0')}';
-
-  await grabaFechaUpdate();
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  await prefs.setString('fechaUpdateIMG', '');
-
-  log('${DateTime.now()} - $cantFotosDescargadas imagenes descargadas',
-      time: DateTime.now());
 
   return true;
 }

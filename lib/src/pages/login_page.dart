@@ -1,6 +1,4 @@
 import 'dart:developer';
-import 'dart:io';
-
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
@@ -16,7 +14,6 @@ import 'package:torres_y_liva/src/providers/productos_providers.dart';
 import 'package:torres_y_liva/src/providers/usuario_provider.dart';
 import 'package:torres_y_liva/src/utils/database_helper.dart';
 import 'package:torres_y_liva/src/utils/globals.dart';
-import 'package:torres_y_liva/src/utils/image_helper.dart';
 import 'package:torres_y_liva/src/utils/shared_pref_helper.dart';
 import 'package:image_downloader/image_downloader.dart';
 
@@ -325,7 +322,7 @@ class _LoginPageState extends State<LoginPage> {
 
       final productosProvider = ProductosProvider();
       print(dbInicializada);
-      final db = DatabaseHelper.instance;
+      DatabaseHelper.instance;
       if (!dbInicializada) {
         // if (true) {
         await _getAndSaveCategorias(productosProvider);

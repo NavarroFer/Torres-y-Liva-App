@@ -306,6 +306,12 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
         final cant = value[0];
         final obs = value[1];
 
+        int idItemPedido = 1;
+
+        if (NuevoPedidoPage.pedido?.items?.isNotEmpty) {
+          idItemPedido = NuevoPedidoPage.pedido?.items?.last?.id + 1;
+        }
+
         final itemPedido = ItemPedido(
             cantidad: cant,
             observacion: obs,
@@ -316,8 +322,7 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
             precio: producto.precio * 0.79,
             precioTotal: producto.precio,
             fraccion: 0.0,
-            // ignore: null_aware_before_operator
-            id: NuevoPedidoPage.pedido?.items?.last?.id + 1,
+            id: idItemPedido,
             iva: producto.precio * 0.21,
             pedidoID: 23);
 

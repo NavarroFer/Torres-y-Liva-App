@@ -1,10 +1,6 @@
-import 'dart:io';
-
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-import 'package:image_downloader/image_downloader.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:torres_y_liva/src/models/producto_model.dart';
+import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:torres_y_liva/src/pages/cotizacion_page.dart';
 import 'package:torres_y_liva/src/pages/pedido_page.dart';
 import 'package:torres_y_liva/src/utils/globals.dart';
@@ -21,19 +17,22 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   Image img;
 
+  bool _execGetImage = false;
+
   @override
   void initState() {
     super.initState();
-
-    _getImages();
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_execGetImage == false) {
+      _execGetImage = true;
+      _getImages(context);
+    }
     return Scaffold(
       appBar: AppBar(
         title: Text(usuario.nombre),
-        actions: [AutoSizeText(cantFotosDescargadas.toString() ?? '',)],
       ),
       body: Stack(
         fit: StackFit.expand,
@@ -92,13 +91,45 @@ class _HomePageState extends State<HomePage> {
 
   _logo(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final perc = cantFotosDescargadas / imagenesADescargar;
     return Positioned(
-        right: size.width * 0.03,
-        top: size.height * 0.11,
-        child: Image.asset(
-          "assets/img/ic_launcher_round.png",
-          height: size.height * 0.23,
-        ));
+      right: size.width * 0.03,
+      top: imagenesADescargar > 0 ? size.height * 0.06 : size.height * 0.11,
+      child: imagenesADescargar > 0
+          ? Column(
+              children: [
+                Image.asset(
+                  "assets/img/ic_launcher_round.png",
+                  height: size.height * 0.23,
+                ),
+                SizedBox(
+                  height: size.height * 0.01,
+                ),
+                new CircularPercentIndicator(
+                  radius: size.width * 0.3,
+                  lineWidth: 10.0,
+                  animateFromLastPercent: true,
+                  animation: true,
+                  footer: Text(
+                    perc > 0.99
+                        ? 'Imágenes descargadas'
+                        : 'Descargando imagenes',
+                    textScaleFactor: size.width * 0.0035,
+                  ),
+                  percent: perc,
+                  center: Text(
+                    (100 * perc).toStringAsFixed(2) + '%',
+                    textScaleFactor: size.width * 0.0045,
+                  ),
+                  progressColor: _colorByPercent(perc),
+                ),
+              ],
+            )
+          : Image.asset(
+              "assets/img/ic_launcher_round.png",
+              height: size.height * 0.23,
+            ),
+    );
   }
 
   Widget _botonMenu(BuildContext context, String s,
@@ -141,9 +172,24 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _getImages() {
+  void _getImages(BuildContext context) {
     getImages(() {
       setState(() {});
-    });
+    }, context);
+  }
+
+  _colorByPercent(double d) {
+    if (d < 0.1)
+      return Colors.red;
+    else if (d < 0.2)
+      return Colors.orange;
+    else if (d < 0.4)
+      return Colors.blue;
+    else if (d < 0.6)
+      return Colors.purple;
+    else if (d < 0.8)
+      return Colors.cyan;
+    else
+      return Colors.green;
   }
 }

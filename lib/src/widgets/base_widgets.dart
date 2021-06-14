@@ -24,10 +24,10 @@ Widget totalesVenta(
 }
 
 void mostrarSnackbar(String mensaje, BuildContext c) {
-  final snackbar = SnackBar(
+  ScaffoldMessenger.of(c).showSnackBar(SnackBar(
     content: Text(mensaje),
-    duration: Duration(milliseconds: 1500),
-  );
+    duration: Duration(milliseconds: 2200),
+  ));
 }
 
 Widget _columnaTotal(BuildContext context, String titulo, double importe) {

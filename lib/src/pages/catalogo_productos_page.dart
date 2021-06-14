@@ -203,7 +203,6 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
             splashColor: Colors.red,
             highlightColor: Colors.red.withOpacity(0.5),
             onTap: () {
-              //TODO reemplazar por una query a la DB local
               final cantItems = _getCantidadItemsCategoria(
                   categoria.categoriaID, categoria.nivel);
               if (CatalogoProductosPage.seleccionando) {
@@ -254,7 +253,6 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
                 if (CatalogoProductosPage.seleccionando == false)
                   CatalogoProductosPage.seleccionando = true;
 
-                //TODO reemplazar por una query a la DB local
                 final cantItems = _getCantidadItemsCategoria(
                     categoria.categoriaID, categoria.nivel);
 
@@ -350,8 +348,6 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
   }
 
   int _getCantidadItemsCategoria(String categoriaID, int nivel) {
-    //TODO cambiar por una busqueda en la db local
-
     int cant = 0;
     if (nivel < 2) {
       Categorias.categorias.forEach((categoria) {
@@ -436,7 +432,6 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
 
     return ElevatedButton(
       onPressed: () {
-        //TODO que al apretar, funcione
         Navigator.of(context).pushNamed(BuscadorProductoPage.route, arguments: [
           categoria?.descripcion?.trim(),
           categoria?.categoriaID,
