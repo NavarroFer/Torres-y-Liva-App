@@ -6,6 +6,7 @@ import 'package:image_downloader/image_downloader.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:torres_y_liva/src/models/categoria_model.dart';
 import 'package:torres_y_liva/src/models/dataimg_model.dart';
 import 'package:torres_y_liva/src/providers/productos_providers.dart';
 import 'package:torres_y_liva/src/utils/database_helper.dart';
@@ -52,6 +53,7 @@ Future<bool> getImages(Function() notifyParent, BuildContext context) async {
   // print('Where: $where');
 
   rows = await dbI.query(DatabaseHelper.tableImgProductos, where: where);
+  // rows = await dbI.query(DatabaseHelper.tableImgProductos, limit: 100);
   // rows = [];
   // print('ROWS: ${rows.length}');
   if (rows.length > 0) {
@@ -110,8 +112,8 @@ Future<bool> updatePhoto(int idProduct, bool downloaded, String fechaDescarga,
   return res != -1;
 }
 
-Future<Image> getImage(
-    int idProd, BuildContext context, double scaleWidth) async {
+Future<Widget> getImage(
+    int idProd, BuildContext context, double scaleWidth, bool leading) async {
   Image img;
 
   final size = MediaQuery.of(context).size;
@@ -127,10 +129,63 @@ Future<Image> getImage(
       final size = MediaQuery.of(context).size;
       return Icon(
         MdiIcons.cameraOff,
-        size: size.height * 0.1,
+        size: leading
+            ? size.height * scaleWidth * 0.5
+            : size.height * scaleWidth * 0.43,
       );
     },
   );
 
   return img;
+}
+
+Future<Image> getImageCat(
+    Categoria categoria, BuildContext context, double scaleWidth) async {
+  final idProd = await _getFirstIdProd(categoria);
+
+  Widget img = await getImage(idProd, context, scaleWidth, false);
+
+  return img;
+}
+
+Future<int> _getFirstIdProd(Categoria cat) async {
+  int idProd = 0;
+  if (cat.nivel == 0) {
+    String catIDLevel1 = await _getCatId(cat.categoriaID);
+    String catIDLevel2 = await _getCatId(catIDLevel1);
+    idProd = await _getIdProd(catIDLevel2);
+  } else if (cat.nivel == 1) {
+    String catIDLevel2 = await _getCatId(cat.categoriaID);
+    idProd = await _getIdProd(catIDLevel2);
+  } else {
+    idProd = await _getIdProd(cat.categoriaID);
+  }
+
+  return idProd;
+}
+
+Future<String> _getCatId(String catID) async {
+  final db = await DatabaseHelper.instance.database;
+  String catId = '';
+  final row = await db.query(DatabaseHelper.tableCategorias,
+      where: '${DatabaseHelper.lineaItemParent} = ?',
+      whereArgs: [int.parse(catID)],
+      limit: 1,
+      columns: [DatabaseHelper.catID]);
+
+  if (row.isNotEmpty) catId = row[0][DatabaseHelper.catID];
+  return catId;
+}
+
+Future<int> _getIdProd(String catID) async {
+  final db = await DatabaseHelper.instance.database;
+  int idProd = 0;
+  final row = await db.query(DatabaseHelper.tableProductos,
+      where: '${DatabaseHelper.categoriaID} = ?',
+      whereArgs: [catID],
+      limit: 1,
+      columns: [DatabaseHelper.idProducto]);
+  if (row.isNotEmpty) idProd = row[0][DatabaseHelper.idProducto];
+
+  return idProd;
 }

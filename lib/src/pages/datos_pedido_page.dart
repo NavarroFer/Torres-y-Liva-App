@@ -27,7 +27,9 @@ class _DatosPedidoPageState extends State<DatosPedidoPage> {
   TextEditingController _comentariosController =
       TextEditingController(text: NuevoPedidoPage.pedido.observaciones);
   TextEditingController _descuentoController = TextEditingController(
-      text: NuevoPedidoPage.pedido?.descuento?.toString() ?? '');
+      text: NuevoPedidoPage.pedido?.descuento == 0
+          ? ''
+          : NuevoPedidoPage.pedido?.descuento?.toString() ?? '');
   TextEditingController _observacionesController =
       TextEditingController(text: NuevoPedidoPage.pedido.observaciones);
 

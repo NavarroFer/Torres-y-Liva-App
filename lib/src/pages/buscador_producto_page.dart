@@ -188,9 +188,25 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
       itemBuilder: (context, index) {
         return ListTile(
           title: Text(listaBusqueda[index].descripcion),
-          leading: Icon(
-            MdiIcons.cameraOff,
-            size: size.height * 0.04,
+          leading: FutureBuilder(
+            future: getImage(listaBusqueda[index].id, context, 0.15, true),
+            builder: (context, snapshot) {
+              if (snapshot.hasData) {
+                if (snapshot.data != null)
+                  return snapshot.data;
+                else {
+                  return Icon(
+                    MdiIcons.cameraOff,
+                    size: size.height * 0.1,
+                  );
+                }
+              } else {
+                return Icon(
+                  MdiIcons.cameraOff,
+                  size: size.height * 0.1,
+                );
+              }
+            },
           ),
           trailing:
               Text("\$ ${listaBusqueda[index].precio.toStringAsFixed(2)}"),
@@ -218,7 +234,7 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
         GestureDetector(
           child: Container(
             width: size.width * 0.45,
-            // height: size.width * 0.45,
+            height: size.height * 0.35,
             child: Card(
               margin: EdgeInsets.all(size.width * 0.02),
               shape: RoundedRectangleBorder(
@@ -228,7 +244,7 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   FutureBuilder(
-                    future: getImage(producto.id, context, 0.4),
+                    future: getImage(producto.id, context, 0.4, false),
                     builder: (context, snapshot) {
                       if (snapshot.hasData) {
                         if (snapshot.data != null)
@@ -252,9 +268,10 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
                   //   size: size.height * 0.1,
                   // ),
                   ListTile(
-                    title: Text(
+                    title: AutoSizeText(
                       producto?.descripcion ?? '',
                       textAlign: TextAlign.center,
+                      maxLines: 2,
                     ),
                     subtitle: Text(
                       '\$ ${producto?.precio?.toStringAsFixed(2)}',

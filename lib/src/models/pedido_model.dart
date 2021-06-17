@@ -1,5 +1,6 @@
 import 'package:torres_y_liva/src/pages/nuevo_pedido_page.dart';
 import 'package:torres_y_liva/src/utils/database_helper.dart';
+import 'package:torres_y_liva/src/utils/globals.dart';
 import 'package:torres_y_liva/src/utils/string_helper.dart';
 
 import 'cliente_model.dart';
@@ -299,7 +300,7 @@ class Pedido {
     this.latitud = json[DatabaseHelper.latitudPedido] ?? ''; //
     this.longitud = json[DatabaseHelper.longitudPedido] ?? ''; //
     this.listaPrecios = json[DatabaseHelper.listaPrecios] ?? 1; //
-    this.cliente = Clientes.clientes.firstWhere(
+    this.cliente = clientesDelVendedor.firstWhere(
         (element) => element.clientId == this.clienteID,
         orElse: () => null);
 

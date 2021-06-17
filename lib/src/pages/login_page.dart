@@ -461,6 +461,9 @@ class _LoginPageState extends State<LoginPage> {
 
     list = await dbHelper.queryAllRows(DatabaseHelper.tableProductos);
     Productos.fromJsonList(list);
+
+    list = await dbHelper.queryAllRows(DatabaseHelper.tableCategorias);
+    Categorias.fromJsonList(list);
   }
 
   updateCodigosBarraTable() {}

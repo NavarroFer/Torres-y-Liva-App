@@ -4,6 +4,7 @@ import 'package:material_design_icons_flutter/material_design_icons_flutter.dart
 import 'package:torres_y_liva/src/models/categoria_model.dart';
 import 'package:torres_y_liva/src/models/producto_model.dart';
 import 'package:torres_y_liva/src/pages/buscador_producto_page.dart';
+import 'package:torres_y_liva/src/utils/image_helper.dart';
 
 class CatalogoProductosPage extends StatefulWidget {
   static final String route = 'catalgo';
@@ -117,7 +118,8 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
     List<Widget> listaProdGrilla = List<Widget>.filled(0, null, growable: true);
 
     listaCategorias.forEach((categoria) {
-      listaProdGrilla.add(_cardCategoria(context, categoria));
+      final card = _cardCategoria(context, categoria);
+      if (!(card is Container)) listaProdGrilla.add(card);
     });
     final height = this.nivelActual == 0
         ? size.height * 0.55
@@ -194,6 +196,11 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
 
   Widget _cardCategoria(BuildContext context, Categoria categoria) {
     final size = MediaQuery.of(context).size;
+    final cantItems =
+        _getCantidadItemsCategoria(categoria.categoriaID, categoria.nivel);
+
+    if (cantItems == 0) return Container();
+
     return Stack(
       children: [
         Container(
@@ -203,8 +210,6 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
             splashColor: Colors.red,
             highlightColor: Colors.red.withOpacity(0.5),
             onTap: () {
-              final cantItems = _getCantidadItemsCategoria(
-                  categoria.categoriaID, categoria.nivel);
               if (CatalogoProductosPage.seleccionando) {
                 if (categoria.checked) {
                   categoria.checked = false;
@@ -274,9 +279,25 @@ class _CatalogoProductosPageState extends State<CatalogoProductosPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(
-                    MdiIcons.cameraOff,
-                    size: size.height * 0.1,
+                  FutureBuilder(
+                    future: getImageCat(categoria, context, 0.2),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData) {
+                        if (snapshot.data != null)
+                          return snapshot.data;
+                        else {
+                          return Icon(
+                            MdiIcons.cameraOff,
+                            size: size.height * 0.1,
+                          );
+                        }
+                      } else {
+                        return Icon(
+                          MdiIcons.cameraOff,
+                          size: size.height * 0.1,
+                        );
+                      }
+                    },
                   ),
                   ListTile(
                     title: AutoSizeText(
