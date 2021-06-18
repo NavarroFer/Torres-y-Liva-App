@@ -4,16 +4,19 @@ import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 class CustomDialogBox extends StatefulWidget {
-  final String title, descriptions, textBtn1, textBtn2;
+  final String title, descriptions, textBtn1, textBtn2, obs;
   final Image img;
   final IconData icon;
   final bool alert;
+  final double cant;
   const CustomDialogBox(
       {Key key,
       this.title = '',
       this.descriptions = '',
       this.textBtn1 = '',
       this.textBtn2 = '',
+      this.cant,
+      this.obs,
       this.icon,
       this.alert = false,
       this.img})
@@ -27,11 +30,18 @@ class _CustomDialogBoxState extends State<CustomDialogBox> {
   static final double padding = 20;
   static final double avatarRadius = 20;
 
+  bool primeraVez = true;
+
   TextEditingController _observacionesController = TextEditingController();
   TextEditingController _cantController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
+    if (primeraVez) {
+      _cantController.text = widget?.cant?.toString() ?? '';
+      _observacionesController.text = widget?.obs?.toString() ?? '';
+      primeraVez = false;
+    }
     return Dialog(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
@@ -88,7 +98,7 @@ class _CustomDialogBoxState extends State<CustomDialogBox> {
                 children: [
                   FlatButton(
                       onPressed: () {
-                        Navigator.of(context).pop();
+                        Navigator.of(context).pop(true);
                       },
                       child: Text(
                         widget.textBtn1,
@@ -98,12 +108,7 @@ class _CustomDialogBoxState extends State<CustomDialogBox> {
                       )),
                   FlatButton(
                       onPressed: () {
-                        final cant = double.tryParse(_cantController.text);
-                        if (cant != null && cant > 0) {
-                          //Agregar item a pedido
-                          final res = [cant, _observacionesController.text];
-                          Navigator.of(context).pop(res);
-                        }
+                        Navigator.of(context).pop(false);
                       },
                       child: Text(
                         widget.textBtn2,

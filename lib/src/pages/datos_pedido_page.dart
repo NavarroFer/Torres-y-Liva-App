@@ -102,28 +102,30 @@ class _DatosPedidoPageState extends State<DatosPedidoPage> {
       searchHint: "Busca un cliente",
       onChanged: (Cliente value) {
         setState(() {
-          NuevoPedidoPage.clienteSeleccionado = value != null;
-          idCliente = value.clientId ?? -1;
-          selectedValueCliente = value?.clientId ?? -1;
-          NuevoPedidoPage.pedido.cliente = value;
-          direccion = value?.domicilio;
-          telefono = value?.telefono;
-          email = value?.email;
-          switch (value.formaPago) {
-            case 'CONTADO':
-              idFormaPago = 0;
-              break;
-            case 'CUENTA CORRIENTE':
-              idFormaPago = 1;
-              break;
-            case 'CHEQUE':
-              idFormaPago = 2;
-              break;
-            default:
-              idFormaPago = 3;
+          if (value != null) {
+            NuevoPedidoPage.clienteSeleccionado = value != null;
+            idCliente = value?.clientId ?? -1;
+            selectedValueCliente = value?.clientId ?? -1;
+            NuevoPedidoPage.pedido.cliente = value;
+            direccion = value?.domicilio;
+            telefono = value?.telefono;
+            email = value?.email;
+            switch (value.formaPago) {
+              case 'CONTADO':
+                idFormaPago = 0;
+                break;
+              case 'CUENTA CORRIENTE':
+                idFormaPago = 1;
+                break;
+              case 'CHEQUE':
+                idFormaPago = 2;
+                break;
+              default:
+                idFormaPago = 3;
+            }
+            _radioValueTipoVenta = idFormaPago;
+            NuevoPedidoPage.pedido.idFormaPago = _radioValueTipoVenta;
           }
-          _radioValueTipoVenta = idFormaPago;
-          NuevoPedidoPage.pedido.idFormaPago = _radioValueTipoVenta;
         });
       },
       onClear: () {

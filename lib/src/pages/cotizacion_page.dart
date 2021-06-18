@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
@@ -25,6 +26,10 @@ class _CotizacionPageState extends State<CotizacionPage> {
   MaterialColor color = Colors.red;
 
   List<Widget> acciones;
+
+  var numeroFila = 0;
+
+  int cantFilas;
   Widget get getTitle => title;
 
   List<Producto> hijosCat = List<Producto>.empty(growable: true);
@@ -97,38 +102,57 @@ class _CotizacionPageState extends State<CotizacionPage> {
         }
       });
     } else if (nivel == 2) {
-      hijosCat.addAll(
-          Productos.productos.where((element) => element.categoriaID == idCat));
+      Productos.productos.forEach((producto) {
+        if (producto.categoriaID == idCat) _agregarProducto(producto);
+      });
     }
   }
 
   _opcionesPDF(BuildContext context, bool share) async {
+    int totalProd = 0;
     //generar PDF cotizacion
     final pdf.Document docpdf = pdf.Document();
-
+    hijosCat.clear();
     CatalogoProductosPage.itemsSelected.forEach((element) {
       if (element.runtimeType == Categoria) {
         //agregar todos los productos hijos
         final cat = element as Categoria;
-        hijosCat.clear();
+
         _getHijosCat(cat.categoriaID, cat.nivel);
       } else {
         // es producto
-        hijosCat.add(element);
+        _agregarProducto(element);
       }
     });
 
     List<List<pdf.Widget>> rows = List<List<pdf.Widget>>.empty(growable: true);
 
-    int j = 0;
     int nroPage = 0;
     rows.add(List<pdf.Widget>.empty(growable: true));
     for (var i = 0; i < hijosCat.length; i++) {
       // j++;
-      print(i);
-      if (i % 16 == 0) {
+      cantFilas = 13;
+
+      if (nroPage > 1) {
+        cantFilas = 15;
+      }
+      if ((i % cantFilas) > 0) {
+        totalProd++;
+        numeroFila = 0;
+      }
+
+      if (i % cantFilas == 0) {
         nroPage++;
         rows.add(List<pdf.Widget>.empty(growable: true));
+        // print('TOTAL ' + totalProd.toString());
+        // print('CANTF ' + cantFilas.toString());
+        // print(totalProd % cantFilas);
+        // if (totalProd % cantFilas == 15) {
+        //   rows[nroPage]
+        //       .add(pdf.Container(width: 483, height: 20, color: PdfColors.red));
+        // }
+        //TODO agregar "margen superior" a partir de la segunda pagina
+        numeroFila = 0;
       } else {
         final String dir = (await getExternalStorageDirectory()).path;
         final String path = '$dir/Pictures/products/${hijosCat[i].id}.jpg';
@@ -139,93 +163,75 @@ class _CotizacionPageState extends State<CotizacionPage> {
             File(path).readAsBytesSync(),
           );
 
-          img = pdf.Image(image);
+          img = pdf.Image(image, fit: pdf.BoxFit.fitHeight, width: 100); //45
         } catch (e) {
           img = pdf.Container();
         }
+
         rows[nroPage].add(pdf.Container(
             width: 483,
             height: 40,
-            child: pdf.Row(
-                mainAxisAlignment: pdf.MainAxisAlignment.spaceEvenly,
-                crossAxisAlignment: pdf.CrossAxisAlignment.center,
-                children: [
-                  _celda(15.0, i.toString()),
-                  pdf.Container(width: 40, child: img),
-                  _celda(60.0, hijosCat[i].id.toString() ?? ''),
-                  _celda(150.0, hijosCat[i].descripcion ?? ''),
-                  _celda(80.0, hijosCat[i].precio.toStringAsFixed(2) ?? ''),
-                ])));
+            child: pdf.Container(
+                decoration: pdf.BoxDecoration(
+                    border: pdf.Border.all(color: PdfColors.black)),
+                child: pdf.Row(
+                    mainAxisAlignment: pdf.MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: pdf.CrossAxisAlignment.center,
+                    children: [
+                      _celda(20.0, totalProd.toString()),
+                      pdf.Container(
+                          // decoration: pdf.BoxDecoration(
+                          //     border: pdf.Border.all(color: PdfColors.black)),
+                          width: 100,
+                          child: img),
+                      _celda(60.0, hijosCat[i].id?.toString() ?? ''),
+                      _celda(150.0, hijosCat[i]?.descripcion ?? ''),
+                      _celda(
+                          80.0, hijosCat[i].precio?.toStringAsFixed(2) ?? ''),
+                    ]))));
       }
     }
 
-    // hijosCat.forEach((item) async {
-    //   //Agregar filas a la tabla
-    //   j++;
-    //   print(j);
-    //   if (j % 10 == 0) {
-    //     nroPage++;
-    //     rows.add(List<pdf.Widget>.empty(growable: true));
-    //   } else {
-    //     final String dir = (await getExternalStorageDirectory()).path;
-    //     final String path = '$dir/Pictures/products/${item.id}.jpg';
-    //     pdf.MemoryImage image;
-    //     pdf.Widget img;
-    //     try {
-    //       image = pdf.MemoryImage(
-    //         File(path).readAsBytesSync(),
-    //       );
-
-    //       img = pdf.Image(image);
-    //     } catch (e) {
-    //       img = pdf.Container();
-    //     }
-    //     rows[nroPage].add(pdf.Container(
-    //         width: 483,
-    //         height: 40,
-    //         child: pdf.Row(
-    //             mainAxisAlignment: pdf.MainAxisAlignment.spaceEvenly,
-    //             crossAxisAlignment: pdf.CrossAxisAlignment.center,
-    //             children: [
-    //               _celda(15.0, j.toString()),
-    //               pdf.Container(width: 40, child: img),
-    //               _celda(60.0, item.id.toString() ?? ''),
-    //               _celda(150.0, item.descripcion ?? ''),
-    //               _celda(80.0, item.precio.toStringAsFixed(2) ?? ''),
-    //             ])));
-    //   }
-    // });
-
-    print(rows.length);
-    // print(rows[0].length ?? '0');
-    // print(rows[1].length ?? 'a');
-    // print(rows[2].length ?? 'b');
-    // print(rows[3].length ?? 'c');
+    pdf.MemoryImage image;
+    pdf.Widget img;
+    img = await _getImage();
 
     var multipage = pdf.MultiPage(
       pageFormat: PdfPageFormat.a4,
       orientation: pdf.PageOrientation.natural,
       maxPages: 20,
+      header: (context) {
+        return pdf.Center(
+            child: pdf.Text(
+          'Listado de precios | Torres y Liva',
+        ));
+      },
+      footer: (context) {
+        return pdf.Center(
+            child: pdf.Text(
+          'Página ${context.pageNumber} de ${context.pagesCount}',
+        ));
+      },
       build: (context) {
         return [
           pdf.Column(children: [
-            pdf.Column(children: [
-              pdf.Text('Ejemplo cotizacion'),
-            ]),
+            pdf.Row(
+                mainAxisAlignment: pdf.MainAxisAlignment.start,
+                children: [_datos(), img]),
             pdf.Row(mainAxisSize: pdf.MainAxisSize.max, children: [
               pdf.Container(
                   width: 483,
                   height: 40,
-                  color: PdfColors.cyan300,
+                  color: PdfColors.grey400,
                   child: pdf.Row(
                       mainAxisAlignment: pdf.MainAxisAlignment.spaceEvenly,
                       crossAxisAlignment: pdf.CrossAxisAlignment.center,
                       children: [
-                        _celda(20.0, 'Nº'),
-                        _celda(100.0, 'Imagen'),
-                        _celda(60.0, 'Código'),
-                        _celda(150.0, 'Descripción'),
-                        _celda(80.0, 'Precio sin IVA'),
+                        _celda(20.0, 'Nº', header: true),
+                        _celda(100.0, 'Imagen', header: true),
+                        _celda(60.0, 'Código', header: true),
+                        _celda(150.0, 'Descripción', header: true),
+                        _celda(80.0, 'Precio sin IVA', header: true),
                       ]))
             ]),
             rows.length > 0 ? pdf.Column(children: rows[0]) : pdf.Container(),
@@ -239,12 +245,6 @@ class _CotizacionPageState extends State<CotizacionPage> {
         ];
       },
     );
-    var page = pdf.Page(
-        orientation: pdf.PageOrientation.landscape,
-        pageFormat: PdfPageFormat.a4,
-        build: (pdf.Context context) {
-          return pdf.Center(child: pdf.Text('COTIZACION DE PRODUCTOS'));
-        });
 
     docpdf.addPage(multipage);
 
@@ -288,7 +288,6 @@ class _CotizacionPageState extends State<CotizacionPage> {
   }
 
   void _refreshColorAcciones(BuildContext context) {
-    final size = MediaQuery.of(context).size;
     if (CatalogoProductosPage.seleccionando) {
       color = Colors.grey;
       acciones = [_toPDF(context), _toPDFShare(context)];
@@ -347,9 +346,74 @@ class _CotizacionPageState extends State<CotizacionPage> {
     return acciones;
   }
 
-  _celda(double d, String s) {
+  _celda(double d, String s, {bool header = false}) {
     return pdf.Container(
         width: d,
-        child: pdf.Center(child: pdf.Text(s, textAlign: pdf.TextAlign.center)));
+        // decoration:
+        //     pdf.BoxDecoration(border: pdf.Border.all(color: PdfColors.black)),
+        child: pdf.Center(
+            child: pdf.Text(s,
+                textAlign: pdf.TextAlign.center,
+                style: pdf.TextStyle(
+                    fontWeight: header
+                        ? pdf.FontWeight.bold
+                        : pdf.FontWeight.normal))));
+  }
+
+  void _agregarProducto(Producto element) {
+    hijosCat.add(element);
+
+    numeroFila++;
+  }
+
+  _datos() {
+    DateTime ahora = DateTime.now();
+    String hoy = ahora.day.toString().padLeft(2, '0') +
+        '-' +
+        ahora.month.toString().padLeft(2, '0') +
+        '-' +
+        ahora.year.toString();
+    return pdf.Container(
+      child: pdf.Column(children: [
+        _claveValor('Fecha', hoy),
+        _claveValor('Dirección', 'Ruta 88 Km 3'),
+        _claveValor('Telefono', '(0223) 464-5000'),
+      ]),
+    );
+  }
+
+  Future<pdf.Widget> _getImage() async {
+    pdf.MemoryImage image;
+    pdf.Widget img;
+    try {
+      image = pdf.MemoryImage(
+        (await rootBundle.load('assets/img/logo-pdf-header.jpg'))
+            .buffer
+            .asUint8List(),
+      );
+
+      img = pdf.Image(image, fit: pdf.BoxFit.fitHeight);
+
+      img = pdf.Image(image, fit: pdf.BoxFit.fitHeight, height: 90); //45
+    } catch (e) {
+      img = pdf.Container();
+    }
+    return img;
+  }
+
+  _claveValor(String s, String t) {
+    return pdf.Row(children: [
+      pdf.Container(
+          width: 75,
+          child: pdf.Text(s,
+              textScaleFactor: 1.2,
+              style: pdf.TextStyle(fontWeight: pdf.FontWeight.bold))),
+      pdf.Container(
+          width: 110,
+          child: pdf.Text(
+            t,
+            textScaleFactor: 1.2,
+          )),
+    ]);
   }
 }

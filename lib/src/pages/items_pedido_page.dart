@@ -344,14 +344,10 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
   }
 
   Future<void> _buscarProducto(BuildContext context) async {
-    final itemsNuevos = await Navigator.of(context).pushNamed(
-        BuscadorProductoPage.route,
+    Navigator.of(context).pushNamed(BuscadorProductoPage.route,
         arguments: [_typeAheadController.text, "-1", 'pedido']);
 
-    if (itemsNuevos != null)
-      setState(() {
-        NuevoPedidoPage.pedido?.items?.addAll(itemsNuevos);
-      });
+    setState(() {});
   }
 
   Future<void> scanBarcodeNormal() async {
@@ -434,50 +430,26 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
     double valueDouble = double.tryParse(value);
 
     if (_productoSelected != null && valueDouble != null) {
-      int newId = 1;
-
-      if (NuevoPedidoPage.pedido.items.length > 0) {
-        newId = NuevoPedidoPage.pedido.items.last.id + 1;
+      if (_productoSelected.stock < valueDouble) {
+        showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return CustomDialogBox(
+                title: 'Stock insuficiente',
+                descriptions: '¿Desea agregar de todas formas?',
+                textBtn1: "Si",
+                textBtn2: "No",
+                icon: Icons.warning,
+                alert: true,
+              );
+            }).then((value) {
+          if (value == true) {
+            agregaItemAPedido(_productoSelected, valueDouble);
+          }
+        });
+      } else {
+        agregaItemAPedido(_productoSelected, valueDouble);
       }
-      var precioTotal = _productoSelected.precio *
-          valueDouble *
-          (1 - (double.tryParse(_dtoController.text) ?? 0));
-      final item = ItemPedido(
-          cantidad: valueDouble ?? 1,
-          detalle: _productoSelected.descripcion ?? '',
-          descuento: double.tryParse(_dtoController.text) ?? 0.0,
-          id: newId,
-          productoID: _productoSelected.id,
-          precio: _productoSelected.precio,
-          producto: _productoSelected,
-          iva: _productoSelected.iva,
-          observacion: _productoSelected.descripcion ?? '',
-          fraccion: 1.0, //TODO ver que es fraccion
-          precioTotal: precioTotal);
-
-      if (NuevoPedidoPage.pedido.neto == null) {
-        NuevoPedidoPage.pedido.neto = 0;
-      }
-      if (NuevoPedidoPage.pedido.totalPedido == null) {
-        NuevoPedidoPage.pedido.totalPedido = 0;
-      }
-      if (NuevoPedidoPage.pedido.iva == null) {
-        NuevoPedidoPage.pedido.iva = 0;
-      }
-
-      NuevoPedidoPage.pedido.neto +=
-          precioTotal * (1 - _productoSelected.iva / 100);
-      NuevoPedidoPage.pedido.totalPedido += precioTotal;
-      NuevoPedidoPage.pedido.iva += precioTotal * _productoSelected.iva / 100;
-
-      NuevoPedidoPage.pedido?.items?.add(item);
-
-      _codController.text = '';
-      _typeAheadController.text = '';
-      _productoSelected = null;
-      _obsController.text = '';
-      _dtoController.text = '';
-      _cantController.text = '';
 
       setState(() {});
     }
@@ -524,6 +496,8 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
                 "\$ ${item.producto?.precio?.toStringAsFixed(2)} - Stock: ${item.producto?.stock?.toStringAsFixed(2)}",
             textBtn1: "Cancelar",
             textBtn2: "Aceptar",
+            cant: item.cantidad,
+            obs: item.observacion,
             alert: false,
             img: Image.asset('assets/img/ic_launcher_round.png'),
           );
@@ -554,5 +528,52 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
         setState(() {});
       }
     });
+  }
+
+  void agregaItemAPedido(Producto productoSelected, double valueDouble) {
+    int newId = 1;
+
+    if (NuevoPedidoPage.pedido.items.length > 0) {
+      newId = NuevoPedidoPage.pedido.items.last.id + 1;
+    }
+    var precioTotal = _productoSelected.precio *
+        valueDouble *
+        (1 - (double.tryParse(_dtoController.text) ?? 0));
+    final item = ItemPedido(
+        cantidad: valueDouble ?? 1,
+        detalle: _productoSelected.descripcion ?? '',
+        descuento: double.tryParse(_dtoController.text) ?? 0.0,
+        id: newId,
+        productoID: _productoSelected.id,
+        precio: _productoSelected.precio,
+        producto: _productoSelected,
+        iva: _productoSelected.iva,
+        observacion: _obsController.text,
+        fraccion: 1.0, //TODO ver que es fraccion
+        precioTotal: precioTotal);
+
+    if (NuevoPedidoPage.pedido.neto == null) {
+      NuevoPedidoPage.pedido.neto = 0;
+    }
+    if (NuevoPedidoPage.pedido.totalPedido == null) {
+      NuevoPedidoPage.pedido.totalPedido = 0;
+    }
+    if (NuevoPedidoPage.pedido.iva == null) {
+      NuevoPedidoPage.pedido.iva = 0;
+    }
+
+    NuevoPedidoPage.pedido.neto +=
+        precioTotal * (1 - _productoSelected.iva / 100);
+    NuevoPedidoPage.pedido.totalPedido += precioTotal;
+    NuevoPedidoPage.pedido.iva += precioTotal * _productoSelected.iva / 100;
+
+    NuevoPedidoPage.pedido?.items?.add(item);
+
+    _codController.text = '';
+    _typeAheadController.text = '';
+    _productoSelected = null;
+    _obsController.text = '';
+    _dtoController.text = '';
+    _cantController.text = '';
   }
 }

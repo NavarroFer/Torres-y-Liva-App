@@ -15,6 +15,7 @@ import 'package:torres_y_liva/src/pages/nuevo_pedido_page.dart';
 import 'package:torres_y_liva/src/pages/pedido_enviado_detail_page.dart';
 import 'package:torres_y_liva/src/providers/ventas_provider.dart';
 import 'package:torres_y_liva/src/utils/database_helper.dart';
+import 'package:torres_y_liva/src/utils/image_helper.dart';
 import 'package:torres_y_liva/src/utils/shared_pref_helper.dart';
 import 'package:torres_y_liva/src/widgets/base_widgets.dart';
 import 'package:torres_y_liva/src/utils/globals.dart';
@@ -168,7 +169,7 @@ class _PedidoPageState extends State<PedidoPage> {
           onSelected: (value) {
             switch (value) {
               case 0:
-                _actualizarPressed();
+                _actualizarPressed(context);
                 break;
               case 1:
                 _enviarPedidosPressed(context);
@@ -213,7 +214,9 @@ class _PedidoPageState extends State<PedidoPage> {
     });
   }
 
-  void _actualizarPressed() {}
+  void _actualizarPressed(BuildContext context) {
+    getImages(() {}, context);
+  }
 
   void _enviarPedidosPressed(BuildContext context) async {
     final ventasProvider = VentasProvider();
@@ -235,12 +238,12 @@ class _PedidoPageState extends State<PedidoPage> {
   }
 
   void _pedidosEnviadosPressed(BuildContext context) {
-    _vista = 1; //enviados
+    _vista = Pedido.ESTADO_ENVIADO; //enviados
     setState(() {});
   }
 
   void _cotizacionesPressed(BuildContext context) {
-    _vista = 2; //cotizaciones
+    _vista = Pedido.ESTADO_COTIZADO; //cotizaciones
     setState(() {});
   }
 
@@ -263,13 +266,13 @@ class _PedidoPageState extends State<PedidoPage> {
           onChanged: (query) => updateSearchQuery(query));
     } else {
       switch (_vista) {
-        case 0:
+        case Pedido.ESTADO_SIN_ENVIAR:
           return Text('Pedidos');
           break;
-        case 1:
+        case Pedido.ESTADO_ENVIADO:
           return Text('Pedidos Enviados');
           break;
-        case 2:
+        case Pedido.ESTADO_COTIZADO:
           return Text('Cotizaciones');
           break;
         default:
@@ -316,7 +319,9 @@ class _PedidoPageState extends State<PedidoPage> {
                 minimumSize: Size(size.width * 0.001, size.height * 0.06)),
             onPressed: () => _nuevoPedidoPressed(context, _vista),
             child: Text(
-              _vista == 0 ? 'Crear Pedido' : 'Crear Cotización',
+              _vista == Pedido.ESTADO_SIN_ENVIAR
+                  ? 'Crear Pedido'
+                  : 'Crear Cotización',
               textScaleFactor: size.height * 0.0025,
             )));
   }
@@ -342,7 +347,7 @@ class _PedidoPageState extends State<PedidoPage> {
     listaPedidosShow.forEach((pedido) {
       var dataRow = DataRow(
           onSelectChanged: (value) async {
-            if (_vista == 1) {
+            if (_vista == Pedido.ESTADO_ENVIADO) {
               final copiaPedido = await Navigator.of(context)
                   .pushNamed(PedidoEnviadoDetailPage.route, arguments: pedido);
 
@@ -439,13 +444,13 @@ class _PedidoPageState extends State<PedidoPage> {
 
   List<Widget> _acciones(BuildContext context) {
     switch (_vista) {
-      case 0:
+      case Pedido.ESTADO_SIN_ENVIAR:
         return _accionesPedidoCotizacion(context);
         break;
-      case 1:
+      case Pedido.ESTADO_ENVIADO:
         return _accionesEnviados(context);
         break;
-      case 2:
+      case Pedido.ESTADO_COTIZADO:
         return _accionesPedidoCotizacion(context);
         break;
       default:
@@ -739,7 +744,7 @@ class _PedidoPageState extends State<PedidoPage> {
     return IconButton(
         icon: Icon(Icons.arrow_back, color: Colors.white),
         onPressed: () {
-          _vista = 0;
+          _vista = Pedido.ESTADO_SIN_ENVIAR;
           setState(() {});
         });
   }

@@ -39,6 +39,8 @@ class _NuevoPedidoPageState extends State<NuevoPedidoPage>
 
   List<Object> arguments;
 
+  int vista;
+
   @override
   void dispose() {
     NuevoPedidoPage.pedido = Pedido(
@@ -57,7 +59,7 @@ class _NuevoPedidoPageState extends State<NuevoPedidoPage>
   @override
   Widget build(BuildContext context) {
     arguments = ModalRoute.of(context).settings.arguments;
-    int vista = arguments[0];
+    vista = arguments[0];
 
     var tab = TabController(
       initialIndex: 0,
@@ -82,6 +84,7 @@ class _NuevoPedidoPageState extends State<NuevoPedidoPage>
           appBar: AppBar(
             title: vista == 2 ? Text('Cotizacion') : Text('Pedido'),
             backgroundColor: color,
+            leading: _botonAtras(context),
             bottom: TabBar(
               // controller: tab,
               tabs: [
@@ -156,6 +159,7 @@ class _NuevoPedidoPageState extends State<NuevoPedidoPage>
         element.pedidoID = idNuevoPedido;
       });
       NuevoPedidoPage.pedido.fechaPedido = DateTime.now();
+      NuevoPedidoPage.pedido.estado = vista;
 
       await NuevoPedidoPage.pedido.insertOrUpdate();
 
@@ -227,6 +231,33 @@ class _NuevoPedidoPageState extends State<NuevoPedidoPage>
             icon: Icons.warning,
             alert: true,
           );
+        });
+  }
+
+  _botonAtras(BuildContext context) {
+    return IconButton(
+        icon: Icon(Icons.arrow_back, color: Colors.white),
+        onPressed: () {
+          if (NuevoPedidoPage.pedido?.cliente.clientId != null ||
+              NuevoPedidoPage.pedido?.items?.isNotEmpty) {
+            showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return CustomDialogBox(
+                    title: 'No ha guardado los datos',
+                    descriptions: '¿Desea salir sin guardar?',
+                    textBtn1: "Si",
+                    textBtn2: "No",
+                    icon: Icons.warning,
+                    alert: true,
+                  );
+                }).then((value) {
+              if (value == true) {
+                Navigator.of(context).pop();
+              }
+            });
+          } else
+            Navigator.of(context).pop();
         });
   }
 }

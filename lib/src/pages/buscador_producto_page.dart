@@ -323,27 +323,28 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
         final cant = value[0];
         final obs = value[1];
 
-        int idItemPedido = 1;
-
-        if (NuevoPedidoPage.pedido?.items?.isNotEmpty) {
-          idItemPedido = NuevoPedidoPage.pedido?.items?.last?.id + 1;
+        if (producto.stock < cant) {
+          showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return CustomDialogBox(
+                  title: 'Stock insuficiente',
+                  descriptions: '¿Desea agregar de todas formas?',
+                  textBtn1: "Si",
+                  textBtn2: "No",
+                  icon: Icons.warning,
+                  alert: true,
+                );
+              }).then((value) {
+            if (value == true) {
+              print('AA');
+              _addItem(producto, cant, obs);
+            }
+          });
+        } else {
+          print('BB');
+          _addItem(producto, cant, obs);
         }
-
-        final itemPedido = ItemPedido(
-            cantidad: cant,
-            observacion: obs,
-            detalle: producto.descripcion,
-            descuento: 0,
-            producto: producto,
-            productoID: producto.id,
-            precio: producto.precio * 0.79,
-            precioTotal: producto.precio,
-            fraccion: 0.0,
-            id: idItemPedido,
-            iva: producto.precio * 0.21,
-            pedidoID: 23);
-
-        itemsParaPedido.add(itemPedido);
       }
     });
   }
@@ -460,7 +461,7 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
   _buttonArrowBack(BuildContext context) {
     return IconButton(
         icon: Icon(Icons.arrow_back, color: Colors.white),
-        onPressed: () => {Navigator.of(context).pop(itemsParaPedido)});
+        onPressed: () => {Navigator.of(context).pop()});
   }
 
   void _itemLongPressedCatalogo(BuildContext context, Producto producto) {
@@ -523,5 +524,42 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
     } else if (nivel == 2) {
       listaCat.add(idCat);
     }
+  }
+
+  void _addItem(Producto producto, double cant, String obs) {
+    int newId = 1;
+
+    if (NuevoPedidoPage.pedido?.items?.isNotEmpty) {
+      newId = NuevoPedidoPage.pedido?.items?.last?.id + 1;
+    }
+
+    var precioTotal = producto.precio * cant;
+    final itemPedido = ItemPedido(
+        cantidad: cant ?? 1,
+        detalle: producto.descripcion ?? '',
+        descuento: 0.0,
+        id: newId,
+        productoID: producto.id,
+        precio: producto.precio,
+        producto: producto,
+        iva: producto.iva,
+        observacion: obs ?? '',
+        fraccion: 1.0, //TODO ver que es fraccion
+        precioTotal: precioTotal);
+
+    if (NuevoPedidoPage.pedido.neto == null) {
+      NuevoPedidoPage.pedido.neto = 0;
+    }
+    if (NuevoPedidoPage.pedido.totalPedido == null) {
+      NuevoPedidoPage.pedido.totalPedido = 0;
+    }
+    if (NuevoPedidoPage.pedido.iva == null) {
+      NuevoPedidoPage.pedido.iva = 0;
+    }
+    NuevoPedidoPage.pedido.neto += precioTotal * (1 - producto.iva / 100);
+    NuevoPedidoPage.pedido.totalPedido += precioTotal;
+    NuevoPedidoPage.pedido.iva += precioTotal * producto.iva / 100;
+
+    NuevoPedidoPage.pedido?.items?.add(itemPedido);
   }
 }
