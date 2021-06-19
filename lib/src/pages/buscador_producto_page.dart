@@ -337,12 +337,10 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
                 );
               }).then((value) {
             if (value == true) {
-              print('AA');
               _addItem(producto, cant, obs);
             }
           });
         } else {
-          print('BB');
           _addItem(producto, cant, obs);
         }
       }

@@ -12,6 +12,7 @@ import 'package:share/share.dart';
 import 'package:torres_y_liva/src/models/categoria_model.dart';
 import 'package:torres_y_liva/src/models/producto_model.dart';
 import 'package:torres_y_liva/src/pages/catalogo_productos_page.dart';
+import 'package:torres_y_liva/src/widgets/dialog_box_widget.dart';
 
 class CotizacionPage extends StatefulWidget {
   static final String route = 'cotizacion';
@@ -113,155 +114,165 @@ class _CotizacionPageState extends State<CotizacionPage> {
     //generar PDF cotizacion
     final pdf.Document docpdf = pdf.Document();
     hijosCat.clear();
-    CatalogoProductosPage.itemsSelected.forEach((element) {
-      if (element.runtimeType == Categoria) {
-        //agregar todos los productos hijos
-        final cat = element as Categoria;
 
-        _getHijosCat(cat.categoriaID, cat.nivel);
-      } else {
-        // es producto
-        _agregarProducto(element);
-      }
-    });
+    if (CatalogoProductosPage.cantidadItems > 300) {
+      showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return CustomDialogBox(
+              title: 'Muchos productos',
+              descriptions: 'Seleccione menos que 300 productos',
+              textBtn1: "Ok",
+              icon: Icons.warning,
+              alert: true,
+            );
+          });
+    } else {
+      CatalogoProductosPage.itemsSelected.forEach((element) {
+        if (element.runtimeType == Categoria) {
+          //agregar todos los productos hijos
+          final cat = element as Categoria;
 
-    List<List<pdf.Widget>> rows = List<List<pdf.Widget>>.empty(growable: true);
+          _getHijosCat(cat.categoriaID, cat.nivel);
+        } else {
+          // es producto
+          _agregarProducto(element);
+        }
+      });
 
-    int nroPage = 0;
-    rows.add(List<pdf.Widget>.empty(growable: true));
-    for (var i = 0; i < hijosCat.length; i++) {
-      // j++;
-      cantFilas = 13;
+      List<List<pdf.Widget>> rows =
+          List<List<pdf.Widget>>.empty(growable: true);
 
-      if (nroPage > 1) {
-        cantFilas = 15;
-      }
-      if ((i % cantFilas) > 0) {
-        totalProd++;
-        numeroFila = 0;
-      }
+      int nroPage = 0;
+      rows.add(List<pdf.Widget>.empty(growable: true));
+      for (var i = 0; i < hijosCat.length; i++) {
+        // j++;
+        cantFilas = 13;
 
-      if (i % cantFilas == 0) {
-        nroPage++;
-        rows.add(List<pdf.Widget>.empty(growable: true));
-        // print('TOTAL ' + totalProd.toString());
-        // print('CANTF ' + cantFilas.toString());
-        // print(totalProd % cantFilas);
-        // if (totalProd % cantFilas == 15) {
-        //   rows[nroPage]
-        //       .add(pdf.Container(width: 483, height: 20, color: PdfColors.red));
-        // }
-        //TODO agregar "margen superior" a partir de la segunda pagina
-        numeroFila = 0;
-      } else {
-        final String dir = (await getExternalStorageDirectory()).path;
-        final String path = '$dir/Pictures/products/${hijosCat[i].id}.jpg';
-        pdf.MemoryImage image;
-        pdf.Widget img;
-        try {
-          image = pdf.MemoryImage(
-            File(path).readAsBytesSync(),
-          );
-
-          img = pdf.Image(image, fit: pdf.BoxFit.fitHeight, width: 100); //45
-        } catch (e) {
-          img = pdf.Container();
+        if (nroPage > 1) {
+          cantFilas = 15;
+        }
+        if ((i % cantFilas) > 0) {
+          totalProd++;
+          numeroFila = 0;
         }
 
-        rows[nroPage].add(pdf.Container(
-            width: 483,
-            height: 40,
-            child: pdf.Container(
-                decoration: pdf.BoxDecoration(
-                    border: pdf.Border.all(color: PdfColors.black)),
-                child: pdf.Row(
-                    mainAxisAlignment: pdf.MainAxisAlignment.spaceEvenly,
-                    crossAxisAlignment: pdf.CrossAxisAlignment.center,
-                    children: [
-                      _celda(20.0, totalProd.toString()),
-                      pdf.Container(
-                          // decoration: pdf.BoxDecoration(
-                          //     border: pdf.Border.all(color: PdfColors.black)),
-                          width: 100,
-                          child: img),
-                      _celda(60.0, hijosCat[i].id?.toString() ?? ''),
-                      _celda(150.0, hijosCat[i]?.descripcion ?? ''),
-                      _celda(
-                          80.0, hijosCat[i].precio?.toStringAsFixed(2) ?? ''),
-                    ]))));
-      }
-    }
+        if (i % cantFilas == 0) {
+          nroPage++;
+          rows.add(List<pdf.Widget>.empty(growable: true));
 
-    pdf.MemoryImage image;
-    pdf.Widget img;
-    img = await _getImage();
+          //TODO agregar "margen superior" a partir de la segunda pagina
+          numeroFila = 0;
+        } else {
+          final String dir = (await getExternalStorageDirectory()).path;
+          final String path = '$dir/Pictures/products/${hijosCat[i].id}.jpg';
+          pdf.MemoryImage image;
+          pdf.Widget img;
+          try {
+            image = pdf.MemoryImage(
+              File(path).readAsBytesSync(),
+            );
 
-    var multipage = pdf.MultiPage(
-      pageFormat: PdfPageFormat.a4,
-      orientation: pdf.PageOrientation.natural,
-      maxPages: 20,
-      header: (context) {
-        return pdf.Center(
-            child: pdf.Text(
-          'Listado de precios | Torres y Liva',
-        ));
-      },
-      footer: (context) {
-        return pdf.Center(
-            child: pdf.Text(
-          'Página ${context.pageNumber} de ${context.pagesCount}',
-        ));
-      },
-      build: (context) {
-        return [
-          pdf.Column(children: [
-            pdf.Row(
-                mainAxisAlignment: pdf.MainAxisAlignment.start,
-                children: [_datos(), img]),
-            pdf.Row(mainAxisSize: pdf.MainAxisSize.max, children: [
-              pdf.Container(
-                  width: 483,
-                  height: 40,
-                  color: PdfColors.grey400,
+            img = pdf.Image(image, fit: pdf.BoxFit.fitHeight, width: 100); //45
+          } catch (e) {
+            img = pdf.Container();
+          }
+
+          rows[nroPage].add(pdf.Container(
+              width: 483,
+              height: 40,
+              child: pdf.Container(
+                  decoration: pdf.BoxDecoration(
+                      border: pdf.Border.all(color: PdfColors.black)),
                   child: pdf.Row(
                       mainAxisAlignment: pdf.MainAxisAlignment.spaceEvenly,
                       crossAxisAlignment: pdf.CrossAxisAlignment.center,
                       children: [
-                        _celda(20.0, 'Nº', header: true),
-                        _celda(100.0, 'Imagen', header: true),
-                        _celda(60.0, 'Código', header: true),
-                        _celda(150.0, 'Descripción', header: true),
-                        _celda(80.0, 'Precio sin IVA', header: true),
-                      ]))
-            ]),
-            rows.length > 0 ? pdf.Column(children: rows[0]) : pdf.Container(),
-            rows.length > 1 ? pdf.Column(children: rows[1]) : pdf.Container(),
-            rows.length > 2 ? pdf.Column(children: rows[2]) : pdf.Container(),
-            rows.length > 3 ? pdf.Column(children: rows[3]) : pdf.Container(),
-            rows.length > 4 ? pdf.Column(children: rows[4]) : pdf.Container(),
-            rows.length > 5 ? pdf.Column(children: rows[5]) : pdf.Container(),
-            rows.length > 6 ? pdf.Column(children: rows[6]) : pdf.Container(),
-          ])
-        ];
-      },
-    );
+                        _celda(20.0, totalProd.toString()),
+                        pdf.Container(
+                            // decoration: pdf.BoxDecoration(
+                            //     border: pdf.Border.all(color: PdfColors.black)),
+                            width: 100,
+                            child: img),
+                        _celda(60.0, hijosCat[i].id?.toString() ?? ''),
+                        _celda(150.0, hijosCat[i]?.descripcion ?? ''),
+                        _celda(
+                            80.0, hijosCat[i].precio?.toStringAsFixed(2) ?? ''),
+                      ]))));
+        }
+      }
 
-    docpdf.addPage(multipage);
+      pdf.MemoryImage image;
+      pdf.Widget img;
+      img = await _getImage();
 
-    final String dir = (await getApplicationDocumentsDirectory()).path;
-    final String path = '$dir/cotizacion_${DateTime.now()}.pdf';
-    final File file = File(path);
-    await file.writeAsBytes(await docpdf.save());
+      var multipage = pdf.MultiPage(
+        pageFormat: PdfPageFormat.a4,
+        orientation: pdf.PageOrientation.natural,
+        maxPages: 20,
+        header: (context) {
+          return pdf.Center(
+              child: pdf.Text(
+            'Listado de precios | Torres y Liva',
+          ));
+        },
+        footer: (context) {
+          return pdf.Center(
+              child: pdf.Text(
+            'Página ${context.pageNumber} de ${context.pagesCount}',
+          ));
+        },
+        build: (context) {
+          return [
+            pdf.Column(children: [
+              pdf.Row(
+                  mainAxisAlignment: pdf.MainAxisAlignment.start,
+                  children: [_datos(), img]),
+              pdf.Row(mainAxisSize: pdf.MainAxisSize.max, children: [
+                pdf.Container(
+                    width: 483,
+                    height: 40,
+                    color: PdfColors.grey400,
+                    child: pdf.Row(
+                        mainAxisAlignment: pdf.MainAxisAlignment.spaceEvenly,
+                        crossAxisAlignment: pdf.CrossAxisAlignment.center,
+                        children: [
+                          _celda(20.0, 'Nº', header: true),
+                          _celda(100.0, 'Imagen', header: true),
+                          _celda(60.0, 'Código', header: true),
+                          _celda(150.0, 'Descripción', header: true),
+                          _celda(80.0, 'Precio sin IVA', header: true),
+                        ]))
+              ]),
+              rows.length > 0 ? pdf.Column(children: rows[0]) : pdf.Container(),
+              rows.length > 1 ? pdf.Column(children: rows[1]) : pdf.Container(),
+              rows.length > 2 ? pdf.Column(children: rows[2]) : pdf.Container(),
+              rows.length > 3 ? pdf.Column(children: rows[3]) : pdf.Container(),
+              rows.length > 4 ? pdf.Column(children: rows[4]) : pdf.Container(),
+              rows.length > 5 ? pdf.Column(children: rows[5]) : pdf.Container(),
+              rows.length > 6 ? pdf.Column(children: rows[6]) : pdf.Container(),
+            ])
+          ];
+        },
+      );
 
-    if (share) {
-      Share.shareFiles([path], text: 'Cotizacion');
-    } else {
-      OpenFile.open(path);
+      docpdf.addPage(multipage);
+
+      final String dir = (await getApplicationDocumentsDirectory()).path;
+      final String path = '$dir/cotizacion_${DateTime.now()}.pdf';
+      final File file = File(path);
+      await file.writeAsBytes(await docpdf.save());
+
+      if (share) {
+        Share.shareFiles([path], text: 'Cotizacion');
+      } else {
+        OpenFile.open(path);
+      }
+
+      setState(() {
+        _unCheckCategorias();
+      });
     }
-
-    setState(() {
-      _unCheckCategorias();
-    });
   }
 
   void _unCheckCategorias() {}

@@ -9,6 +9,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pdf;
 import 'package:share/share.dart';
 import 'package:torres_y_liva/src/models/categoria_model.dart';
+import 'package:torres_y_liva/src/models/cliente_model.dart';
 import 'package:torres_y_liva/src/models/pedido_model.dart';
 import 'package:torres_y_liva/src/pages/login_page.dart';
 import 'package:torres_y_liva/src/pages/nuevo_pedido_page.dart';
@@ -287,9 +288,8 @@ class _PedidoPageState extends State<PedidoPage> {
 
     final list = await _getPedidosSegunVista();
 
-    listaPedidosShow.addAll(list);
-    if (listaPedidosShow.length > 0) {
-      return _gridPedidos(context);
+    if (list.length > 0) {
+      return _gridPedidos(context, list);
     } else {
       switch (_vista) {
         case Pedido.ESTADO_SIN_ENVIAR:
@@ -326,7 +326,7 @@ class _PedidoPageState extends State<PedidoPage> {
             )));
   }
 
-  Widget _gridPedidos(BuildContext context) {
+  Widget _gridPedidos(BuildContext context, List<Pedido> list) {
     final size = MediaQuery.of(context).size;
     return Container(
       width: double.infinity,
@@ -338,15 +338,17 @@ class _PedidoPageState extends State<PedidoPage> {
             DataColumn(label: Text('TOTAL')),
           ],
           showCheckboxColumn: false,
-          rows: _rowsPedidos(context)),
+          rows: _rowsPedidos(context, list)),
     );
   }
 
-  List<DataRow> _rowsPedidos(BuildContext context) {
+  List<DataRow> _rowsPedidos(BuildContext context, List<Pedido> listPedidos) {
     List<DataRow> lista = List<DataRow>.filled(0, null, growable: true);
-    listaPedidosShow.forEach((pedido) {
+    listPedidos.forEach((pedido) {
       var dataRow = DataRow(
           onSelectChanged: (value) async {
+            NuevoPedidoPage.pedido = pedido;
+            NuevoPedidoPage.pedido.items = await pedido.itemsFromDB();
             if (_vista == Pedido.ESTADO_ENVIADO) {
               final copiaPedido = await Navigator.of(context)
                   .pushNamed(PedidoEnviadoDetailPage.route, arguments: pedido);
@@ -356,17 +358,34 @@ class _PedidoPageState extends State<PedidoPage> {
                 final pedidoCopiado = Pedido().copyWith(pedido: pedido);
 
                 pedidoCopiado.estado = Pedido.ESTADO_SIN_ENVIAR;
-                listaPedidos.add(pedidoCopiado);
+
+                final guardado = await pedidoCopiado.insertOrUpdate();
+                print('El pedido fue guardado: $guardado');
               }
             } else {
-              NuevoPedidoPage.pedido = pedido;
               NuevoPedidoPage.nuevo = false;
-              NuevoPedidoPage.pedido.items =
-                  await NuevoPedidoPage.pedido.itemsFromDB();
 
               for (var item in NuevoPedidoPage.pedido.items) {
                 item.producto = await item.productFromDB();
               }
+
+              int idFormaPago = 0;
+
+              switch (NuevoPedidoPage.pedido?.cliente?.formaPago) {
+                case Cliente.FORMA_PAGO_CONTADO:
+                  idFormaPago = 0;
+                  break;
+                case Cliente.FORMA_PAGO_CUENTA_CORRIENTE:
+                  idFormaPago = 1;
+                  break;
+                case Cliente.FORMA_PAGO_CHEQUE:
+                  idFormaPago = 2;
+                  break;
+                default:
+                  idFormaPago = 3;
+              }
+
+              NuevoPedidoPage.pedido.idFormaPago = idFormaPago;
               Navigator.of(context).pushNamed(NuevoPedidoPage.route,
                   arguments: [_vista]).then((value) {
                 _listaInitCotizados = false;
@@ -491,8 +510,11 @@ class _PedidoPageState extends State<PedidoPage> {
 
   void _eliminarPedidosPressed(BuildContext context) {
     setState(() {
-      listaPedidos.forEach((pedido) {
-        if (pedido.checked) listaPedidos.remove(pedido);
+      listaPedidosShow.forEach((pedido) async {
+        if (pedido.checked) {
+          listaPedidos.remove(pedido);
+          await pedido.delete();
+        }
       });
       _cantChecked = 0;
     });
@@ -753,19 +775,19 @@ class _PedidoPageState extends State<PedidoPage> {
     switch (_vista) {
       case Pedido.ESTADO_SIN_ENVIAR:
         // await _initListaPedidosSinEnviar();
-        if (_listaInitSinEnviar == false) await _initListaPedidosSinEnviar();
+        await _initListaPedidosSinEnviar();
         return listaPedidosSinEnviar;
         break;
       case Pedido.ESTADO_ENVIADO:
-        if (!_listaInitEnviados) await _initListaPedidosEnviados();
+        await _initListaPedidosEnviados();
         return listaPedidosEnviados;
         break;
       case Pedido.ESTADO_COTIZADO:
-        if (!_listaInitCotizados) await _initListaPedidosCotizados();
+        await _initListaPedidosCotizados();
         return listaPedidosCotizaciones;
         break;
       default:
-        if (!_listaInitSinEnviar) await _initListaPedidosSinEnviar();
+        await _initListaPedidosSinEnviar();
         return listaPedidosSinEnviar;
     }
   }

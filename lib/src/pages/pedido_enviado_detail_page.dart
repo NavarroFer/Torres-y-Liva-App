@@ -161,7 +161,7 @@ class PedidoEnviadoDetailPage extends StatelessWidget {
         DataCell(Text(item.id.toString())),
         DataCell(Text(item?.cantidad.toString() ?? '')),
         DataCell(GestureDetector(
-          child: Text(item?.producto?.descripcion ?? ''),
+          child: Text(item?.detalle ?? ''),
         )),
         DataCell(Text(
           '\$${item.precio.toStringAsFixed(2)}',

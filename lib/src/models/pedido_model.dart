@@ -1,3 +1,4 @@
+import 'package:sqflite/sqflite.dart';
 import 'package:torres_y_liva/src/pages/nuevo_pedido_page.dart';
 import 'package:torres_y_liva/src/utils/database_helper.dart';
 import 'package:torres_y_liva/src/utils/globals.dart';
@@ -314,6 +315,11 @@ class Pedido {
       this.items = [];
     }
     this.enviado = json['enviado'] ?? false;
+  }
+
+  Future<bool> delete() async {
+    final dbHelper = DatabaseHelper.instance;
+    await dbHelper.delete(DatabaseHelper.tablePedidos, id: this.id, nombreColumnId: DatabaseHelper.idPedido);
   }
 
   Future<bool> insertOrUpdate() async {

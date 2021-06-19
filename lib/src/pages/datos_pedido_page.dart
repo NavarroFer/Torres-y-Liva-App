@@ -23,6 +23,7 @@ class _DatosPedidoPageState extends State<DatosPedidoPage> {
   String telefono;
   String email;
   int _radioValueTipoVenta;
+  bool primeraVez = false;
   // Pedido pedido;
   TextEditingController _comentariosController =
       TextEditingController(text: NuevoPedidoPage.pedido.observaciones);
@@ -64,6 +65,10 @@ class _DatosPedidoPageState extends State<DatosPedidoPage> {
 
   @override
   Widget build(BuildContext context) {
+    if (primeraVez == false) {
+      _radioValueTipoVenta = NuevoPedidoPage.pedido.idFormaPago;
+      primeraVez = true;
+    }
     return Padding(
         padding: EdgeInsets.all(12),
         child: SingleChildScrollView(
@@ -111,13 +116,13 @@ class _DatosPedidoPageState extends State<DatosPedidoPage> {
             telefono = value?.telefono;
             email = value?.email;
             switch (value.formaPago) {
-              case 'CONTADO':
+              case Cliente.FORMA_PAGO_CONTADO:
                 idFormaPago = 0;
                 break;
-              case 'CUENTA CORRIENTE':
+              case Cliente.FORMA_PAGO_CUENTA_CORRIENTE:
                 idFormaPago = 1;
                 break;
-              case 'CHEQUE':
+              case Cliente.FORMA_PAGO_CHEQUE:
                 idFormaPago = 2;
                 break;
               default:

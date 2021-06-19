@@ -24,7 +24,7 @@ class UsuariosProvider {
       if (respuesta.success) {
         usuario = Usuario.fromJsonMap(decodedData['data']);
 
-        log('Login correcto del usuario: ${usuario.nombre}');
+        log('${DateTime.now()} - Login correcto del usuario: ${usuario.nombre}');
         return true;
       } else
         return Future.error(respuesta.mensaje);

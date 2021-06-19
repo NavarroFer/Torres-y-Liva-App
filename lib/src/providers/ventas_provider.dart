@@ -32,8 +32,6 @@ class VentasProvider {
         'tokenCliente': tokenCliente,
         'pedido': json.encode(pedidoJSON)
       };
-      print(url);
-      print(body);
       final resp = await http
           .post(
             url,
@@ -45,7 +43,7 @@ class VentasProvider {
       print(decodedData);
       final respuesta = Respuesta.fromJsonMap(decodedData);
       if (respuesta.success) {
-        log('${DateTime.now()} - Pedido enviado');
+        log('${DateTime.now()} - ${DateTime.now()} - Pedido enviado');
         return decodedData['success'] == true;
       } else
         return false;

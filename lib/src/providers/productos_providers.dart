@@ -29,7 +29,7 @@ class ProductosProvider {
       final respuesta = Respuesta.fromJsonMap(decodedData);
       if (respuesta.success) {
         Categorias.fromJsonList(decodedData['data']['objects']);
-        log('GET categorias - count: ${Categorias.categorias.length}');
+        log('${DateTime.now()} - GET categorias - count: ${Categorias.categorias.length}');
         return Categorias.categorias;
       } else
         return Future.error(respuesta.mensaje);
@@ -130,7 +130,7 @@ class ProductosProvider {
       final respuesta = Respuesta.fromJsonMap(decodedData);
       if (respuesta.success) {
         Productos.fromJsonList(decodedData['data']['objects']);
-        log('GET productos - count: ${Productos.productos.length}');
+        log('${DateTime.now()} - GET productos - count: ${Productos.productos.length}');
         return Productos.productos;
       } else
         return Future.error(respuesta.mensaje);
@@ -160,7 +160,7 @@ class ProductosProvider {
       if (respuesta.success) {
         CodigosBarra.fromJsonList(decodedData['data']['objects']);
 
-        log('GET CodigosBarra - count: ${CodigosBarra.codigos.length}');
+        log('${DateTime.now()} - GET CodigosBarra - count: ${CodigosBarra.codigos.length}');
         return CodigosBarra.codigos;
       } else
         return Future.error(respuesta.mensaje);
@@ -207,7 +207,6 @@ class ProductosProvider {
       final resp = await http.get(url, headers: {
         'Content-Type': 'application/json'
       }).timeout(Duration(seconds: 20));
-      print(resp.body);
       if (resp.statusCode == 200) {
         final decodedData = jsonDecode(resp.body);
 

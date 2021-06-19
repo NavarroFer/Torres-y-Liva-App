@@ -149,7 +149,6 @@ class DatabaseHelper {
   static Database _database;
   Future<Database> get database async {
     if (_database != null) return _database;
-    // lazily instantiate the db the first time it is accessed
 
     // //SACAR
     // Directory documentsDirectory = await getApplicationDocumentsDirectory();
@@ -205,7 +204,14 @@ class DatabaseHelper {
   Future<List<Map<String, dynamic>>> queryAllRows(String table,
       {List<String> cols, int limit}) async {
     Database db = await instance.database;
-    return await db.query(table, columns: cols, limit: limit);
+
+    var res;
+
+    await db.transaction((txn) async {
+      res = await txn.query(table, columns: cols, limit: limit);
+    });
+
+    return res;
   }
 
   // All of the methods (insert, query, update, delete) can also be done using
@@ -251,7 +257,8 @@ class DatabaseHelper {
   }
 
   Future<bool> exists(String table, var id, String nombreColumnId) async {
-    List<Map<String, dynamic>> res = await queryRows(table, nombreColumnId, id);
+    List<Map<String, dynamic>> res = await queryRows(table, nombreColumnId, id)
+        .onError((error, stackTrace) => []);
     return res.length > 0;
   }
 
@@ -261,21 +268,37 @@ class DatabaseHelper {
     Database db = await instance.database;
 
     var res;
+    await db.transaction((txn) async {
+      if (descLike != null) {
+        res = await txn.rawQuery(
+            "SELECT * FROM $table where $nombreColumnId like '%$descLike%'");
+      } else {
+        String value;
+        if (id is String) {
+          value = "'$id'";
+        } else if (id is int) {
+          value = id.toString();
+        }
 
-    if (descLike != null) {
-      res = await db.rawQuery(
-          "SELECT * FROM $table where $nombreColumnId like '%$descLike%'");
-    } else {
-      String value;
-      if (id is String) {
-        value = "'$id'";
-      } else if (id is int) {
-        value = id.toString();
+        res = await db.query(table,
+            columns: cols, where: '$nombreColumnId = $value');
       }
+    });
 
-      res = await db.query(table,
-          columns: cols, where: '$nombreColumnId = $value');
-    }
+    // if (descLike != null) {
+    //   res = await db.rawQuery(
+    //       "SELECT * FROM $table where $nombreColumnId like '%$descLike%'");
+    // } else {
+    //   String value;
+    //   if (id is String) {
+    //     value = "'$id'";
+    //   } else if (id is int) {
+    //     value = id.toString();
+    //   }
+
+    //   res = await db.query(table,
+    //       columns: cols, where: '$nombreColumnId = $value');
+    // }
     return res;
   }
 
@@ -418,9 +441,10 @@ class DatabaseHelper {
             $listaPreciosItemPedido INTEGER,
             $productoIDItemPedido INTEGER,
             $pedidoIDItemPedido INTEGER,
-            FOREIGN KEY($productoIDItemPedido) REFERENCES ${DatabaseHelper.tableProductos}(${DatabaseHelper.idProducto}),
-            FOREIGN KEY($pedidoIDItemPedido) REFERENCES ${DatabaseHelper.tablePedidos}(${DatabaseHelper.idPedido}),
+            FOREIGN KEY($productoIDItemPedido) REFERENCES ${DatabaseHelper.tableProductos}(${DatabaseHelper.idProducto}) ON DELETE CASCADE,
+            FOREIGN KEY($pedidoIDItemPedido) REFERENCES ${DatabaseHelper.tablePedidos}(${DatabaseHelper.idPedido}) ON DELETE CASCADE,
             PRIMARY KEY ($pedidoIDItemPedido, $idItemPedido)
+            
           )
           ''');
   }

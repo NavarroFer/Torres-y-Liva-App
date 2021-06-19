@@ -1,8 +1,5 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:torres_y_liva/src/bloc/bloc_provider.dart';
 import 'package:torres_y_liva/src/pages/buscador_producto_page.dart';
 import 'package:torres_y_liva/src/pages/catalogo_productos_page.dart';
@@ -15,14 +12,11 @@ import 'package:torres_y_liva/src/pages/items_pedido_page.dart';
 import 'package:torres_y_liva/src/pages/login_page.dart';
 import 'package:torres_y_liva/src/pages/nuevo_pedido_page.dart';
 import 'package:torres_y_liva/src/pages/utils/calculator_page.dart';
-import 'package:torres_y_liva/src/pages/utils/geolocator.dart';
 import 'package:torres_y_liva/src/utils/shared_pref_helper.dart';
 
 void main() async {
   runApp(MyApp());
-  Position pos = await determinePosition();
   await cargarDatos();
-  log('${DateTime.now()} - POS: $pos');
 }
 
 class MyApp extends StatelessWidget {

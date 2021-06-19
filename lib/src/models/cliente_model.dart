@@ -42,6 +42,12 @@ class Cliente {
   int priceListAux;
   bool geoReferenced;
 
+  static const FORMA_PAGO_CONTADO = 'CONTADO';
+
+  static const FORMA_PAGO_CHEQUE = 'CHEQUE';
+
+  static const FORMA_PAGO_CUENTA_CORRIENTE = 'CUENTA CORRIENTE';
+
   Cliente(
       {this.clientId,
       this.nombre,

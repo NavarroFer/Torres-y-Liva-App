@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:torres_y_liva/src/bloc/bloc_provider.dart';
 import 'package:torres_y_liva/src/bloc/login_bloc.dart';
@@ -8,6 +9,7 @@ import 'package:torres_y_liva/src/models/categoria_model.dart';
 import 'package:torres_y_liva/src/models/cliente_model.dart';
 import 'package:torres_y_liva/src/models/producto_model.dart';
 import 'package:torres_y_liva/src/pages/home_page.dart';
+import 'package:torres_y_liva/src/pages/utils/geolocator.dart';
 import 'package:torres_y_liva/src/pages/utils/size_helper.dart';
 import 'package:torres_y_liva/src/providers/clientes_provider.dart';
 import 'package:torres_y_liva/src/providers/productos_providers.dart';
@@ -314,6 +316,9 @@ class _LoginPageState extends State<LoginPage> {
     if (value == true) {
       logged = true;
 
+      Position pos = await determinePosition();
+      log('${DateTime.now()} - POS: $pos');
+
       _msgEstadoActual = 'Obteniendo informacion de clientes';
       setState(() {});
       final clientesProvider = ClientesProvider();
@@ -321,8 +326,6 @@ class _LoginPageState extends State<LoginPage> {
           tokenEmpresa, usuario.tokenWs, usuario.vendedorID);
 
       final productosProvider = ProductosProvider();
-      print(dbInicializada);
-      DatabaseHelper.instance;
       if (!dbInicializada) {
         // if (true) {
         await _getAndSaveCategorias(productosProvider);

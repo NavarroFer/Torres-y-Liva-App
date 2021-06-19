@@ -50,12 +50,10 @@ Future<bool> getImages(Function() notifyParent, BuildContext context) async {
 
     where += ' AND ${DatabaseHelper.fechaDescarga} >= $fechaDB';
   }
-  // print('Where: $where');
 
   rows = await dbI.query(DatabaseHelper.tableImgProductos, where: where);
   // rows = await dbI.query(DatabaseHelper.tableImgProductos, limit: 100);
   // rows = [];
-  // print('ROWS: ${rows.length}');
   if (rows.length > 0) {
     mostrarSnackbar('Se descargarán ${rows.length} imágenes', context);
     imagenesADescargar = rows.length;
@@ -102,12 +100,19 @@ Future<bool> updatePhoto(int idProduct, bool downloaded, String fechaDescarga,
     String extension) async {
   final db = DatabaseHelper.instance;
 
-  final res = await db.insert({
-    DatabaseHelper.idProductoImg: idProduct,
-    DatabaseHelper.downloaded: downloaded ? 1 : 0,
-    DatabaseHelper.fechaDescarga: fechaDescarga,
-    DatabaseHelper.extension: extension
-  }, DatabaseHelper.tableImgProductos);
+  final exists = await db.exists(
+      DatabaseHelper.tableProductos, idProduct, DatabaseHelper.idProducto);
+
+  int res = -1;
+
+  if (exists) {
+    res = await db.insert({
+      DatabaseHelper.idProductoImg: idProduct,
+      DatabaseHelper.downloaded: downloaded ? 1 : 0,
+      DatabaseHelper.fechaDescarga: fechaDescarga,
+      DatabaseHelper.extension: extension
+    }, DatabaseHelper.tableImgProductos);
+  }
 
   return res != -1;
 }

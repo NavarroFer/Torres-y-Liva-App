@@ -28,7 +28,7 @@ class ClientesProvider {
       final respuesta = Respuesta.fromJsonMap(decodedData);
       if (respuesta.success) {
         Clientes.fromJsonList(decodedData['data']);
-        log('GET clientes vendedor - count: ${Clientes.clientes?.length}');
+        log('${DateTime.now()} - GET clientes vendedor - count: ${Clientes.clientes?.length}');
         return Clientes.clientes;
       } else
         return null;

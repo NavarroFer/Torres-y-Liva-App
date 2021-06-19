@@ -160,6 +160,7 @@ class _NuevoPedidoPageState extends State<NuevoPedidoPage>
       });
       NuevoPedidoPage.pedido.fechaPedido = DateTime.now();
       NuevoPedidoPage.pedido.estado = vista;
+      NuevoPedidoPage.pedido.estado = Pedido.ESTADO_ENVIADO;
 
       await NuevoPedidoPage.pedido.insertOrUpdate();
 
