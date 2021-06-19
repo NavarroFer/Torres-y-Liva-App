@@ -89,7 +89,7 @@ class DatabaseHelper {
 //codigo barra
   static final tableCodigoBarra = 'codigoBarra';
 
-  static final itemID = 'itemID';
+  static final itemIDCodBarra = 'itemID';
   static final codigoBarra = 'codigoBarra';
 //codigo barra//
 
@@ -189,14 +189,18 @@ class DatabaseHelper {
   Future<int> insert(Map<String, dynamic> row, String table) async {
     Database db = await instance.database;
 
-    return await db.transaction<int>((txn) => txn
-            .insert(table, row, conflictAlgorithm: ConflictAlgorithm.replace)
-            .onError((error, stackTrace) {
-          print(error);
-          return -1;
-        }).then((value) {
-          return value;
-        }));
+    final res = await db.transaction<int>((txn) {
+      return txn
+          .insert(table, row, conflictAlgorithm: ConflictAlgorithm.replace)
+          .onError((error, stackTrace) {
+        print(error);
+        return -1;
+      }).then((value) {
+        return value;
+      });
+    });
+
+    return res;
   }
 
   // All of the rows are returned as a list of maps, where each map is
@@ -374,10 +378,10 @@ class DatabaseHelper {
 
   Future _createTableCodigoBarras(Database db) async {
     return await db.execute('''
-     CREATE TABLE IF NOT EXISTS $tableProductos (
-            $itemID INTEGER PRIMARY KEY,
+     CREATE TABLE IF NOT EXISTS $tableCodigoBarra (
+            $itemIDCodBarra INTEGER PRIMARY KEY,
             $codigoBarra TEXT,
-            FOREIGN KEY($itemID) REFERENCES ${DatabaseHelper.tableProductos}(${DatabaseHelper.idProducto})            
+            FOREIGN KEY($itemIDCodBarra) REFERENCES ${DatabaseHelper.tableProductos}(${DatabaseHelper.idProducto}) ON DELETE CASCADE
           )
     ''');
   }

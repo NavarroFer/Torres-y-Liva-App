@@ -12,11 +12,16 @@ import 'package:torres_y_liva/src/pages/items_pedido_page.dart';
 import 'package:torres_y_liva/src/pages/login_page.dart';
 import 'package:torres_y_liva/src/pages/nuevo_pedido_page.dart';
 import 'package:torres_y_liva/src/pages/utils/calculator_page.dart';
+import 'package:torres_y_liva/src/utils/globals.dart';
 import 'package:torres_y_liva/src/utils/shared_pref_helper.dart';
 
 void main() async {
   runApp(MyApp());
   await cargarDatos();
+  if (fechaAltaMovil == 0) {
+    await guardarFechaAltaMovil();
+    fechaAltaMovil = DateTime.now().millisecondsSinceEpoch;
+  }
 }
 
 class MyApp extends StatelessWidget {

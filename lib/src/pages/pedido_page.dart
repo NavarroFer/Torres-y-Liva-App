@@ -228,15 +228,18 @@ class _PedidoPageState extends State<PedidoPage> {
 
     for (Pedido ped in listaPedidosSinEnviar) {
       final items = await ped.itemsFromDB();
+      print(ped.fechaPedido);
       ped.items = items;
       listaPedidosSinEnviarConItems.add(ped);
     }
     await ventasProvider
         .enviarPedidos(
             tokenEmpresa, usuario.tokenWs, listaPedidosSinEnviarConItems)
-        .then((value) {
+        .then((value) async {
       if (value) {
         mostrarSnackbar('Pedidos enviados correctamente', context);
+        await _initListaPedidosSinEnviar();
+        setState(() {});
       } else {
         mostrarSnackbar('Pedidos no enviados, intente nuevamente', context);
         // mostrarSnackbar('No se han enviados los pedidos', context);
@@ -325,7 +328,9 @@ class _PedidoPageState extends State<PedidoPage> {
             }
           }
         } else {
-          return CircularProgressIndicator();
+          return Center(
+            child: CircularProgressIndicator(),
+          );
         }
       },
     );
@@ -452,7 +457,9 @@ class _PedidoPageState extends State<PedidoPage> {
     return DataCell(
       Row(
         children: [
-          _checkBox(context, pedido),
+          _vista == Pedido.ESTADO_SIN_ENVIAR
+              ? _checkBox(context, pedido)
+              : Container(),
           _celdaCliente(context, nombreCliente, fechaHora),
         ],
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -864,6 +871,9 @@ class _PedidoPageState extends State<PedidoPage> {
 
     List<Pedido> listaObjects = Pedidos.fromJson(listaJson);
 
+    listaPedidosSinEnviar
+        .removeWhere((element) => element.estado != Pedido.ESTADO_SIN_ENVIAR);
+
     listaObjects.forEach((element) {
       final ped = listaPedidosSinEnviar.firstWhere(
           (pedSinEnviar) => pedSinEnviar.id == element.id,
@@ -884,6 +894,9 @@ class _PedidoPageState extends State<PedidoPage> {
 
     List<Pedido> listaObjects = Pedidos.fromJson(listaJson);
 
+    listaPedidosEnviados
+        .removeWhere((element) => element.estado != Pedido.ESTADO_ENVIADO);
+
     listaObjects.forEach((element) {
       final ped = listaPedidosEnviados.firstWhere(
           (pedSinEnviar) => pedSinEnviar.id == element.id,
@@ -903,6 +916,9 @@ class _PedidoPageState extends State<PedidoPage> {
         DatabaseHelper.estado, Pedido.ESTADO_COTIZADO);
 
     List<Pedido> listaObjects = Pedidos.fromJson(listaJson);
+
+    listaPedidosCotizaciones
+        .removeWhere((element) => element.estado != Pedido.ESTADO_COTIZADO);
 
     listaObjects.forEach((element) {
       final ped = listaPedidosCotizaciones.firstWhere(

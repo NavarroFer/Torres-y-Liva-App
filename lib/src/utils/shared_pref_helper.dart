@@ -10,6 +10,16 @@ Future guardarDatos(Map<String, dynamic> datos) async {
   await grabaFechaGetDataIMG();
 }
 
+Future guardarFechaAltaMovil() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  await prefs.setInt('fechaAltaMovil', DateTime.now().millisecondsSinceEpoch);
+}
+
+Future cargarFechaAltaMovil() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  fechaAltaMovil = prefs.getInt('fechaAltaMovil');
+}
+
 Future grabaFechaGetDataIMG() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   await prefs.setString('fechaGetDataIMG', fechaGetDataIMG ?? '');
@@ -28,4 +38,5 @@ Future cargarDatos() async {
   password = prefs.getString('password') ?? '';
   fechaGetDataIMG = prefs.getString('fechaGetDataIMG') ?? '';
   fechaUpdateIMG = prefs.getString('fechaUpdateIMG') ?? '';
+  fechaAltaMovil = prefs.getInt('fechaAltaMovil') ?? 0;
 }

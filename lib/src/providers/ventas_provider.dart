@@ -29,30 +29,36 @@ class VentasProvider {
     try {
       final pedidoJSON = pedido.toJson();
       final body = {
-        'tokenEmpresa': tokenEmpresa,
-        'tokenCliente': tokenCliente,
-        'pedido': json.encode(pedidoJSON)
+        "tokenEmpresa": tokenEmpresa,
+        "tokenCliente": tokenCliente,
+        "pedido": jsonEncode(pedidoJSON)
       };
       print(body);
       final resp = await http
           .post(
             url,
             headers: {"Content-Type": "application/x-www-form-urlencoded"},
-            body: json.encode(body),
+            body: body,
           )
           .timeout(Duration(seconds: 10));
       final decodedData = jsonDecode(resp.body);
-      print(decodedData);
+      log(decodedData.toString());
+
       final respuesta = Respuesta.fromJsonMap(decodedData);
       if (respuesta.success) {
         log('${DateTime.now()} - ${DateTime.now()} - Pedido enviado');
+        pedido.estado = Pedido.ESTADO_ENVIADO;
+        pedido.insertOrUpdate();
         return decodedData['success'] == true;
-      } else
+      } else {
         return false;
+      }
+
       // return Future.error(respuesta.mensaje);
     } on TimeoutException {
       return false;
-    } on Exception {
+    } on Exception catch (e) {
+      print('AAA');
       return false;
     }
   }

@@ -3,10 +3,12 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
+import 'package:sqflite/sqflite.dart';
 import 'package:torres_y_liva/src/bloc/bloc_provider.dart';
 import 'package:torres_y_liva/src/bloc/login_bloc.dart';
 import 'package:torres_y_liva/src/models/categoria_model.dart';
 import 'package:torres_y_liva/src/models/cliente_model.dart';
+import 'package:torres_y_liva/src/models/codigo_barra_model.dart';
 import 'package:torres_y_liva/src/models/producto_model.dart';
 import 'package:torres_y_liva/src/pages/home_page.dart';
 import 'package:torres_y_liva/src/pages/utils/geolocator.dart';
@@ -326,8 +328,8 @@ class _LoginPageState extends State<LoginPage> {
           tokenEmpresa, usuario.tokenWs, usuario.vendedorID);
 
       final productosProvider = ProductosProvider();
-      if (!dbInicializada) {
-        // if (true) {
+      // if (!dbInicializada) {
+      if (true) {
         await _getAndSaveCategorias(productosProvider);
         await _getAndSaveProductos(productosProvider);
         await _getAndSaveCodBarra(productosProvider);
@@ -385,9 +387,14 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<bool> updateProductTable() async {
+    final db = await DatabaseHelper.instance.database;
+    var batch = db.batch();
     for (var producto in Productos.productos) {
-      await producto.insertOrUpdate();
+      batch.insert(DatabaseHelper.tableProductos, producto.toMap(),
+          conflictAlgorithm: ConflictAlgorithm.replace);
+      // await producto.insertOrUpdate();
     }
+    await batch.commit(noResult: true);
     log('${DateTime.now()} - Tabla productos actualizada',
         time: DateTime.now());
     return true;
@@ -448,15 +455,21 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<bool> updateCategoriasTable() async {
+    final db = await DatabaseHelper.instance.database;
+
+    var batch = db.batch();
     for (var categoria in Categorias.categorias) {
-      await categoria.insertOrUpdate();
+      batch.insert(DatabaseHelper.tableCategorias, categoria.toMap(),
+          conflictAlgorithm: ConflictAlgorithm.replace);
     }
+    await batch.commit(noResult: true);
     log('${DateTime.now()} - Tabla categorias actualizada',
         time: DateTime.now());
     return true;
   }
 
   initLists() async {
+    final db = await DatabaseHelper.instance.database;
     final dbHelper = DatabaseHelper.instance;
     List<Map<String, dynamic>> list;
     list = await dbHelper.queryAllRows(DatabaseHelper.tableClientes);
@@ -469,5 +482,30 @@ class _LoginPageState extends State<LoginPage> {
     Categorias.fromJsonList(list);
   }
 
-  updateCodigosBarraTable() {}
+  Future<bool> updateCodigosBarraTable() async {
+    final dbI = await DatabaseHelper.instance.database;
+    final db = await DatabaseHelper.instance;
+
+    await db.delete(DatabaseHelper.tableCodigoBarra);
+
+    var batch = dbI.batch();
+    print(await db.queryRowCount(DatabaseHelper.tableCodigoBarra));
+    for (var codBarra in CodigosBarra.codigos) {
+      // final row = await db.queryRows(DatabaseHelper.tableProductos,
+      //     DatabaseHelper.idProducto, codBarra.itemID);
+      // final exists = row.length > 0;
+      if (true) {
+        final codBarraMap = {
+          'itemID': codBarra.itemID,
+          'codigoBarra': codBarra.codigoBarra
+        };
+        batch.insert(DatabaseHelper.tableCodigoBarra, codBarraMap,
+            conflictAlgorithm: ConflictAlgorithm.replace);
+      }
+    }
+    await batch.commit(noResult: true);
+    log('${DateTime.now()} - Tabla codigo de barra actualizada',
+        time: DateTime.now());
+    return true;
+  }
 }

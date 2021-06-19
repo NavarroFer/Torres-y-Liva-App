@@ -1,5 +1,5 @@
-import 'package:sqflite/sqflite.dart';
-import 'package:torres_y_liva/src/pages/nuevo_pedido_page.dart';
+import 'dart:convert';
+
 import 'package:torres_y_liva/src/utils/database_helper.dart';
 import 'package:torres_y_liva/src/utils/globals.dart';
 import 'package:torres_y_liva/src/utils/string_helper.dart';
@@ -151,6 +151,7 @@ class Pedido {
   int listaPrecios;
   bool enviado;
   int idFormaPago;
+  int fechaAltaMovilPed;
 
   List<ItemPedido> itemsFromJsonList(List<dynamic> jsonList) {
     List<ItemPedido> itemsPedido = [];
@@ -232,21 +233,25 @@ class Pedido {
       this.listaPrecios,
       this.totalPedido});
 
-  Map toJson() => {
-        'usuarioWebID': this.usuarioWebId ?? 0,
-        'clienteID': this.cliente.clientId ?? 0,
-        'domicilioClienteID': this.cliente?.domicilioID ?? 0,
-        'domicilioDespacho': this.cliente.domicilio ?? '',
-        'descuento': this.descuento ?? 0,
-        'fechaPedido': fechaPedido.millisecondsSinceEpoch ?? 0,
-        'fechaAltaMovil': fechaPedido.millisecondsSinceEpoch ??
-            0, // poner fecha alta, que queda guardado en preffs
-        'observaciones': this.observaciones ?? '',
-        'listaPrecios':
-            this.cliente?.priceList ?? this.cliente?.priceListAux ?? 1,
-        'telefonoContacto': this.cliente?.telefonoCel ?? '',
-        'itemsPedidos': this.items.map((e) => e.toJson()).toList()
-      };
+  Map toJson() {
+    print('FECHA PEDIDO: ${this.fechaPedido}');
+    int ms = this.fechaPedido.millisecondsSinceEpoch;
+    print('FECHA PED MS: ${DateTime.fromMillisecondsSinceEpoch(ms)}');
+    return {
+      'usuarioWebID': this.usuarioWebId ?? 0,
+      'clienteID': this.cliente.clientId ?? 0,
+      'domicilioClienteID': this.cliente?.domicilioID ?? 0,
+      'domicilioDespacho': this.cliente.domicilio ?? '',
+      'descuento': this.descuento ?? 0,
+      'fechaPedido': this.fechaPedido.millisecondsSinceEpoch ?? 0,
+      'fechaAltaMovil': fechaAltaMovil ?? 0,
+      'observaciones': this.observaciones ?? '',
+      'listaPrecios':
+          this.cliente?.priceList ?? this.cliente?.priceListAux ?? 1,
+      'telefonoContacto': this.cliente?.telefonoCel ?? '',
+      'itemsPedidos': this.items.map((e) => e.toJson()).toList()
+    };
+  }
 
   Map<String, dynamic> toMap() {
     String fechaPedidoString;
@@ -283,8 +288,13 @@ class Pedido {
 
     var fechaStringPed = json[DatabaseHelper.fechaPedido];
     if (fechaStringPed != null) {
-      if (!fechaStringPed.toString().contains('-'))
+      if (!fechaStringPed.toString().contains('-')) {
+        print('TEST 1');
+        print(fechaStringPed);
         fechaPedFromDB = datetimeFromDBString(fechaStringPed);
+        print('TEST 2');
+        print(fechaPedFromDB);
+      }
     }
     this.id = json[DatabaseHelper.idPedido] ?? -1;
     this.estado = json[DatabaseHelper.estado] ?? 0;
@@ -297,6 +307,7 @@ class Pedido {
     this.iva = json[DatabaseHelper.ivaPedido] ?? 0.0; //
     this.descuento = json[DatabaseHelper.descuentoPedido] ?? 0.0; //
     this.fechaPedido = fechaPedFromDB; //
+    this.fechaAltaMovilPed = json['fechaAltaMovil'] ?? 0; //
     this.observaciones = json[DatabaseHelper.obsPedido] ?? ''; //
     this.domicilioDespacho = json[DatabaseHelper.domicilioDespacho]; //
     this.latitud = json[DatabaseHelper.latitudPedido] ?? ''; //
@@ -305,8 +316,6 @@ class Pedido {
     this.cliente = clientesDelVendedor.firstWhere(
         (element) => element.clientId == this.clienteID,
         orElse: () => null);
-
-    //fechaAltaMovil ??
     var itemsPed = json['itemsPedidos'];
     if (itemsPed != null)
       this.items = itemsFromJsonList(json['itemsPedidos']);

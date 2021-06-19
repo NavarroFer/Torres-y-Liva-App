@@ -20,6 +20,8 @@ int cantFotosDescargadas = 0;
 String fechaGetDataIMG = '';
 String fechaUpdateIMG = '';
 
+int fechaAltaMovil = 0;
+
 //////////// Constantes respuesta WS ////////////
 
 class Respuesta {

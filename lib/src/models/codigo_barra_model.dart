@@ -19,6 +19,6 @@ class CodigoBarra {
 
   CodigoBarra.fromJsonMap(Map<String, dynamic> json) {
     this.codigoBarra = json[DatabaseHelper.codigoBarra] ?? '';
-    this.itemID = json[DatabaseHelper.itemID] ?? 0;
+    this.itemID = json[DatabaseHelper.itemIDCodBarra] ?? 0;
   }
 }
