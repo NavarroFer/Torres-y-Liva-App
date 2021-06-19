@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:auto_size_text/auto_size_text.dart';
@@ -222,18 +223,27 @@ class _PedidoPageState extends State<PedidoPage> {
   void _enviarPedidosPressed(BuildContext context) async {
     final ventasProvider = VentasProvider();
 
+    List<Pedido> listaPedidosSinEnviarConItems =
+        List<Pedido>.empty(growable: true);
+
+    for (Pedido ped in listaPedidosSinEnviar) {
+      final items = await ped.itemsFromDB();
+      ped.items = items;
+      listaPedidosSinEnviarConItems.add(ped);
+    }
     await ventasProvider
         .enviarPedidos(
-            tokenEmpresa, usuario.tokenWs, this.listaPedidosSinEnviar)
+            tokenEmpresa, usuario.tokenWs, listaPedidosSinEnviarConItems)
         .then((value) {
       if (value) {
         mostrarSnackbar('Pedidos enviados correctamente', context);
       } else {
-        mostrarSnackbar('Pedidos enviados correctamente', context);
+        mostrarSnackbar('Pedidos no enviados, intente nuevamente', context);
         // mostrarSnackbar('No se han enviados los pedidos', context);
       }
     }).onError((error, stackTrace) {
-      mostrarSnackbar('Pedidos enviados correctamente', context);
+      print(error);
+      mostrarSnackbar('Pedidos no enviados, intente nuevamente', context);
       // mostrarSnackbar(error.toString(), context);
     });
   }
@@ -286,7 +296,39 @@ class _PedidoPageState extends State<PedidoPage> {
     final size = MediaQuery.of(context).size;
     listaPedidosShow.clear();
 
-    final list = await _getPedidosSegunVista();
+    final list = [];
+
+    return FutureBuilder(
+      future: _getPedidosSegunVista(),
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          if (snapshot.data.length > 0) {
+            return _gridPedidos(context, snapshot.data);
+          } else {
+            switch (_vista) {
+              case Pedido.ESTADO_SIN_ENVIAR:
+                return _bottonNuevoPedidoCotizacion(size, context);
+                break;
+              case Pedido.ESTADO_ENVIADO:
+                return Center(
+                    child: AutoSizeText(
+                  'No hay pedidos enviados',
+                  minFontSize: (size.width * 0.07).floorToDouble(),
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ));
+                break;
+              case Pedido.ESTADO_COTIZADO:
+                return _bottonNuevoPedidoCotizacion(size, context);
+                break;
+              default:
+                return Container();
+            }
+          }
+        } else {
+          return CircularProgressIndicator();
+        }
+      },
+    );
 
     if (list.length > 0) {
       return _gridPedidos(context, list);
@@ -363,8 +405,6 @@ class _PedidoPageState extends State<PedidoPage> {
                 print('El pedido fue guardado: $guardado');
               }
             } else {
-              NuevoPedidoPage.nuevo = false;
-
               for (var item in NuevoPedidoPage.pedido.items) {
                 item.producto = await item.productFromDB();
               }
@@ -386,6 +426,7 @@ class _PedidoPageState extends State<PedidoPage> {
               }
 
               NuevoPedidoPage.pedido.idFormaPago = idFormaPago;
+              NuevoPedidoPage.nuevo = false;
               Navigator.of(context).pushNamed(NuevoPedidoPage.route,
                   arguments: [_vista]).then((value) {
                 _listaInitCotizados = false;
@@ -429,6 +470,7 @@ class _PedidoPageState extends State<PedidoPage> {
         onChanged: (value) {
           setState(() {
             pedido.checked = value;
+            log(value.toString());
 
             _cantChecked += value == true ? 1 : -1;
           });
@@ -509,15 +551,32 @@ class _PedidoPageState extends State<PedidoPage> {
   }
 
   void _eliminarPedidosPressed(BuildContext context) {
-    setState(() {
-      listaPedidosShow.forEach((pedido) async {
-        if (pedido.checked) {
-          listaPedidos.remove(pedido);
-          await pedido.delete();
+    List<Pedido> list;
+    if (_vista == Pedido.ESTADO_SIN_ENVIAR) {
+      list = listaPedidosSinEnviar;
+    } else {
+      list = listaPedidosCotizaciones;
+    }
+    list.forEach((pedido) async {
+      if (pedido.checked) {
+        log('Eliminado sss: ${pedido.id}');
+
+        final eliminado = await pedido.delete();
+        log('Eliminado: $eliminado');
+        if (eliminado) {
+          switch (_vista) {
+            case Pedido.ESTADO_SIN_ENVIAR:
+              listaPedidosSinEnviar.remove(pedido);
+              break;
+            case Pedido.ESTADO_COTIZADO:
+              listaPedidosCotizaciones.remove(pedido);
+              break;
+          }
         }
-      });
-      _cantChecked = 0;
+      }
     });
+    _cantChecked = 0;
+    setState(() {});
   }
 
   Widget _opcionesPDF(BuildContext context, bool share, IconData icon) {
@@ -643,7 +702,10 @@ class _PedidoPageState extends State<PedidoPage> {
 
   void _unCheckPedidos() {
     _cantChecked = 0;
-    listaPedidosShow.forEach((pedido) => pedido.checked = false);
+
+    listaPedidosCotizaciones.forEach((pedido) => pedido.checked = false);
+    listaPedidosEnviados.forEach((pedido) => pedido.checked = false);
+    listaPedidosSinEnviar.forEach((pedido) => pedido.checked = false);
   }
 
   _logoPdf(
@@ -793,7 +855,6 @@ class _PedidoPageState extends State<PedidoPage> {
   }
 
   Future _initListaPedidosSinEnviar() async {
-    listaPedidosSinEnviar.clear();
     _listaInitSinEnviar = true;
 
     final dbHelper = DatabaseHelper.instance;
@@ -803,11 +864,17 @@ class _PedidoPageState extends State<PedidoPage> {
 
     List<Pedido> listaObjects = Pedidos.fromJson(listaJson);
 
-    listaPedidosSinEnviar.addAll(listaObjects);
+    listaObjects.forEach((element) {
+      final ped = listaPedidosSinEnviar.firstWhere(
+          (pedSinEnviar) => pedSinEnviar.id == element.id,
+          orElse: () => null);
+      if (ped == null) {
+        listaPedidosSinEnviar.add(element);
+      }
+    });
   }
 
   Future _initListaPedidosEnviados() async {
-    listaPedidosEnviados.clear();
     _listaInitEnviados = true;
 
     final dbHelper = DatabaseHelper.instance;
@@ -817,11 +884,17 @@ class _PedidoPageState extends State<PedidoPage> {
 
     List<Pedido> listaObjects = Pedidos.fromJson(listaJson);
 
-    listaPedidosEnviados.addAll(listaObjects);
+    listaObjects.forEach((element) {
+      final ped = listaPedidosEnviados.firstWhere(
+          (pedSinEnviar) => pedSinEnviar.id == element.id,
+          orElse: () => null);
+      if (ped == null) {
+        listaPedidosEnviados.add(element);
+      }
+    });
   }
 
   Future<void> _initListaPedidosCotizados() async {
-    listaPedidosCotizaciones.clear();
     _listaInitCotizados = true;
 
     final dbHelper = DatabaseHelper.instance;
@@ -831,7 +904,14 @@ class _PedidoPageState extends State<PedidoPage> {
 
     List<Pedido> listaObjects = Pedidos.fromJson(listaJson);
 
-    listaPedidosCotizaciones.addAll(listaObjects);
+    listaObjects.forEach((element) {
+      final ped = listaPedidosCotizaciones.firstWhere(
+          (pedSinEnviar) => pedSinEnviar.id == element.id,
+          orElse: () => null);
+      if (ped == null) {
+        listaPedidosCotizaciones.add(element);
+      }
+    });
   }
 
   List<Widget> _accionesPedidoCotizacion(BuildContext context) {

@@ -150,9 +150,14 @@ class _NuevoPedidoPageState extends State<NuevoPedidoPage>
     } else if (NuevoPedidoPage.pedido.items.isEmpty) {
       showError('No se han agregado items', context);
     } else {
-      final idNuevoPedido = await Pedido.getNextId();
+      int idNuevoPedido;
+      if (NuevoPedidoPage.nuevo) {
+        idNuevoPedido = await Pedido.getNextId();
 
-      NuevoPedidoPage.pedido.id = idNuevoPedido;
+        NuevoPedidoPage.pedido.id = idNuevoPedido;
+      } else {
+        idNuevoPedido = NuevoPedidoPage.pedido.id;
+      }
 
       //Asociamos los items con el pedido
       NuevoPedidoPage.pedido.items.forEach((element) {
@@ -160,7 +165,7 @@ class _NuevoPedidoPageState extends State<NuevoPedidoPage>
       });
       NuevoPedidoPage.pedido.fechaPedido = DateTime.now();
       NuevoPedidoPage.pedido.estado = vista;
-      NuevoPedidoPage.pedido.estado = Pedido.ESTADO_ENVIADO;
+      // NuevoPedidoPage.pedido.estado = Pedido.ESTADO_ENVIADO;
 
       await NuevoPedidoPage.pedido.insertOrUpdate();
 

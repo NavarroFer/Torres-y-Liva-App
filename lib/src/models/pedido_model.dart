@@ -207,7 +207,8 @@ class Pedido {
 
   @override
   String toString() {
-    return ' - ID: ${this.id?.toString()}\n - ESTADO: ${this.estado}\n - USUARIOWEBID: ${this.usuarioWebId}\n - ClienteID: ${this.clienteID}\n - DomCliID: ${this.domicilioClienteID}\n - OperadorID: ${this.operadorID}\n - TOT: ${this.totalPedido}\n - NETO: ${this.neto}\n - IVA: ${this.iva}\n - CLIENTE: ${this.cliente}\n - Descuento: ${this.descuento}\n - FechaPed: ${this.fechaPedido}\n - Obs: ${this.observaciones}\n - DomDespacho: ${this.domicilioDespacho}\n - Lat: ${this.latitud}\n - Long: ${this.longitud}\n - ListaPrecios: ${this.listaPrecios}\n - IDFormaPago: ${this.idFormaPago}\n - ITEMS: ${this.items.asMap()}';
+    return ' - ID: ${this.id?.toString()}\n - ESTADO: ${this.estado}\n - FechaPed: ${this.fechaPedido}\n - ITEMS: ${this.items.asMap()}';
+    // return ' - ID: ${this.id?.toString()}\n - ESTADO: ${this.estado}\n - USUARIOWEBID: ${this.usuarioWebId}\n - ClienteID: ${this.clienteID}\n - DomCliID: ${this.domicilioClienteID}\n - OperadorID: ${this.operadorID}\n - TOT: ${this.totalPedido}\n - NETO: ${this.neto}\n - IVA: ${this.iva}\n - CLIENTE: ${this.cliente}\n - Descuento: ${this.descuento}\n - FechaPed: ${this.fechaPedido}\n - Obs: ${this.observaciones}\n - DomDespacho: ${this.domicilioDespacho}\n - Lat: ${this.latitud}\n - Long: ${this.longitud}\n - ListaPrecios: ${this.listaPrecios}\n - IDFormaPago: ${this.idFormaPago}\n - ITEMS: ${this.items.asMap()}';
   }
 
   Pedido(
@@ -319,7 +320,9 @@ class Pedido {
 
   Future<bool> delete() async {
     final dbHelper = DatabaseHelper.instance;
-    await dbHelper.delete(DatabaseHelper.tablePedidos, id: this.id, nombreColumnId: DatabaseHelper.idPedido);
+    final rowsBorradas = await dbHelper.delete(DatabaseHelper.tablePedidos,
+        id: this.id, nombreColumnId: DatabaseHelper.idPedido);
+    return rowsBorradas == 1;
   }
 
   Future<bool> insertOrUpdate() async {
@@ -380,7 +383,7 @@ class Pedido {
     final dbHelper = DatabaseHelper.instance;
 
     final rows = await dbHelper.queryRows(DatabaseHelper.tableItemsPedido,
-        DatabaseHelper.pedidoIDItemPedido, NuevoPedidoPage.pedido.id);
+        DatabaseHelper.pedidoIDItemPedido, this.id);
 
     List<ItemPedido> items = List<ItemPedido>.empty(growable: true);
     rows.forEach((element) {

@@ -41,21 +41,25 @@ Future<bool> getImages(Function() notifyParent, BuildContext context) async {
   //20210601233954 Esta puede ser distina a la de arriba, siempre posterior 2021-03-27 15:42:45
   String where = '${DatabaseHelper.downloaded} = 0';
 
-  // log('FECHA UPDATE IMG: $fechaUpdateIMG');
   if (fechaUpdateIMG != '') {
     String fechaDB = fechaUpdateIMG
         .replaceAll('-', '')
         .replaceAll(' ', '')
         .replaceAll(':', '');
 
-    where += ' AND ${DatabaseHelper.fechaDescarga} >= $fechaDB';
+    // where += ' AND ${DatabaseHelper.fechaDescarga} >= $fechaDB';
   }
 
-  rows = await dbI.query(DatabaseHelper.tableImgProductos, where: where);
-  // rows = await dbI.query(DatabaseHelper.tableImgProductos, limit: 100);
+  log('WHERE: ' + where);
+
+  // rows = await dbI.query(DatabaseHelper.tableImgProductos,
+  //     where: where, limit: 300);
+  rows = await dbI.query(DatabaseHelper.tableImgProductos, limit: 15);
   // rows = [];
   if (rows.length > 0) {
-    mostrarSnackbar('Se descargarán ${rows.length} imágenes', context);
+    if (context != null) {
+      mostrarSnackbar('Se descargarán ${rows.length} imágenes', context);
+    }
     imagenesADescargar = rows.length;
 
     for (var element in rows) {
@@ -69,7 +73,7 @@ Future<bool> getImages(Function() notifyParent, BuildContext context) async {
           destination: AndroidDestinationType.directoryPictures
             ..inExternalFilesDir()
             ..subDirectory('products/$idProduct.jpg'),
-        ).onError((error, stackTrace) => null).then((value) {
+        ).onError((error, stackTrace) => null).then((value) async {
           updatePhoto(int.tryParse(idProduct) ?? 1, true, di.dateMod ?? '',
               di.extension ?? '');
           cantFotosDescargadas++;
@@ -79,12 +83,7 @@ Future<bool> getImages(Function() notifyParent, BuildContext context) async {
       }
     }
 
-    DateTime ahoraUpdate = DateTime.now();
-    ahoraUpdate = ahoraUpdate.subtract(Duration(seconds: 60));
-    fechaUpdateIMG =
-        '${ahoraUpdate.year.toString()}-${ahoraUpdate.month.toString().padLeft(2, '0')}-${ahoraUpdate.day.toString().padLeft(2, '0')} ${ahoraUpdate.hour.toString().padLeft(2, '0')}:${ahoraUpdate.minute.toString().padLeft(2, '0')}:${ahoraUpdate.second.toString().padLeft(2, '0')}';
-
-    await grabaFechaUpdate();
+    await createTimeAndGrabaFecha();
 
     log('${DateTime.now()} - $cantFotosDescargadas imagenes descargadas',
         time: DateTime.now());
@@ -96,17 +95,29 @@ Future<bool> getImages(Function() notifyParent, BuildContext context) async {
   return true;
 }
 
+Future createTimeAndGrabaFecha() async {
+  DateTime ahoraUpdate = DateTime.now();
+  ahoraUpdate = ahoraUpdate.subtract(Duration(minutes: 3));
+  fechaUpdateIMG =
+      '${ahoraUpdate.year.toString()}-${ahoraUpdate.month.toString().padLeft(2, '0')}-${ahoraUpdate.day.toString().padLeft(2, '0')} ${ahoraUpdate.hour.toString().padLeft(2, '0')}:${ahoraUpdate.minute.toString().padLeft(2, '0')}:${ahoraUpdate.second.toString().padLeft(2, '0')}';
+
+  await grabaFechaUpdate();
+}
+
 Future<bool> updatePhoto(int idProduct, bool downloaded, String fechaDescarga,
     String extension) async {
-  final db = DatabaseHelper.instance;
+  final db = await DatabaseHelper.instance.database;
+  final dbI = await DatabaseHelper.instance;
 
-  final exists = await db.exists(
-      DatabaseHelper.tableProductos, idProduct, DatabaseHelper.idProducto);
+  final row = await db.query(DatabaseHelper.tableProductos,
+      where: '${DatabaseHelper.idProducto} = $idProduct');
+
+  final exists = row.length > 0;
 
   int res = -1;
 
   if (exists) {
-    res = await db.insert({
+    res = await dbI.insert({
       DatabaseHelper.idProductoImg: idProduct,
       DatabaseHelper.downloaded: downloaded ? 1 : 0,
       DatabaseHelper.fechaDescarga: fechaDescarga,

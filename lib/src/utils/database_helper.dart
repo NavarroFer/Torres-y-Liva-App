@@ -268,37 +268,21 @@ class DatabaseHelper {
     Database db = await instance.database;
 
     var res;
-    await db.transaction((txn) async {
-      if (descLike != null) {
-        res = await txn.rawQuery(
-            "SELECT * FROM $table where $nombreColumnId like '%$descLike%'");
-      } else {
-        String value;
-        if (id is String) {
-          value = "'$id'";
-        } else if (id is int) {
-          value = id.toString();
-        }
 
-        res = await db.query(table,
-            columns: cols, where: '$nombreColumnId = $value');
+    if (descLike != null) {
+      res = await db.rawQuery(
+          "SELECT * FROM $table where $nombreColumnId like '%$descLike%'");
+    } else {
+      String value;
+      if (id is String) {
+        value = "'$id'";
+      } else if (id is int) {
+        value = id.toString();
       }
-    });
 
-    // if (descLike != null) {
-    //   res = await db.rawQuery(
-    //       "SELECT * FROM $table where $nombreColumnId like '%$descLike%'");
-    // } else {
-    //   String value;
-    //   if (id is String) {
-    //     value = "'$id'";
-    //   } else if (id is int) {
-    //     value = id.toString();
-    //   }
-
-    //   res = await db.query(table,
-    //       columns: cols, where: '$nombreColumnId = $value');
-    // }
+      res = await db.query(table,
+          columns: cols, where: '$nombreColumnId = $value');
+    }
     return res;
   }
 

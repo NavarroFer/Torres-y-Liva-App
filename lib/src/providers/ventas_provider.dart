@@ -10,12 +10,13 @@ class VentasProvider {
   Future<bool> enviarPedidos(
       String tokenEmpesa, String tokenCliente, List<Pedido> pedidos) async {
     var enviado = false;
-    pedidos.forEach((pedido) async {
+    for (var pedido in pedidos) {
       enviado = await enviarPedido(tokenEmpesa, tokenCliente, pedido)
           .onError((error, stackTrace) {
+        log(error);
         return false;
       });
-    });
+    }
 
     return enviado;
   }
@@ -32,6 +33,7 @@ class VentasProvider {
         'tokenCliente': tokenCliente,
         'pedido': json.encode(pedidoJSON)
       };
+      print(body);
       final resp = await http
           .post(
             url,
