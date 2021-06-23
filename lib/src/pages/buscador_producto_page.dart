@@ -413,7 +413,7 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
 
     if (primerFiltro == true) primerFiltro = false;
 
-    int idCat = int.parse(idCategoria);
+    int idCat = int.tryParse(idCategoria);
 
     if (idCat != null) {
       if (int.parse(idCategoria) > 0) {
@@ -441,17 +441,19 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
     } else {
       //CAT especiales
       if (idCategoria == Categoria.ULTIMAS_ENTRADAS) {
+        //TODO select productos de los ultimos 7 dias
         listaBusqueda.addAll(Productos.productos
             .where((element) => listaCat.contains(element?.categoriaID))
             .toList());
       } else if (idCategoria == Categoria.ULTIMAS_FOTOS) {
+        //TODO select fotos donde update sea de hace 7 dias y descargadas si
         listaBusqueda.addAll(Productos.productos
             .where((element) => listaCat.contains(element?.categoriaID))
             .toList());
       } else if (idCategoria == Categoria.IMPORTACION) {
-        listaBusqueda.addAll(Productos.productos
-            .where((element) => listaCat.contains(element?.categoriaID))
-            .toList());
+        //TODO testear, fijarse si se puede hacer con consulta a la db
+        listaBusqueda.addAll(Productos.productos.where((element) =>
+            [8598, 8842, 8901, 8906].contains(element.proveedorID)));
       }
     }
   }

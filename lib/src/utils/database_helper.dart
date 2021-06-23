@@ -150,11 +150,6 @@ class DatabaseHelper {
   Future<Database> get database async {
     if (_database != null) return _database;
 
-    // //SACAR
-    // Directory documentsDirectory = await getApplicationDocumentsDirectory();
-    // String path = join(documentsDirectory.path, _databaseName);
-    // deleteDatabase(path);
-    // //SACAR
     _database = await _initDatabase();
     return _database;
   }

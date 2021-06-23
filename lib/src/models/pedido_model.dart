@@ -234,9 +234,6 @@ class Pedido {
       this.totalPedido});
 
   Map toJson() {
-    print('FECHA PEDIDO: ${this.fechaPedido}');
-    int ms = this.fechaPedido.millisecondsSinceEpoch;
-    print('FECHA PED MS: ${DateTime.fromMillisecondsSinceEpoch(ms)}');
     return {
       'usuarioWebID': this.usuarioWebId ?? 0,
       'clienteID': this.cliente.clientId ?? 0,
@@ -289,11 +286,7 @@ class Pedido {
     var fechaStringPed = json[DatabaseHelper.fechaPedido];
     if (fechaStringPed != null) {
       if (!fechaStringPed.toString().contains('-')) {
-        print('TEST 1');
-        print(fechaStringPed);
         fechaPedFromDB = datetimeFromDBString(fechaStringPed);
-        print('TEST 2');
-        print(fechaPedFromDB);
       }
     }
     this.id = json[DatabaseHelper.idPedido] ?? -1;

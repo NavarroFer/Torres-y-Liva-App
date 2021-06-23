@@ -328,8 +328,7 @@ class _LoginPageState extends State<LoginPage> {
           tokenEmpresa, usuario.tokenWs, usuario.vendedorID);
 
       final productosProvider = ProductosProvider();
-      // if (!dbInicializada) {
-      if (true) {
+      if (!dbInicializada) {
         await _getAndSaveCategorias(productosProvider);
         await _getAndSaveProductos(productosProvider);
         await _getAndSaveCodBarra(productosProvider);

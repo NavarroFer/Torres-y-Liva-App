@@ -48,17 +48,12 @@ class _PedidoPageState extends State<PedidoPage> {
 
   int _vista = 0;
 
-  bool _listaInitSinEnviar = false;
+  var numeroFila = 0;
 
-  bool _listaInitEnviados = false;
-
-  bool _listaInitCotizados = false;
+  int cantFilas;
 
   @override
   void dispose() {
-    _listaInitSinEnviar = false;
-    _listaInitEnviados = false;
-    _listaInitCotizados = false;
     super.dispose();
   }
 
@@ -209,9 +204,6 @@ class _PedidoPageState extends State<PedidoPage> {
     NuevoPedidoPage.nuevo = true;
     Navigator.of(context)
         .pushNamed(NuevoPedidoPage.route, arguments: [vista]).then((value) {
-      _listaInitCotizados = false;
-      _listaInitSinEnviar = false;
-      _listaInitEnviados = false;
       setState(() {});
     });
   }
@@ -228,9 +220,10 @@ class _PedidoPageState extends State<PedidoPage> {
 
     for (Pedido ped in listaPedidosSinEnviar) {
       final items = await ped.itemsFromDB();
-      print(ped.fechaPedido);
       ped.items = items;
       listaPedidosSinEnviarConItems.add(ped);
+
+      print(ped);
     }
     await ventasProvider
         .enviarPedidos(
@@ -299,8 +292,6 @@ class _PedidoPageState extends State<PedidoPage> {
     final size = MediaQuery.of(context).size;
     listaPedidosShow.clear();
 
-    final list = [];
-
     return FutureBuilder(
       future: _getPedidosSegunVista(),
       builder: (context, snapshot) {
@@ -334,29 +325,6 @@ class _PedidoPageState extends State<PedidoPage> {
         }
       },
     );
-
-    if (list.length > 0) {
-      return _gridPedidos(context, list);
-    } else {
-      switch (_vista) {
-        case Pedido.ESTADO_SIN_ENVIAR:
-          return _bottonNuevoPedidoCotizacion(size, context);
-          break;
-        case Pedido.ESTADO_ENVIADO:
-          return Center(
-              child: AutoSizeText(
-            'No hay pedidos enviados',
-            minFontSize: (size.width * 0.07).floorToDouble(),
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ));
-          break;
-        case Pedido.ESTADO_COTIZADO:
-          return _bottonNuevoPedidoCotizacion(size, context);
-          break;
-        default:
-          return Container();
-      }
-    }
   }
 
   Center _bottonNuevoPedidoCotizacion(Size size, BuildContext context) {
@@ -434,9 +402,6 @@ class _PedidoPageState extends State<PedidoPage> {
               NuevoPedidoPage.nuevo = false;
               Navigator.of(context).pushNamed(NuevoPedidoPage.route,
                   arguments: [_vista]).then((value) {
-                _listaInitCotizados = false;
-                _listaInitSinEnviar = false;
-                _listaInitEnviados = false;
                 setState(() {});
               });
             }
@@ -477,7 +442,6 @@ class _PedidoPageState extends State<PedidoPage> {
         onChanged: (value) {
           setState(() {
             pedido.checked = value;
-            log(value.toString());
 
             _cantChecked += value == true ? 1 : -1;
           });
@@ -611,10 +575,160 @@ class _PedidoPageState extends State<PedidoPage> {
         ));
   }
 
+  _claveValor(String s, String t) {
+    return pdf.Row(children: [
+      pdf.Container(
+          width: 75,
+          child: pdf.Text(s,
+              textScaleFactor: 1.2,
+              style: pdf.TextStyle(fontWeight: pdf.FontWeight.bold))),
+      pdf.Container(
+          width: 110,
+          child: pdf.Text(
+            t,
+            textScaleFactor: 1.2,
+          )),
+    ]);
+  }
+
   void _catalogoPressed(bool share) async {
     //generar PDF catalogo
-    final listaChecked =
-        listaPedidos.where((element) => element.checked == true).toList();
+    final listaChecked = listaPedidosSinEnviar
+        .where((element) => element.checked == true)
+        .toList();
+
+    final pedido = listaChecked[0];
+
+    List<Pedido> listaPedidosSinEnviarConItems =
+        List<Pedido>.empty(growable: true);
+
+    final items = await pedido.itemsFromDB();
+    pedido.items = items;
+    listaPedidosSinEnviarConItems.add(pedido);
+
+    print(pedido);
+
+    List<pdf.Widget> listaRows = List<pdf.Widget>.empty(growable: true);
+
+    pdf.Widget img;
+    img = await getImageLogoPdf();
+
+    DateTime ahora = DateTime.now();
+    String hoy = ahora.day.toString().padLeft(2, '0') +
+        '-' +
+        ahora.month.toString().padLeft(2, '0') +
+        '-' +
+        ahora.year.toString();
+
+    final datos = pdf.Column(children: [
+      _claveValor('Fecha: ', hoy),
+    ]);
+
+    listaRows.add(pdf.Row(children: [datos, img]));
+
+    //Recorre los items del pedido
+    for (var i = 0; i < pedido.items.length; i++) {
+      if (i % 2 == 0) {
+        final String dir = (await getExternalStorageDirectory()).path;
+        pdf.MemoryImage image;
+
+        //ITEM 1
+        String path =
+            '$dir/Pictures/products/${pedido.items[i].productoID}.jpg';
+        pdf.Widget img1;
+        try {
+          image = pdf.MemoryImage(
+            File(path).readAsBytesSync(),
+          );
+          img1 = pdf.Image(image, fit: pdf.BoxFit.fitHeight, width: 260); //45
+        } catch (e) {
+          img1 = pdf.Container(width: 260);
+          print(e.toString());
+        }
+        final item1 = pdf.Column(children: [
+          pdf.Container(height: 20),
+          pdf.Container(height: 170, child: img1),
+          _descripcionItemPdf(pedido.items[i]),
+        ]);
+        ///////
+
+        //ITEM 2
+        pdf.Widget item2;
+        if (i + 1 < pedido.items.length) {
+          path = '$dir/Pictures/products/${pedido.items[i + 1].productoID}.jpg';
+          pdf.Widget img2;
+          try {
+            image = pdf.MemoryImage(
+              File(path).readAsBytesSync(),
+            );
+
+            img2 = pdf.Image(image, fit: pdf.BoxFit.fitHeight, width: 260); //45
+          } catch (e) {
+            img2 = pdf.Container(width: 260);
+          }
+
+          item2 = pdf.Column(children: [
+            pdf.Container(height: 20),
+            pdf.Container(height: 170, child: img2),
+            _descripcionItemPdf(pedido.items[i + 1]),
+          ]);
+        }
+        ////////
+
+        pdf.Row rowCatalogo;
+        if (i + 1 < pedido.items.length) {
+          rowCatalogo = pdf.Row(
+              children: [
+                pdf.Container(child: item1, color: PdfColors.grey100),
+                pdf.Container(child: item2, color: PdfColors.grey100),
+              ],
+              crossAxisAlignment: pdf.CrossAxisAlignment.center,
+              mainAxisAlignment: pdf.MainAxisAlignment.center);
+        } else {
+          rowCatalogo = pdf.Row(
+              children: [pdf.Container(child: item1, color: PdfColors.grey100)],
+              crossAxisAlignment: pdf.CrossAxisAlignment.center,
+              mainAxisAlignment: pdf.MainAxisAlignment.center);
+        }
+        listaRows.add(rowCatalogo);
+      }
+    }
+
+    var multipage = pdf.MultiPage(
+      pageFormat: PdfPageFormat.a4,
+      orientation: pdf.PageOrientation.natural,
+      maxPages: 20,
+      build: (context) {
+        return listaRows;
+      },
+      header: (context) {
+        return pdf.Center(
+            child: pdf.Text(
+          'Catalogo | Torres y Liva',
+        ));
+      },
+      footer: (context) {
+        return pdf.Center(
+            child: pdf.Text(
+          'Página ${context.pageNumber} de ${context.pagesCount}',
+        ));
+      },
+    );
+
+    final pdf.Document docpdf = pdf.Document();
+
+    docpdf.addPage(multipage);
+
+    final String dir = (await getApplicationDocumentsDirectory()).path;
+    final String path = '$dir/catalogo_${DateTime.now()}.pdf';
+    final File file = File(path);
+    await file.writeAsBytes(await docpdf.save());
+
+    if (share) {
+      Share.shareFiles([path], text: 'Catalogo');
+    } else {
+      OpenFile.open(path);
+    }
 
     setState(() {
       _unCheckPedidos();
@@ -622,79 +736,153 @@ class _PedidoPageState extends State<PedidoPage> {
   }
 
   void _cotizacionPressed(bool share) async {
-    //generar PDF cotizacion
-
-    final listaChecked =
-        listaPedidos.where((element) => element.checked == true).toList();
-
-    final listaPdf = List<pdf.Document>.filled(0, null, growable: true);
     final pdf.Document docpdf = pdf.Document();
 
-    listaChecked.forEach((pedidosChecked) {
-      listaPdf.add(pdf.Document());
-    });
+    List<List<pdf.Widget>> rows = List<List<pdf.Widget>>.empty(growable: true);
 
-    var i = 0; //index pedido
+    int nroPage = 0;
+    int totalProd = 0;
 
-    listaPdf.forEach((docPdf) {
-      //Agregar encabezado y datos del pedido/cliente
+    final listaChecked = listaPedidosSinEnviar
+        .where((element) => element.checked == true)
+        .toList();
 
-      var j = 0; //index item
+    final pedido = listaChecked[0];
+    pedido.items = await pedido.itemsFromDB();
+    rows.add(List<pdf.Widget>.empty(growable: true));
+    print(pedido.items.length);
+    int i = 0;
+    while (totalProd < pedido.items.length) {
+      // j++;
+      cantFilas = 11;
 
-      final rowsTabla = List<List<dynamic>>.filled(0, null, growable: true);
-      listaChecked[i].items.forEach((item) {
-        //Agregar filas a la tabla
-        rowsTabla.add(List.from([
-          (j + 1).toString(),
-          'IMAGEN',
-          '${item.producto.id ?? ''}',
-          '${item.cantidad ?? '0'}',
-          '${item.producto.descripcion ?? 'Sin descripcion'}',
-          '\$ ${item.precio.toStringAsFixed(2) ?? '\$ 0.00'}',
-          '${item.descuento ?? '0,00 %'}',
-          '${item.observacion ?? ''}',
-        ]));
-      });
-      var page = pdf.Page(
-          orientation: pdf.PageOrientation.landscape,
-          pageFormat: PdfPageFormat.a4,
-          build: (pdf.Context context) {
-            return pdf.Column(
-                mainAxisAlignment: pdf.MainAxisAlignment.center,
-                children: [
-                  pdf.Row(children: [
-                    _logoPdf(context, docPdf),
-                    _datosClientePdf(context, listaChecked[i]),
-                  ]),
-                  pdf.SizedBox(height: 30),
-                  pdf.Table.fromTextArray(
-                      data: rowsTabla,
-                      context: context,
-                      headers: [
-                        'Nº',
-                        'Imagen',
-                        'Código',
-                        'Cantidad',
-                        'Descripción',
-                        'Precio sin IVA',
-                        'Descuento',
-                        'Observaciones'
-                      ],
-                      cellAlignment: pdf.Alignment.center,
-                      headerHeight: 50,
-                      headerDecoration:
-                          pdf.BoxDecoration(color: PdfColors.grey200),
-                      border: pdf.TableBorder.all())
-                ]);
-          });
+      if (nroPage > 1) {
+        cantFilas = 15;
+      }
+      if ((i % cantFilas) > 0) {
+        totalProd++;
+        numeroFila = 0;
+      }
 
-      docPdf.addPage(page);
-    });
+      if (i % cantFilas == 0) {
+        nroPage++;
+        print('I: $i');
+        print('Cant Filas: $cantFilas');
+        rows.add(List<pdf.Widget>.empty(growable: true));
+        numeroFila = 0;
+      } else {
+        final String dir = (await getExternalStorageDirectory()).path;
+        final String path =
+            '$dir/Pictures/products/${pedido.items[totalProd - 1].productoID}.jpg';
+        pdf.MemoryImage image;
+        pdf.Widget img;
+        try {
+          image = pdf.MemoryImage(
+            File(path).readAsBytesSync(),
+          );
+
+          img = pdf.Image(image, fit: pdf.BoxFit.fitHeight, width: 50); //45
+        } catch (e) {
+          img = pdf.Container();
+        }
+
+        rows[nroPage].add(pdf.Container(
+            width: 483,
+            height: 40,
+            child: pdf.Container(
+                decoration: pdf.BoxDecoration(
+                    border: pdf.Border.all(color: PdfColors.black)),
+                child: pdf.Row(
+                    mainAxisAlignment: pdf.MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: pdf.CrossAxisAlignment.center,
+                    children: [
+                      pdf.Container(
+                          // decoration: pdf.BoxDecoration(
+                          //     border: pdf.Border.all(color: PdfColors.black)),
+                          width: 50,
+                          child: img),
+                      celda(
+                          60.0,
+                          pedido.items[totalProd - 1].productoID?.toString() ??
+                              ''),
+                      celda(
+                          60.0,
+                          pedido.items[totalProd - 1].cantidad?.toString() ??
+                              '1'),
+                      celda(60.0,
+                          '${pedido.items[totalProd - 1].descuento?.toStringAsFixed(2) ?? '0.00'} %'),
+                      celda(130.0, pedido.items[totalProd - 1]?.detalle ?? ''),
+                      celda(80.0,
+                          '\$ ${pedido.items[totalProd - 1].precio?.toStringAsFixed(2) ?? ''}'),
+                    ]))));
+      }
+      i++;
+    }
+
+    pdf.Widget img;
+    img = await getImageLogoPdf();
+
+    var multipage = pdf.MultiPage(
+      pageFormat: PdfPageFormat.a4,
+      orientation: pdf.PageOrientation.natural,
+      maxPages: 20,
+      header: (context) {
+        return pdf.Center(
+            child: pdf.Text(
+          'Cotizacion | Torres y Liva',
+        ));
+      },
+      footer: (context) {
+        return pdf.Center(
+            child: pdf.Text(
+          'Página ${context.pageNumber} de ${context.pagesCount}',
+        ));
+      },
+      build: (context) {
+        return [
+          pdf.Column(children: [
+            pdf.Row(mainAxisAlignment: pdf.MainAxisAlignment.start, children: [
+              pdf.Container(
+                  child: _datosClientePdf(context, pedido),
+                  color: PdfColors.red),
+              pdf.Container(child: img, width: 300, color: PdfColors.green)
+            ]),
+            pdf.Container(height: 40),
+            pdf.Row(mainAxisSize: pdf.MainAxisSize.max, children: [
+              pdf.Container(
+                  width: 483,
+                  height: 40,
+                  color: PdfColors.grey400,
+                  child: pdf.Row(
+                      mainAxisAlignment: pdf.MainAxisAlignment.spaceEvenly,
+                      crossAxisAlignment: pdf.CrossAxisAlignment.center,
+                      children: [
+                        celda(50.0, 'Imagen', header: true),
+                        celda(60.0, 'Código', header: true),
+                        celda(60.0, 'Cantidad', header: true),
+                        celda(60.0, 'Descuento', header: true),
+                        celda(130.0, 'Descripción', header: true),
+                        celda(80.0, 'Precio sin IVA', header: true),
+                      ]))
+            ]),
+            rows.length > 0 ? pdf.Column(children: rows[0]) : pdf.Container(),
+            rows.length > 1 ? pdf.Column(children: rows[1]) : pdf.Container(),
+            rows.length > 2 ? pdf.Column(children: rows[2]) : pdf.Container(),
+            rows.length > 3 ? pdf.Column(children: rows[3]) : pdf.Container(),
+            rows.length > 4 ? pdf.Column(children: rows[4]) : pdf.Container(),
+            rows.length > 5 ? pdf.Column(children: rows[5]) : pdf.Container(),
+            rows.length > 6 ? pdf.Column(children: rows[6]) : pdf.Container(),
+          ])
+        ];
+      },
+    );
+
+    docpdf.addPage(multipage);
 
     final String dir = (await getApplicationDocumentsDirectory()).path;
-    final String path = '$dir/cotizacion.pdf';
+    final String path = '$dir/cotizacion_${DateTime.now()}.pdf';
     final File file = File(path);
-    await file.writeAsBytes(await listaPdf[0].save());
+    await file.writeAsBytes(await docpdf.save());
 
     if (share) {
       Share.shareFiles([path], text: 'Cotizacion');
@@ -715,75 +903,33 @@ class _PedidoPageState extends State<PedidoPage> {
     listaPedidosSinEnviar.forEach((pedido) => pedido.checked = false);
   }
 
-  _logoPdf(
-    pdf.Context context,
-    pdf.Document docPdf,
-  ) {
-    return pdf.Container(width: 100, height: 90, child: pdf.Text('LOGO'));
-  }
-
   _datosClientePdf(pdf.Context context, Pedido p) {
-    // return pdf.Table.fromTextArray(data: [
-    //   [
-    //     _rowTituloYDescripcion('Cliente', p?.cliente?.nombre ?? ''),
-    //     _rowTituloYDescripcion('Neto gravado', p?.cliente?.nombre ?? ''),
-    //   ],
-    //   [
-    //     _rowTituloYDescripcion('Domicilio', p?.cliente?.domicilio ?? ''),
-    //     _rowTituloYDescripcion(
-    //         'Descuento General', p?.cliente?.domicilio ?? ''),
-    //   ],
-    //   [
-    //     _rowTituloYDescripcion(
-    //         'Condicion de Venta', p?.cliente?.formaPago ?? ''),
-    //     _rowTituloYDescripcion(
-    //         'Iva', '\$ ' + p?.iva?.toStringAsFixed(2) ?? '\$ 0.00'),
-    //     _rowTituloYDescripcion(
-    //         'Total', '\$ ' + p?.total?.toStringAsFixed(2) ?? '\$ 0.00 %')
-    //   ]
-    // ]);
     return pdf.Row(
         mainAxisAlignment: pdf.MainAxisAlignment.center,
-        crossAxisAlignment: pdf.CrossAxisAlignment.center,
+        crossAxisAlignment: pdf.CrossAxisAlignment.start,
         children: [
           pdf.Container(
-              height: 100,
-              width: 170,
+              height: 140,
+              width: 220,
               color: PdfColors.grey200,
               child: pdf.Column(
                   mainAxisAlignment: pdf.MainAxisAlignment.spaceEvenly,
-                  crossAxisAlignment: pdf.CrossAxisAlignment.center,
+                  crossAxisAlignment: pdf.CrossAxisAlignment.start,
                   children: [
                     _rowTituloYDescripcion('Cliente', p?.cliente?.nombre ?? ''),
                     _rowTituloYDescripcion(
                         'Domicilio', p?.cliente?.domicilio ?? ''),
+                    _rowTituloYDescripcion('Condicion de Venta',
+                        p?.getFormaPago()?.toUpperCase() ?? ''),
+                    _rowTituloYDescripcion('Neto gravado',
+                        '\$ ${p?.neto?.toStringAsFixed(2) ?? 0.00}'),
+                    _rowTituloYDescripcion('Descuento general',
+                        '${p?.descuento?.toStringAsFixed(2) ?? 0.00} %'),
                     _rowTituloYDescripcion(
-                        'Condicion de Venta', p?.cliente?.formaPago ?? ''),
+                        'Iva', '\$ ${p?.iva?.toStringAsFixed(2) ?? 0.00}'),
+                    _rowTituloYDescripcion('Total',
+                        '\$ ${p?.totalPedido?.toStringAsFixed(2) ?? 0.00}')
                   ])),
-          pdf.Container(
-              height: 100,
-              width: 190,
-              color: PdfColors.grey200,
-              child: pdf.Column(
-                  mainAxisAlignment: pdf.MainAxisAlignment.spaceEvenly,
-                  crossAxisAlignment: pdf.CrossAxisAlignment.center,
-                  children: [
-                    _rowTituloYDescripcion(
-                        'Neto gravado', p?.cliente?.nombre ?? ''),
-                    _rowTituloYDescripcion(
-                        'Descuento General', p?.cliente?.domicilio ?? ''),
-                    pdf.Row(
-                        mainAxisAlignment: pdf.MainAxisAlignment.center,
-                        crossAxisAlignment: pdf.CrossAxisAlignment.center,
-                        children: [
-                          _rowTituloYDescripcion('Iva',
-                              '\$ ' + p?.iva?.toStringAsFixed(2) ?? '\$ 0.00'),
-                          _rowTituloYDescripcion(
-                              'Total',
-                              '\$ ' + p?.totalPedido?.toStringAsFixed(2) ??
-                                  '\$ 0.00 %')
-                        ])
-                  ]))
         ]);
   }
 
@@ -793,11 +939,12 @@ class _PedidoPageState extends State<PedidoPage> {
         margin: pdf.EdgeInsets.all(2),
         child: pdf.Row(
             mainAxisSize: pdf.MainAxisSize.max,
-            mainAxisAlignment: pdf.MainAxisAlignment.center,
+            mainAxisAlignment: pdf.MainAxisAlignment.start,
             crossAxisAlignment: pdf.CrossAxisAlignment.center,
             children: [
               pdf.Text(titulo + ':',
                   style: pdf.TextStyle(fontWeight: pdf.FontWeight.bold)),
+              pdf.Expanded(child: pdf.SizedBox()),
               pdf.Text(valor)
             ]));
   }
@@ -862,8 +1009,6 @@ class _PedidoPageState extends State<PedidoPage> {
   }
 
   Future _initListaPedidosSinEnviar() async {
-    _listaInitSinEnviar = true;
-
     final dbHelper = DatabaseHelper.instance;
 
     final listaJson = await dbHelper.queryRows(DatabaseHelper.tablePedidos,
@@ -882,11 +1027,11 @@ class _PedidoPageState extends State<PedidoPage> {
         listaPedidosSinEnviar.add(element);
       }
     });
+
+    listaPedidosSinEnviar.removeWhere((element) => !_isPedidoFromUser(element));
   }
 
   Future _initListaPedidosEnviados() async {
-    _listaInitEnviados = true;
-
     final dbHelper = DatabaseHelper.instance;
 
     final listaJson = await dbHelper.queryRows(DatabaseHelper.tablePedidos,
@@ -908,8 +1053,6 @@ class _PedidoPageState extends State<PedidoPage> {
   }
 
   Future<void> _initListaPedidosCotizados() async {
-    _listaInitCotizados = true;
-
     final dbHelper = DatabaseHelper.instance;
 
     final listaJson = await dbHelper.queryRows(DatabaseHelper.tablePedidos,
@@ -967,5 +1110,28 @@ class _PedidoPageState extends State<PedidoPage> {
       default:
         await _initListaPedidosSinEnviar();
     }
+  }
+
+  pdf.Widget _descripcionItemPdf(ItemPedido item) {
+    final columnDesc =
+        pdf.Column(mainAxisAlignment: pdf.MainAxisAlignment.center, children: [
+      pdf.Text(item.detalle,
+          softWrap: true,
+          style: pdf.TextStyle(fontWeight: pdf.FontWeight.bold)),
+      pdf.Text('\$ ${item.precio}')
+    ]);
+    return pdf.Container(width: 200, height: 60, child: columnDesc);
+  }
+
+  bool _isPedidoFromUser(Pedido element) {
+    bool encontrado = false;
+
+    int i = 0;
+    encontrado = false;
+    while (encontrado == false && i < clientesDelVendedor.length) {
+      encontrado = clientesDelVendedor[i].clientId == element.clienteID;
+      i++;
+    }
+    return encontrado == true;
   }
 }

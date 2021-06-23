@@ -12,6 +12,7 @@ import 'package:share/share.dart';
 import 'package:torres_y_liva/src/models/categoria_model.dart';
 import 'package:torres_y_liva/src/models/producto_model.dart';
 import 'package:torres_y_liva/src/pages/catalogo_productos_page.dart';
+import 'package:torres_y_liva/src/utils/image_helper.dart';
 import 'package:torres_y_liva/src/widgets/dialog_box_widget.dart';
 
 class CotizacionPage extends StatefulWidget {
@@ -145,7 +146,10 @@ class _CotizacionPageState extends State<CotizacionPage> {
 
       int nroPage = 0;
       rows.add(List<pdf.Widget>.empty(growable: true));
-      for (var i = 0; i < hijosCat.length; i++) {
+      int i = 0;
+      while (totalProd < hijosCat.length) {
+        // for (var i = 0; i < hijosCat.length; i++) {
+
         // j++;
         cantFilas = 13;
 
@@ -165,7 +169,8 @@ class _CotizacionPageState extends State<CotizacionPage> {
           numeroFila = 0;
         } else {
           final String dir = (await getExternalStorageDirectory()).path;
-          final String path = '$dir/Pictures/products/${hijosCat[i].id}.jpg';
+          final String path =
+              '$dir/Pictures/products/${hijosCat[totalProd - 1].id}.jpg';
           pdf.MemoryImage image;
           pdf.Widget img;
           try {
@@ -194,17 +199,24 @@ class _CotizacionPageState extends State<CotizacionPage> {
                             //     border: pdf.Border.all(color: PdfColors.black)),
                             width: 100,
                             child: img),
-                        _celda(60.0, hijosCat[i].id?.toString() ?? ''),
-                        _celda(150.0, hijosCat[i]?.descripcion ?? ''),
                         _celda(
-                            80.0, hijosCat[i].precio?.toStringAsFixed(2) ?? ''),
+                            60.0, hijosCat[totalProd - 1].id?.toString() ?? ''),
+                        _celda(
+                            150.0, hijosCat[totalProd - 1]?.descripcion ?? ''),
+                        _celda(
+                            80.0,
+                            hijosCat[totalProd - 1]
+                                    .precio
+                                    ?.toStringAsFixed(2) ??
+                                ''),
                       ]))));
         }
+        i++;
       }
 
       pdf.MemoryImage image;
       pdf.Widget img;
-      img = await _getImage();
+      img = await getImageLogoPdf();
 
       var multipage = pdf.MultiPage(
         pageFormat: PdfPageFormat.a4,
@@ -391,25 +403,6 @@ class _CotizacionPageState extends State<CotizacionPage> {
         _claveValor('Telefono', '(0223) 464-5000'),
       ]),
     );
-  }
-
-  Future<pdf.Widget> _getImage() async {
-    pdf.MemoryImage image;
-    pdf.Widget img;
-    try {
-      image = pdf.MemoryImage(
-        (await rootBundle.load('assets/img/logo-pdf-header.jpg'))
-            .buffer
-            .asUint8List(),
-      );
-
-      img = pdf.Image(image, fit: pdf.BoxFit.fitHeight);
-
-      img = pdf.Image(image, fit: pdf.BoxFit.fitHeight, height: 90); //45
-    } catch (e) {
-      img = pdf.Container();
-    }
-    return img;
   }
 
   _claveValor(String s, String t) {
