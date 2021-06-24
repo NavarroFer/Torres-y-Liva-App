@@ -328,10 +328,13 @@ class _LoginPageState extends State<LoginPage> {
           tokenEmpresa, usuario.tokenWs, usuario.vendedorID);
 
       final productosProvider = ProductosProvider();
+      log('DB INICIALIZADA: ${dbInicializada.toString()}');
+      DatabaseHelper.instance;
       if (!dbInicializada) {
         await _getAndSaveCategorias(productosProvider);
         await _getAndSaveProductos(productosProvider);
         await _getAndSaveCodBarra(productosProvider);
+        log('AAA');
         dbInicializada = true;
       } else {
         await _getAndSaveUpdatedProductos(productosProvider);
@@ -358,6 +361,7 @@ class _LoginPageState extends State<LoginPage> {
     setState(() {});
     Productos.productos = await productosProvider.getProductosActualizados(
         tokenEmpresa, usuario.tokenWs);
+    log('TEST 0');
     await updateProductTable();
     await productosProvider.ackUpdateProductos(tokenEmpresa, usuario.tokenWs);
   }
@@ -388,6 +392,7 @@ class _LoginPageState extends State<LoginPage> {
   Future<bool> updateProductTable() async {
     final db = await DatabaseHelper.instance.database;
     var batch = db.batch();
+
     for (var producto in Productos.productos) {
       batch.insert(DatabaseHelper.tableProductos, producto.toMap(),
           conflictAlgorithm: ConflictAlgorithm.replace);

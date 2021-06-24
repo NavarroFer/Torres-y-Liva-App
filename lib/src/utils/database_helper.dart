@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:torres_y_liva/src/utils/globals.dart';
 
 class DatabaseHelper {
   static final _databaseName = "torres-y-liva.db";
@@ -148,9 +150,19 @@ class DatabaseHelper {
   // only have a single app-wide reference to the database
   static Database _database;
   Future<Database> get database async {
-    if (_database != null) return _database;
+    if (_database != null) {
+      return _database;
+    }
 
+    if (dbInicializada == false) {
+      log('INICIALIZANDO DB');
+      Directory documentsDirectory = await getApplicationDocumentsDirectory();
+      String path = join(documentsDirectory.path, _databaseName);
+      deleteDatabase(path);
+      // _database = await _initDatabase();
+    }
     _database = await _initDatabase();
+
     return _database;
   }
 
@@ -158,6 +170,8 @@ class DatabaseHelper {
   _initDatabase() async {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, _databaseName);
+
+    log('INICIALIZANDO DB 1');
 
     return await openDatabase(path,
         version: _databaseVersion,
@@ -167,6 +181,7 @@ class DatabaseHelper {
 
   // SQL code to create the database table
   Future _onCreate(Database db, int version) async {
+    log('INICIALIZANDO DB 2');
     await _createTableCategorias(db);
     await _createTableClientes(db);
     await _createTableProductos(db);
@@ -319,6 +334,7 @@ class DatabaseHelper {
   }
 
   Future _createTableCategorias(Database db) async {
+    log('INICIALIZANDO DB 3');
     return await db.execute('''
           CREATE TABLE IF NOT EXISTS $tableCategorias (
             $catID TEXT PRIMARY KEY,
@@ -366,9 +382,6 @@ class DatabaseHelper {
             $listaPreciosDefault INTEGER
           )
     ''');
-    //agregar
-    //,
-    // FOREIGN KEY($categoriaID) REFERENCES ${DatabaseHelper.tableCategorias}(${DatabaseHelper.catID})
   }
 
   Future _createTableCodigoBarras(Database db) async {
@@ -434,9 +447,6 @@ class DatabaseHelper {
 
   Future<int> getLastID(String table, String columnId, String orderBy) async {
     Database db = await instance.database;
-
-    // final rowLastId =
-    //     await db.query(table, columns: [columnId], orderBy: orderBy, limit: 1);
 
     final rowLastId = await db.rawQuery('SELECT MAX($columnId) FROM $table');
 

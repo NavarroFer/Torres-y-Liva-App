@@ -241,7 +241,8 @@ class Pedido {
       'domicilioDespacho': this.cliente.domicilio ?? '',
       'descuento': this.descuento ?? 0,
       'fechaPedido': this.fechaPedido.millisecondsSinceEpoch ?? 0,
-      'fechaAltaMovil': fechaAltaMovil ?? 0,
+      // 'fechaAltaMovil': fechaAltaMovil ?? 0,
+      'fechaAltaMovil': this.fechaPedido.millisecondsSinceEpoch ?? 0,
       'observaciones': this.observaciones ?? '',
       'listaPrecios':
           this.cliente?.priceList ?? this.cliente?.priceListAux ?? 1,

@@ -38,15 +38,12 @@ Future<bool> getImages(Function() notifyParent, BuildContext context) async {
       '${ahora.year.toString()}-${ahora.month.toString().padLeft(2, '0')}-${ahora.day.toString().padLeft(2, '0')} ${ahora.hour.toString().padLeft(2, '0')}:${ahora.minute.toString().padLeft(2, '0')}:${ahora.second.toString().padLeft(2, '0')}';
   await grabaFechaGetDataIMG();
 
-  // log('FECHA GET DATA IMG: $fechaGetDataIMG');
-
-  //20210601233954 Esta puede ser distina a la de arriba, siempre posterior 2021-03-27 15:42:45
   String where = '${DatabaseHelper.downloaded} = 0';
 
   rows = await dbI.query(DatabaseHelper.tableImgProductos,
       where: where, limit: 600);
 
-  rows = [];
+  // rows = [];
   if (rows.length > 0) {
     if (context != null) {
       mostrarSnackbar('Se descargarán ${rows.length} imágenes', context);
@@ -114,8 +111,6 @@ Future<bool> updatePhoto(int idProduct, bool downloaded, String fechaDescarga,
       DatabaseHelper.fechaDescarga: fechaDescarga,
       DatabaseHelper.extension: extension
     }, DatabaseHelper.tableImgProductos);
-  } else {
-    print("NO EXISTE");
   }
 
   return res != -1;
