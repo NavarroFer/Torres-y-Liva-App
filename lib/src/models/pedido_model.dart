@@ -328,10 +328,20 @@ class Pedido {
     return rowsBorradas == 1;
   }
 
+  Future<bool> updateState(int newState) async {
+    final db = await DatabaseHelper.instance.database;
+
+    return await db.update(
+            DatabaseHelper.tablePedidos, {DatabaseHelper.estado: newState},
+            where: '${DatabaseHelper.idPedido} = ?', whereArgs: [this.id]) ==
+        1;
+  }
+
   Future<bool> insertOrUpdate() async {
     if (this.items.length > 0) {
       final dbHelper = DatabaseHelper.instance;
       final map = this.toMap();
+      print('MAP:' + map.toString());
       await dbHelper.insert(map, DatabaseHelper.tablePedidos);
 
       // borrar items ?? por si se modifica el pedido??

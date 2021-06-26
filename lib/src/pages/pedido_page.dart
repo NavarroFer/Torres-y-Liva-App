@@ -422,9 +422,9 @@ class _PedidoPageState extends State<PedidoPage> {
     return DataCell(
       Row(
         children: [
-          _vista == Pedido.ESTADO_SIN_ENVIAR
-              ? _checkBox(context, pedido)
-              : Container(),
+          _vista == Pedido.ESTADO_ENVIADO
+              ? Container()
+              : _checkBox(context, pedido),
           _celdaCliente(context, nombreCliente, fechaHora),
         ],
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -492,7 +492,7 @@ class _PedidoPageState extends State<PedidoPage> {
 
   Widget _convertirACotizaciones(BuildContext context) {
     return action(context,
-        icon: MdiIcons.arrowAll, onPressed: _convertirACotizacionesPressed);
+        icon: MdiIcons.arrowAll, onPressed: _convertirPressed);
   }
 
   Widget _eliminarPedidos(BuildContext context) {
@@ -508,17 +508,20 @@ class _PedidoPageState extends State<PedidoPage> {
     return _opcionesPDF(context, true, MdiIcons.shareVariant);
   }
 
-  void _convertirACotizacionesPressed(BuildContext context) {
-    setState(() {
-      listaPedidosShow.forEach((element) {
-        if (element.checked) {
-          element.estado = Pedido.ESTADO_COTIZADO;
-          element.update();
-        }
-      });
-      _updateList();
-      _unCheckPedidos();
-    });
+  void _convertirPressed(BuildContext context) async {
+    for (var element in _vista == Pedido.ESTADO_COTIZADO
+        ? listaPedidosCotizaciones
+        : listaPedidosSinEnviar) {
+      if (element.checked) {
+        print(await element.updateState(_vista == Pedido.ESTADO_COTIZADO
+            ? Pedido.ESTADO_SIN_ENVIAR
+            : Pedido.ESTADO_COTIZADO));
+      }
+    }
+
+    await _updateList();
+    _unCheckPedidos();
+    setState(() {});
   }
 
   void _eliminarPedidosPressed(BuildContext context) {
@@ -1016,8 +1019,13 @@ class _PedidoPageState extends State<PedidoPage> {
 
     List<Pedido> listaObjects = Pedidos.fromJson(listaJson);
 
+    print(listaPedidosSinEnviar);
+
     listaPedidosSinEnviar
         .removeWhere((element) => element.estado != Pedido.ESTADO_SIN_ENVIAR);
+
+    print(listaPedidosSinEnviar);
+    print('as');
 
     listaObjects.forEach((element) {
       final ped = listaPedidosSinEnviar.firstWhere(
@@ -1098,7 +1106,7 @@ class _PedidoPageState extends State<PedidoPage> {
   Future<void> _updateList() async {
     switch (_vista) {
       case Pedido.ESTADO_SIN_ENVIAR:
-        // await _initListaPedidosSinEnviar();
+        // await _initLista PedidosSinEnviar();
         await _initListaPedidosSinEnviar();
         break;
       case Pedido.ESTADO_ENVIADO:
