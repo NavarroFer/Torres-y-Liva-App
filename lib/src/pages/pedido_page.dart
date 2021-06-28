@@ -513,6 +513,9 @@ class _PedidoPageState extends State<PedidoPage> {
         ? listaPedidosCotizaciones
         : listaPedidosSinEnviar) {
       if (element.checked) {
+        element.estado = _vista == Pedido.ESTADO_COTIZADO
+            ? Pedido.ESTADO_SIN_ENVIAR
+            : Pedido.ESTADO_COTIZADO;
         print(await element.updateState(_vista == Pedido.ESTADO_COTIZADO
             ? Pedido.ESTADO_SIN_ENVIAR
             : Pedido.ESTADO_COTIZADO));
@@ -1019,13 +1022,8 @@ class _PedidoPageState extends State<PedidoPage> {
 
     List<Pedido> listaObjects = Pedidos.fromJson(listaJson);
 
-    print(listaPedidosSinEnviar);
-
     listaPedidosSinEnviar
         .removeWhere((element) => element.estado != Pedido.ESTADO_SIN_ENVIAR);
-
-    print(listaPedidosSinEnviar);
-    print('as');
 
     listaObjects.forEach((element) {
       final ped = listaPedidosSinEnviar.firstWhere(
@@ -1070,6 +1068,7 @@ class _PedidoPageState extends State<PedidoPage> {
 
     listaPedidosCotizaciones
         .removeWhere((element) => element.estado != Pedido.ESTADO_COTIZADO);
+
 
     listaObjects.forEach((element) {
       final ped = listaPedidosCotizaciones.firstWhere(

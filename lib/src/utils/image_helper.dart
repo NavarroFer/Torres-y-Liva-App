@@ -40,8 +40,7 @@ Future<bool> getImages(Function() notifyParent, BuildContext context) async {
 
   String where = '${DatabaseHelper.downloaded} = 0';
 
-  rows = await dbI.query(DatabaseHelper.tableImgProductos,
-      where: where, limit: 600);
+  rows = await dbI.query(DatabaseHelper.tableImgProductos, where: where);
 
   // rows = [];
   if (rows.length > 0) {
