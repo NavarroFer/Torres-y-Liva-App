@@ -19,7 +19,6 @@ import 'package:torres_y_liva/src/providers/usuario_provider.dart';
 import 'package:torres_y_liva/src/utils/database_helper.dart';
 import 'package:torres_y_liva/src/utils/globals.dart';
 import 'package:torres_y_liva/src/utils/shared_pref_helper.dart';
-import 'package:image_downloader/image_downloader.dart';
 
 class LoginPage extends StatefulWidget {
   static final String route = 'login';
@@ -39,8 +38,6 @@ class _LoginPageState extends State<LoginPage> {
 
   TextEditingController _controllerPassword = TextEditingController();
 
-  int _progress;
-
   Image img;
 
   @override
@@ -48,11 +45,6 @@ class _LoginPageState extends State<LoginPage> {
     super.initState();
     _cargarDatos();
 
-    ImageDownloader.callback(onProgressUpdate: (String imageId, int progress) {
-      setState(() {
-        _progress = progress;
-      });
-    });
   }
 
   @override
@@ -328,7 +320,6 @@ class _LoginPageState extends State<LoginPage> {
           tokenEmpresa, usuario.tokenWs, usuario.vendedorID);
 
       final productosProvider = ProductosProvider();
-      DatabaseHelper.instance;
       if (!dbInicializada) {
         await _getAndSaveCategorias(productosProvider);
         await _getAndSaveProductos(productosProvider);
@@ -471,7 +462,6 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   initLists() async {
-    final db = await DatabaseHelper.instance.database;
     final dbHelper = DatabaseHelper.instance;
     List<Map<String, dynamic>> list;
     list = await dbHelper.queryAllRows(DatabaseHelper.tableClientes);

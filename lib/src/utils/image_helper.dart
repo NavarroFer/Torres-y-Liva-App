@@ -13,7 +13,6 @@ import 'package:torres_y_liva/src/utils/database_helper.dart';
 import 'package:torres_y_liva/src/utils/globals.dart';
 import 'package:torres_y_liva/src/utils/shared_pref_helper.dart';
 import 'package:torres_y_liva/src/widgets/base_widgets.dart';
-import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pdf;
 
 int imagenesADescargar = -1;

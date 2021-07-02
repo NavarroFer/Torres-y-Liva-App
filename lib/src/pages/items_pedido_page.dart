@@ -297,7 +297,6 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
   }
 
   Widget _buttonCodigoDeBarras(BuildContext context) {
-    final size = MediaQuery.of(context).size;
     return Container(
       // height: size.height * 0.15 * size.aspectRatio,
       // width: size.width * 0.13,
@@ -549,7 +548,7 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
         producto: _productoSelected,
         iva: _productoSelected.iva,
         observacion: _obsController.text,
-        fraccion: 1.0, //TODO ver que es fraccion
+        fraccion: 1.0, 
         precioTotal: precioTotal);
 
     if (NuevoPedidoPage.pedido.neto == null) {

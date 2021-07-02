@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
@@ -135,12 +133,9 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
   }
 
   Widget _body(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-
     switch (_vista) {
       case 0: //Grid
         return _gridProductos(context);
-        // return Container();
         break;
       case 1: //Lista
         return _listaProductos(context);
@@ -534,7 +529,7 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
         producto: producto,
         iva: producto.iva,
         observacion: obs ?? '',
-        fraccion: 1.0, //TODO ver que es fraccion
+        fraccion: 1.0,
         precioTotal: precioTotal);
 
     if (NuevoPedidoPage.pedido.neto == null) {

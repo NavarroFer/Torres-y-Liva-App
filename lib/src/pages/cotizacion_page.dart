@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path_provider/path_provider.dart';
@@ -213,7 +212,6 @@ class _CotizacionPageState extends State<CotizacionPage> {
         i++;
       }
 
-      pdf.MemoryImage image;
       pdf.Widget img;
       img = await getImageLogoPdf();
 
