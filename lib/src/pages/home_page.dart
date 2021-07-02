@@ -31,7 +31,6 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     if (_execGetImage == false) {
       _execGetImage = true;
-      log('AAAA');
       _getImages(context);
     }
     return Scaffold(

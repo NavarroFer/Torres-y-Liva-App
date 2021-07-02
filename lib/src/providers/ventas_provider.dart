@@ -58,7 +58,6 @@ class VentasProvider {
     } on TimeoutException {
       return false;
     } on Exception catch (e) {
-      print('AAA');
       return false;
     }
   }

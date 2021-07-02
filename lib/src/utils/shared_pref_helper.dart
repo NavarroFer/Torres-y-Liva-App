@@ -36,7 +36,10 @@ Future cargarDatos() async {
   dbInicializada = prefs.getBool('dbinit') ?? false;
   username = prefs.getString('username') ?? '';
   password = prefs.getString('password') ?? '';
-  fechaGetDataIMG = prefs.getString('fechaGetDataIMG') ?? '';
+  if (dbInicializada == false)
+    fechaGetDataIMG = '';
+  else
+    fechaGetDataIMG = prefs.getString('fechaGetDataIMG') ?? '';
   fechaUpdateIMG = prefs.getString('fechaUpdateIMG') ?? '';
   fechaAltaMovil = prefs.getInt('fechaAltaMovil') ?? 0;
 }

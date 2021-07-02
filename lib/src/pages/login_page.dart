@@ -328,13 +328,11 @@ class _LoginPageState extends State<LoginPage> {
           tokenEmpresa, usuario.tokenWs, usuario.vendedorID);
 
       final productosProvider = ProductosProvider();
-      log('DB INICIALIZADA: ${dbInicializada.toString()}');
       DatabaseHelper.instance;
       if (!dbInicializada) {
         await _getAndSaveCategorias(productosProvider);
         await _getAndSaveProductos(productosProvider);
         await _getAndSaveCodBarra(productosProvider);
-        log('AAA');
         dbInicializada = true;
       } else {
         await _getAndSaveUpdatedProductos(productosProvider);
@@ -488,24 +486,18 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<bool> updateCodigosBarraTable() async {
     final dbI = await DatabaseHelper.instance.database;
-    final db = await DatabaseHelper.instance;
+    final db = DatabaseHelper.instance;
 
     await db.delete(DatabaseHelper.tableCodigoBarra);
 
     var batch = dbI.batch();
-    print(await db.queryRowCount(DatabaseHelper.tableCodigoBarra));
     for (var codBarra in CodigosBarra.codigos) {
-      // final row = await db.queryRows(DatabaseHelper.tableProductos,
-      //     DatabaseHelper.idProducto, codBarra.itemID);
-      // final exists = row.length > 0;
-      if (true) {
-        final codBarraMap = {
-          'itemID': codBarra.itemID,
-          'codigoBarra': codBarra.codigoBarra
-        };
-        batch.insert(DatabaseHelper.tableCodigoBarra, codBarraMap,
-            conflictAlgorithm: ConflictAlgorithm.replace);
-      }
+      final codBarraMap = {
+        'itemID': codBarra.itemID,
+        'codigoBarra': codBarra.codigoBarra
+      };
+      batch.insert(DatabaseHelper.tableCodigoBarra, codBarraMap,
+          conflictAlgorithm: ConflictAlgorithm.replace);
     }
     await batch.commit(noResult: true);
     log('${DateTime.now()} - Tabla codigo de barra actualizada',

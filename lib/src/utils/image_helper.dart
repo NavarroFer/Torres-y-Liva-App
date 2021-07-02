@@ -19,6 +19,7 @@ import 'package:pdf/widgets.dart' as pdf;
 int imagenesADescargar = -1;
 
 Future<bool> getImages(Function() notifyParent, BuildContext context) async {
+  log('Intentado obtener imagenes');
   String idProduct;
   String url = 'http://fotos.torresyliva.com/fotosapp/$idProduct.jpg';
   final db = DatabaseHelper.instance;

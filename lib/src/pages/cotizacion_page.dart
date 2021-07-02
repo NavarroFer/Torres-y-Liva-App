@@ -165,7 +165,6 @@ class _CotizacionPageState extends State<CotizacionPage> {
           nroPage++;
           rows.add(List<pdf.Widget>.empty(growable: true));
 
-          //TODO agregar "margen superior" a partir de la segunda pagina
           numeroFila = 0;
         } else {
           final String dir = (await getExternalStorageDirectory()).path;
