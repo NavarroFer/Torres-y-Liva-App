@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:torres_y_liva/src/utils/database_helper.dart';
 import 'package:torres_y_liva/src/utils/globals.dart';
 import 'package:torres_y_liva/src/utils/string_helper.dart';
@@ -132,6 +134,67 @@ class Producto {
     final dbHelper = DatabaseHelper.instance;
     await dbHelper.insert(this.toMap(), DatabaseHelper.tableProductos);
     return 1;
+  }
+
+  static Future<List<Producto>> getImportados() async {
+    final db = await DatabaseHelper.instance.database;
+
+    // final hoyMs = toDBString(DateTime.now());
+    // final oneWeakAgo = toDBString(DateTime.now().subtract(Duration(days: 7)));
+
+    final sql =
+        "SELECT * FROM ${DatabaseHelper.tableProductos} p WHERE ${DatabaseHelper.proveedorID} IN (8598, 8842, 8901, 8906)";
+
+    final rows = await db.rawQuery(sql);
+
+    final productos = Productos.fromJson(rows);
+
+    return productos;
+  }
+
+  static Future<List<Producto>> getUltimasEntradas() async {
+    final db = await DatabaseHelper.instance.database;
+
+    final hoyMs = toDBString(DateTime.now());
+    final oneWeakAgo = toDBString(DateTime.now().subtract(Duration(days: 7)));
+
+    final sql =
+        "SELECT * FROM ${DatabaseHelper.tableProductos} p WHERE ${DatabaseHelper.fechaModificadoProducto} > $oneWeakAgo AND ${DatabaseHelper.fechaModificadoProducto} < $hoyMs";
+
+    final rows = await db.rawQuery(sql);
+
+    final productos = Productos.fromJson(rows);
+
+    return productos;
+  }
+
+  static getSearch(String searchQuery) async {
+    final db = await DatabaseHelper.instance.database;
+
+    final sql =
+        "SELECT * FROM ${DatabaseHelper.tableProductos} WHERE ${DatabaseHelper.descripcion} LIKE '%$searchQuery%'";
+
+    final rows = await db.rawQuery(sql);
+
+    final productos = Productos.fromJson(rows);
+
+    return productos;
+  }
+
+  static Future<List<Producto>> getUltimasFotos() async {
+    final db = await DatabaseHelper.instance.database;
+
+    final hoyMs = toDBString(DateTime.now());
+    final oneWeakAgo = toDBString(DateTime.now().subtract(Duration(days: 7)));
+
+    final sql =
+        "SELECT * FROM ${DatabaseHelper.tableProductos} p LEFT JOIN ${DatabaseHelper.tableImgProductos} ip ON p.${DatabaseHelper.idProducto} = ip.${DatabaseHelper.idProductoImg} WHERE ip.${DatabaseHelper.downloaded} = 1 AND ip.${DatabaseHelper.fechaDescarga} > $oneWeakAgo AND ip.${DatabaseHelper.fechaDescarga} < $hoyMs";
+
+    final rows = await db.rawQuery(sql);
+
+    final productos = Productos.fromJson(rows);
+
+    return productos;
   }
 
   double getPriceFromList(int clientPriceList) {
@@ -308,8 +371,6 @@ class Producto {
     }
     this.listaPreciosDefault = json[DatabaseHelper.listaPreciosDefault] ?? 0;
   }
-
-  
 
   DateTime dateTimeFromWSString(fechaUltCompra) {
     final arrFech = fechaUltCompra.toString().split('-') ?? null;

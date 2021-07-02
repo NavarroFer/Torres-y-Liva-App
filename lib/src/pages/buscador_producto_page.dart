@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
@@ -63,10 +65,6 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
     titulo = arguments[0];
     idCategoria = arguments[1];
     pageFrom = arguments[2];
-
-    if (primerFiltro) _filterListaBusqueda();
-
-    // _startSearch(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -138,91 +136,133 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
 
   Widget _body(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    if (listaBusqueda.length > 0) {
-      switch (_vista) {
-        case 0: //Grid
-          return _gridProductos(context);
-          break;
-        case 1: //Lista
-          return _listaProductos(context);
-          break;
-        default:
-          return Container();
-      }
-    } else {
-      return Center(
-        child: AutoSizeText(
-          'No hay productos para mostrar.',
-          textScaleFactor: size.height * 0.002,
-          textAlign: TextAlign.center,
-        ),
-      );
+
+    switch (_vista) {
+      case 0: //Grid
+        return _gridProductos(context);
+        // return Container();
+        break;
+      case 1: //Lista
+        return _listaProductos(context);
+        break;
+      default:
+        return Container();
     }
   }
 
   Widget _gridProductos(BuildContext context) {
-    return ListView.builder(
-      itemCount: listaBusqueda.length,
-      shrinkWrap: true,
-      scrollDirection: Axis.vertical,
-      itemBuilder: (context, index) {
-        return Row(mainAxisAlignment: MainAxisAlignment.spaceEvenly, children: [
-          index < listaBusqueda.length && index > 0 && index % 2 == 1
-              ? _cardProducto(context, listaBusqueda[index - 1])
-              : Container(),
-          index < listaBusqueda.length && index > 0 && index % 2 == 1
-              ? _cardProducto(context, listaBusqueda[index])
-              : Container()
-        ]);
+    final size = MediaQuery.of(context).size;
+    return FutureBuilder(
+      future: _getProductosShow(),
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          if (snapshot.data.length == 0) {
+            return Center(
+              child: AutoSizeText(
+                'No hay productos para mostrar.',
+                textScaleFactor: size.height * 0.002,
+                textAlign: TextAlign.center,
+              ),
+            );
+          } else {
+            return ListView.builder(
+              itemCount: snapshot.data.length,
+              shrinkWrap: true,
+              scrollDirection: Axis.vertical,
+              itemBuilder: (context, index) {
+                return Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      index < snapshot.data.length &&
+                              index > 0 &&
+                              index % 2 == 1
+                          ? _cardProducto(context, snapshot.data[index - 1])
+                          : Container(),
+                      index < snapshot.data.length &&
+                              index > 0 &&
+                              index % 2 == 1
+                          ? _cardProducto(context, snapshot.data[index])
+                          : Container()
+                    ]);
+              },
+            );
+          }
+        } else {
+          return Center(
+            child: CircularProgressIndicator(),
+          );
+        }
       },
     );
   }
 
   Widget _listaProductos(BuildContext context) {
     final size = MediaQuery.of(context).size;
-
-    return ListView.builder(
-      itemCount: listaBusqueda.length,
-      shrinkWrap: true,
-      scrollDirection: Axis.vertical,
-      itemBuilder: (context, index) {
-        return ListTile(
-          title: Text(listaBusqueda[index].descripcion),
-          leading: FutureBuilder(
-            future: getImage(listaBusqueda[index].id, context, 0.15, true),
-            builder: (context, snapshot) {
-              if (snapshot.hasData) {
-                if (snapshot.data != null)
-                  return snapshot.data;
-                else {
-                  return Icon(
-                    MdiIcons.cameraOff,
-                    size: size.height * 0.1,
-                  );
-                }
-              } else {
-                return Icon(
-                  MdiIcons.cameraOff,
-                  size: size.height * 0.1,
+    return FutureBuilder(
+      future: _getProductosShow(),
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          if (snapshot.data.length == 0) {
+            return Center(
+              child: AutoSizeText(
+                'No hay productos para mostrar.',
+                textScaleFactor: size.height * 0.002,
+                textAlign: TextAlign.center,
+              ),
+            );
+          } else {
+            return ListView.builder(
+              itemCount: snapshot.data.length,
+              shrinkWrap: true,
+              scrollDirection: Axis.vertical,
+              itemBuilder: (context, index) {
+                return ListTile(
+                  title: Text(snapshot.data[index].descripcion),
+                  leading: FutureBuilder(
+                    future:
+                        getImage(snapshot.data[index].id, context, 0.15, true),
+                    builder: (context, snapshot) {
+                      if (snapshot.hasData) {
+                        if (snapshot.data != null)
+                          return snapshot.data;
+                        else {
+                          return Icon(
+                            MdiIcons.cameraOff,
+                            size: size.height * 0.1,
+                          );
+                        }
+                      } else {
+                        return Icon(
+                          MdiIcons.cameraOff,
+                          size: size.height * 0.1,
+                        );
+                      }
+                    },
+                  ),
+                  trailing: Text(
+                      "\$ ${snapshot.data[index].precio.toStringAsFixed(2)}"),
+                  onTap: pageFrom == 'pedido'
+                      ? () {
+                          _itemPressed(context, snapshot.data[index]);
+                        }
+                      : () {
+                          _itemPressedCatalogo(context, snapshot.data[index]);
+                        },
+                  onLongPress: pageFrom == 'cotizacion'
+                      ? () {
+                          _itemLongPressedCatalogo(
+                              context, snapshot.data[index]);
+                        }
+                      : () {},
                 );
-              }
-            },
-          ),
-          trailing:
-              Text("\$ ${listaBusqueda[index].precio.toStringAsFixed(2)}"),
-          onTap: pageFrom == 'pedido'
-              ? () {
-                  _itemPressed(context, listaBusqueda[index]);
-                }
-              : () {
-                  _itemPressedCatalogo(context, listaBusqueda[index]);
-                },
-          onLongPress: pageFrom == 'cotizacion'
-              ? () {
-                  _itemLongPressedCatalogo(context, listaBusqueda[index]);
-                }
-              : () {},
-        );
+              },
+            );
+          }
+        } else {
+          return Center(
+            child: CircularProgressIndicator(),
+          );
+        }
       },
     );
   }
@@ -263,10 +303,6 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
                       }
                     },
                   ),
-                  // Icon(
-                  //   MdiIcons.cameraOff,
-                  //   size: size.height * 0.1,
-                  // ),
                   ListTile(
                     title: AutoSizeText(
                       producto?.descripcion ?? '',
@@ -410,52 +446,6 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
 
   void _filterListaBusqueda() {
     listaBusqueda.clear();
-
-    if (primerFiltro == true) primerFiltro = false;
-
-    int idCat = int.tryParse(idCategoria);
-
-    if (idCat != null) {
-      if (int.parse(idCategoria) > 0) {
-        listaCat.clear();
-        _getCatHijas(idCategoria, nivelCat);
-
-        listaBusqueda.addAll(Productos.productos
-            .where((element) => listaCat.contains(element?.categoriaID))
-            .toList());
-      } else {
-        if (_searchQuery != null && _searchQuery != '') {
-          listaBusqueda.addAll(Productos.productos
-              .where((element) => element?.descripcion
-                  ?.toUpperCase()
-                  ?.contains(_searchQuery?.toUpperCase()))
-              .toList());
-        } else {
-          listaBusqueda.addAll(Productos.productos
-              .where((element) => element?.descripcion
-                  ?.toUpperCase()
-                  ?.contains(titulo?.toUpperCase()))
-              .toList());
-        }
-      }
-    } else {
-      //CAT especiales
-      if (idCategoria == Categoria.ULTIMAS_ENTRADAS) {
-        //TODO select productos de los ultimos 7 dias
-        listaBusqueda.addAll(Productos.productos
-            .where((element) => listaCat.contains(element?.categoriaID))
-            .toList());
-      } else if (idCategoria == Categoria.ULTIMAS_FOTOS) {
-        //TODO select fotos donde update sea de hace 7 dias y descargadas si
-        listaBusqueda.addAll(Productos.productos
-            .where((element) => listaCat.contains(element?.categoriaID))
-            .toList());
-      } else if (idCategoria == Categoria.IMPORTACION) {
-        //TODO testear, fijarse si se puede hacer con consulta a la db
-        listaBusqueda.addAll(Productos.productos.where((element) =>
-            [8598, 8842, 8901, 8906].contains(element.proveedorID)));
-      }
-    }
   }
 
   _buttonArrowBack(BuildContext context) {
@@ -561,5 +551,42 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
     NuevoPedidoPage.pedido.iva += precioTotal * producto.iva / 100;
 
     NuevoPedidoPage.pedido?.items?.add(itemPedido);
+  }
+
+  Future<List<Producto>> _getProductosShow() async {
+    final listProductos = List<Producto>.empty(growable: true);
+
+    int idCat = int.tryParse(idCategoria);
+
+    if (_buscando) {
+      if (_searchQuery != null && _searchQuery != '' && _searchQuery.length > 3)
+        listProductos
+            .addAll(await Producto.getSearch(_searchQuery.toUpperCase()));
+      return listProductos;
+    }
+
+    if (idCat != null) {
+      if (int.parse(idCategoria) > 0) {
+        listaCat.clear();
+        _getCatHijas(idCategoria, nivelCat);
+
+        listProductos.addAll(Productos.productos
+            .where((element) => listaCat.contains(element?.categoriaID))
+            .toList());
+      } else {
+        listProductos.addAll(await Producto.getSearch(titulo?.toUpperCase()));
+      }
+    } else {
+      //CAT especiales
+      if (idCategoria == Categoria.ULTIMAS_ENTRADAS) {
+        listProductos.addAll(await Producto.getUltimasEntradas());
+      } else if (idCategoria == Categoria.ULTIMAS_FOTOS) {
+        listProductos.addAll(await Producto.getUltimasFotos());
+      } else if (idCategoria == Categoria.IMPORTACION) {
+        listProductos.addAll(await Producto.getImportados());
+      }
+    }
+
+    return listProductos;
   }
 }
