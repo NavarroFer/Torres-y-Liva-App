@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:torres_y_liva/src/models/pedido_model.dart';
 import 'package:torres_y_liva/src/widgets/base_widgets.dart';
@@ -85,6 +86,9 @@ class PedidoEnviadoDetailPage extends StatelessWidget {
                     'Cliente:',
                     style: textStlye,
                   ),
+                  SizedBox(
+                    height: size.height * 0.0,
+                  ),
                   Text(
                     'Condición de Venta:',
                     style: textStlye,
@@ -107,9 +111,17 @@ class PedidoEnviadoDetailPage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                pedido?.cliente?.nombre ?? '',
-                style: textStlye,
+              Container(
+                height: size.height * 0.05,
+                width: size.width * 0.4,
+                child: AutoSizeText(
+                  pedido?.cliente?.nombre ?? '',
+                  wrapWords: true,
+                  softWrap: true,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  minFontSize: (size.width * 0.04).roundToDouble(),
+                ),
               ),
               Text(
                 pedido.getFormaPago(),
@@ -120,7 +132,7 @@ class PedidoEnviadoDetailPage extends StatelessWidget {
                 style: textStlye,
               ),
               Text(
-                pedido?.descuento?.toStringAsFixed(2) ?? '0.00',
+                '${pedido?.descuento?.toStringAsFixed(2) ?? '0.00'} %',
                 style: textStlye,
               ),
               Text(

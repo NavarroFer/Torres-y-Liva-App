@@ -222,9 +222,8 @@ class _PedidoPageState extends State<PedidoPage> {
       final items = await ped.itemsFromDB();
       ped.items = items;
       listaPedidosSinEnviarConItems.add(ped);
-
-      print(ped);
     }
+    log('cantidad a enviar ${listaPedidosSinEnviarConItems.length}');
     await ventasProvider
         .enviarPedidos(
             tokenEmpresa, usuario.tokenWs, listaPedidosSinEnviarConItems)
@@ -370,12 +369,22 @@ class _PedidoPageState extends State<PedidoPage> {
 
               if (copiaPedido != null && copiaPedido == true) {
                 //Guardar en DB local
-                final pedidoCopiado = Pedido().copyWith(pedido: pedido);
+                final pedidoCopiado = await Pedido().copyWith(pedido: pedido);
+
+                log('copiado: ${pedidoCopiado}');
+                log('pedido viejo: ${pedido}');
 
                 pedidoCopiado.estado = Pedido.ESTADO_SIN_ENVIAR;
 
+                log('copiado: ${pedidoCopiado}');
+                log('pedido viejo: ${pedido}');
+
                 final guardado = await pedidoCopiado.insertOrUpdate();
                 print('El pedido fue guardado: $guardado');
+
+                await _updateList();
+
+                setState(() {});
               }
             } else {
               for (var item in NuevoPedidoPage.pedido.items) {
@@ -1068,7 +1077,6 @@ class _PedidoPageState extends State<PedidoPage> {
 
     listaPedidosCotizaciones
         .removeWhere((element) => element.estado != Pedido.ESTADO_COTIZADO);
-
 
     listaObjects.forEach((element) {
       final ped = listaPedidosCotizaciones.firstWhere(

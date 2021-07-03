@@ -426,6 +426,11 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
   void _submittedCant(String value) {
     // agregar producto
 
+    if (NuevoPedidoPage.pedido.cliente.clientId == null) {
+      showError('No se ha seleccionado un cliente', context);
+      return;
+    }
+
     double valueDouble = double.tryParse(value);
 
     if (_productoSelected != null && valueDouble != null) {
@@ -548,7 +553,7 @@ class _ItemsPedidoPageState extends State<ItemsPedidoPage> {
         producto: _productoSelected,
         iva: _productoSelected.iva,
         observacion: _obsController.text,
-        fraccion: 1.0, 
+        fraccion: 1.0,
         precioTotal: precioTotal);
 
     if (NuevoPedidoPage.pedido.neto == null) {

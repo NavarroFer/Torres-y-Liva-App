@@ -2,11 +2,13 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'package:http/http.dart' as http;
+import 'package:sqflite/sqflite.dart';
 import 'package:torres_y_liva/src/models/categoria_model.dart';
 import 'package:torres_y_liva/src/models/codigo_barra_model.dart';
 import 'package:torres_y_liva/src/models/dataimg_model.dart';
 import 'package:torres_y_liva/src/models/precio_model.dart';
 import 'package:torres_y_liva/src/models/producto_model.dart';
+import 'package:torres_y_liva/src/utils/database_helper.dart';
 import 'package:torres_y_liva/src/utils/globals.dart';
 import 'package:torres_y_liva/src/utils/image_helper.dart';
 
@@ -200,7 +202,7 @@ class ProductosProvider {
   }
 
   /// El parametro [lastUpdate] tiene que ser de la forma 2021-06-01%2023:39:54.
-  Future<List<DataImage>> getDataImage(String lastUpdate) async {
+  getDataImage(String lastUpdate) async {
     final url = Uri.parse(
         'http://fotos.torresyliva.com/fotosapp/actions/getPhotoCodesInfo.php?last_update=$lastUpdate');
     try {
@@ -208,26 +210,56 @@ class ProductosProvider {
         'Content-Type': 'application/json'
       }).timeout(Duration(seconds: 20));
       if (resp.statusCode == 200) {
+        log('En metodo get data img');
         final decodedData = jsonDecode(resp.body);
 
         List dataImages = decodedData['result'];
-        List<DataImage> result = List<DataImage>.empty(growable: true);
-        dataImages.forEach((element) {
-          DataImage di = DataImage.fromJsonMap(element);
-          //no fue descargada todavia, esto es para que quede en la DB
+
+        //no fue descargada todavia, esto es para que quede en la DB
+        final db = await DatabaseHelper.instance.database;
+        var batch = db.batch();
+
+        final idProd = await db.query(DatabaseHelper.tableProductos,
+            columns: [DatabaseHelper.idProducto]);
+
+        var idProdValues = idProd.asMap().values;
+
+        final idProdValuesSinPK = List.empty(growable: true);
+
+        idProdValues.forEach((element) {
+          idProdValuesSinPK.add(element['primaryKey']);
+        });
+
+        for (var dataImage in dataImages) {
+          DataImage di = DataImage.fromJsonMap(dataImage);
+
           String fechaDb = di.dateMod
                   .replaceAll('-', '')
                   .replaceAll(' ', '')
                   .replaceAll(':', '') ??
               '';
-          updatePhoto(
-              int.tryParse(di.code) ?? 1, false, fechaDb, di.extension ?? '');
+          final idProductoImg = int.tryParse(di.code) ?? 1;
+          final dataImageMap = {
+            DatabaseHelper.idProductoImg: idProductoImg,
+            DatabaseHelper.downloaded: di.downloaded,
+            DatabaseHelper.fechaDescarga: fechaDb,
+            DatabaseHelper.extension: di.extension,
+          };
 
-          result.add(di);
-        });
-        return result;
-      } else {
-        return [];
+          if (idProdValuesSinPK.contains((idProductoImg))) {
+            batch.insert(DatabaseHelper.tableImgProductos, dataImageMap,
+                conflictAlgorithm: ConflictAlgorithm.replace);
+          }
+        }
+
+        try {
+          final a = await batch.commit();
+          log('Img productos insertados: ${a.length.toString()}');
+        } on Exception catch (e) {
+          log('ex en commit Img productos $e');
+        }
+        log('${DateTime.now()} - Tabla img productos actualizada',
+            time: DateTime.now());
       }
     } on TimeoutException {
       return null;

@@ -169,11 +169,17 @@ class _DatosPedidoPageState extends State<DatosPedidoPage> {
                 SizedBox(
                   width: size.width * 0.05,
                 ),
-                AutoSizeText(
-                  'Dir.: ${direccion == null ? '' : direccion}',
-                  wrapWords: true,
-                  softWrap: true,
-                  minFontSize: (size.width * 0.04).roundToDouble(),
+                Container(
+                  height: size.height * 0.05,
+                  width: size.width * 0.65,
+                  child: AutoSizeText(
+                    'Dir.: ${direccion ?? ''}',
+                    wrapWords: true,
+                    softWrap: true,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    minFontSize: (size.width * 0.04).roundToDouble(),
+                  ),
                 )
               ],
             ),

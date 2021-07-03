@@ -155,7 +155,6 @@ class DatabaseHelper {
     }
 
     if (dbInicializada == false) {
-      log('INICIALIZANDO DB');
       Directory documentsDirectory = await getApplicationDocumentsDirectory();
       String path = join(documentsDirectory.path, _databaseName);
       deleteDatabase(path);
@@ -171,8 +170,6 @@ class DatabaseHelper {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, _databaseName);
 
-    log('INICIALIZANDO DB 1');
-
     return await openDatabase(path,
         version: _databaseVersion,
         onCreate: _onCreate,
@@ -181,7 +178,6 @@ class DatabaseHelper {
 
   // SQL code to create the database table
   Future _onCreate(Database db, int version) async {
-    log('INICIALIZANDO DB 2');
     await _createTableCategorias(db);
     await _createTableClientes(db);
     await _createTableProductos(db);
@@ -334,7 +330,6 @@ class DatabaseHelper {
   }
 
   Future _createTableCategorias(Database db) async {
-    log('INICIALIZANDO DB 3');
     return await db.execute('''
           CREATE TABLE IF NOT EXISTS $tableCategorias (
             $catID TEXT PRIMARY KEY,

@@ -18,7 +18,6 @@ import 'package:pdf/widgets.dart' as pdf;
 int imagenesADescargar = -1;
 
 Future<bool> getImages(Function() notifyParent, BuildContext context) async {
-  log('Intentado obtener imagenes');
   String idProduct;
   String url = 'http://fotos.torresyliva.com/fotosapp/$idProduct.jpg';
   final db = DatabaseHelper.instance;
@@ -29,8 +28,10 @@ Future<bool> getImages(Function() notifyParent, BuildContext context) async {
 
   final productosProvider = ProductosProvider();
   //2021-06-01 23:39:54
+  log('Intentado obtener imagenes');
   await productosProvider.getDataImage(fechaGetDataIMG);
   // await productosProvider.getDataImage('');
+  log('Intentado obtener imagenes 1');
 
   // aca ya grabo todo en la DB ("a descargar")
   DateTime ahora = DateTime.now();
@@ -38,9 +39,13 @@ Future<bool> getImages(Function() notifyParent, BuildContext context) async {
       '${ahora.year.toString()}-${ahora.month.toString().padLeft(2, '0')}-${ahora.day.toString().padLeft(2, '0')} ${ahora.hour.toString().padLeft(2, '0')}:${ahora.minute.toString().padLeft(2, '0')}:${ahora.second.toString().padLeft(2, '0')}';
   await grabaFechaGetDataIMG();
 
+  log('Intentado obtener imagenes 2');
+
   String where = '${DatabaseHelper.downloaded} = 0';
 
   rows = await dbI.query(DatabaseHelper.tableImgProductos, where: where);
+
+  log('Intentado obtener imagenes 3 - Rows: ${rows.length}');
 
   // rows = [];
   if (rows.length > 0) {

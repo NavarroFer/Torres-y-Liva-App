@@ -225,45 +225,31 @@ class _NuevoPedidoPageState extends State<NuevoPedidoPage>
     NuevoPedidoPage.pedido?.items?.removeWhere((element) => element?.checked);
     setState(() {});
   }
+}
 
-  void showError(String s, BuildContext context) {
-    showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return CustomDialogBox(
-            title: 'Error',
-            descriptions: s ?? '',
-            textBtn1: "Aceptar",
-            icon: Icons.warning,
-            alert: true,
-          );
-        });
-  }
-
-  _botonAtras(BuildContext context) {
-    return IconButton(
-        icon: Icon(Icons.arrow_back, color: Colors.white),
-        onPressed: () {
-          if (NuevoPedidoPage.pedido?.cliente.clientId != null ||
-              NuevoPedidoPage.pedido?.items?.isNotEmpty) {
-            showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return CustomDialogBox(
-                    title: 'No ha guardado los datos',
-                    descriptions: '¿Desea salir sin guardar?',
-                    textBtn1: "Si",
-                    textBtn2: "No",
-                    icon: Icons.warning,
-                    alert: true,
-                  );
-                }).then((value) {
-              if (value == true) {
-                Navigator.of(context).pop();
-              }
-            });
-          } else
-            Navigator.of(context).pop();
-        });
-  }
+_botonAtras(BuildContext context) {
+  return IconButton(
+      icon: Icon(Icons.arrow_back, color: Colors.white),
+      onPressed: () {
+        if (NuevoPedidoPage.pedido?.cliente.clientId != null ||
+            NuevoPedidoPage.pedido?.items?.isNotEmpty) {
+          showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return CustomDialogBox(
+                  title: 'No ha guardado los datos',
+                  descriptions: '¿Desea salir sin guardar?',
+                  textBtn1: "Si",
+                  textBtn2: "No",
+                  icon: Icons.warning,
+                  alert: true,
+                );
+              }).then((value) {
+            if (value == true) {
+              Navigator.of(context).pop();
+            }
+          });
+        } else
+          Navigator.of(context).pop();
+      });
 }

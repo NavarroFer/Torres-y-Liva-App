@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
@@ -26,10 +27,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    if (_execGetImage == false) {
-      _execGetImage = true;
-      _getImages(context);
-    }
     return Scaffold(
       appBar: AppBar(
         title: Text(usuario.nombre),
@@ -41,13 +38,42 @@ class _HomePageState extends State<HomePage> {
           _logo(context),
           _barra(context),
           Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: <Widget>[
-                SizedBox(height: MediaQuery.of(context).size.height * 0.4),
-                _botonPedidos(context),
-                _botonReportePrecios(context),
-              ],
+            child: FutureBuilder(
+              future: _getImages(context),
+              builder: (BuildContext context, AsyncSnapshot snapshot) {
+                final size = MediaQuery.of(context).size;
+                if (snapshot.hasData) {
+                  return Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: <Widget>[
+                      SizedBox(height: size.height * 0.4),
+                      _botonPedidos(context),
+                      _botonReportePrecios(context),
+                    ],
+                  );
+                } else {
+                  return Column(
+                    children: [
+                      SizedBox(height: size.height * 0.6),
+                      SizedBox(
+                        child: CircularProgressIndicator(),
+                        height: 60,
+                        width: 60,
+                      ),
+                      SizedBox(
+                        height: size.height * 0.05,
+                      ),
+                      AutoSizeText('Obteniendo informacion de imagenes',
+                          maxLines: 3,
+                          overflow: TextOverflow.fade,
+                          minFontSize: (size.width * 0.065).roundToDouble(),
+                          style: TextStyle(
+                              color: Colors.red, fontWeight: FontWeight.bold),
+                          textAlign: TextAlign.center)
+                    ],
+                  );
+                }
+              },
             ),
           ),
         ],
@@ -173,10 +199,14 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _getImages(BuildContext context) {
-    getImages(() {
-      setState(() {});
-    }, context);
+  Future<bool> _getImages(BuildContext context) async {
+    if (_execGetImage == false) {
+      _execGetImage = true;
+      return await getImages(() {
+        setState(() {});
+      }, context);
+    } else
+      return true;
   }
 
   _colorByPercent(double d) {

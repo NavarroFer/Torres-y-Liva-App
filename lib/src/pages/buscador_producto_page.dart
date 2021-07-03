@@ -514,6 +514,11 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
   void _addItem(Producto producto, double cant, String obs) {
     int newId = 1;
 
+  if (NuevoPedidoPage.pedido.cliente.clientId == null) {
+      showError('No se ha seleccionado un cliente', context);
+      return;
+    }
+
     if (NuevoPedidoPage.pedido?.items?.isNotEmpty) {
       newId = NuevoPedidoPage.pedido?.items?.last?.id + 1;
     }

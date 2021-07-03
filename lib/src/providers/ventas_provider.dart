@@ -33,7 +33,6 @@ class VentasProvider {
         "tokenCliente": tokenCliente,
         "pedido": jsonEncode(pedidoJSON)
       };
-      print(body);
       final resp = await http
           .post(
             url,
@@ -46,9 +45,9 @@ class VentasProvider {
 
       final respuesta = Respuesta.fromJsonMap(decodedData);
       if (respuesta.success) {
-        log('${DateTime.now()} - ${DateTime.now()} - Pedido enviado');
+        log('${DateTime.now()} - ${DateTime.now()} - Pedido enviado - $pedido');
         pedido.estado = Pedido.ESTADO_ENVIADO;
-        pedido.insertOrUpdate();
+        await pedido.insertOrUpdate();
         return decodedData['success'] == true;
       } else {
         return false;
@@ -58,6 +57,7 @@ class VentasProvider {
     } on TimeoutException {
       return false;
     } on Exception catch (e) {
+      log('Paso este error cuando quise enviar pedido: $e');
       return false;
     }
   }

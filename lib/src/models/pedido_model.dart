@@ -98,6 +98,22 @@ class ItemPedido {
 
     return prod;
   }
+
+  copyWith(ItemPedido item, int newId, int id) {
+    return ItemPedido(
+        cantidad: item.cantidad,
+        descuento: item.descuento,
+        detalle: item.detalle,
+        fraccion: item.fraccion,
+        id: id,
+        iva: item.iva,
+        observacion: item.observacion,
+        pedidoID: newId,
+        precio: item.precio,
+        precioTotal: item.precioTotal,
+        producto: item.producto,
+        productoID: item.productoID);
+  }
 }
 
 class Pedidos {
@@ -181,8 +197,18 @@ class Pedido {
       return 'Otro';
   }
 
-  Pedido copyWith({Pedido pedido}) {
-    return Pedido(
+  Future<Pedido> copyWith({Pedido pedido}) async {
+    final newId = await Pedido.getNextId();
+
+    final newItems = List<ItemPedido>.empty(growable: true);
+
+    int i = 1;
+    pedido.items.forEach((element) {
+      final newItem = ItemPedido().copyWith(element, newId, i);
+      newItems.add(newItem);
+      i++;
+    });
+    return new Pedido(
         checked: false,
         cliente: pedido.cliente,
         clienteID: pedido.clienteID,
@@ -191,8 +217,8 @@ class Pedido {
         domicilioDespacho: pedido.domicilioDespacho,
         enviado: pedido.enviado,
         fechaPedido: pedido.fechaPedido,
-        id: 1, //get last id,
-        items: pedido.items,
+        id: newId, //get last id,
+        items: newItems,
         iva: pedido.iva,
         latitud: pedido.latitud,
         listaPrecios: pedido.listaPrecios,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:torres_y_liva/src/widgets/dialog_box_widget.dart';
 
 Widget action(BuildContext context,
     {IconData icon, double size = 24.0, void onPressed(BuildContext context)}) {
@@ -8,6 +9,20 @@ Widget action(BuildContext context,
         size: size,
       ),
       onPressed: () => onPressed(context));
+}
+
+void showError(String s, BuildContext context) {
+  showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return CustomDialogBox(
+          title: 'Error',
+          descriptions: s ?? '',
+          textBtn1: "Aceptar",
+          icon: Icons.warning,
+          alert: true,
+        );
+      });
 }
 
 Widget totalesVenta(
