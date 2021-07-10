@@ -22,7 +22,7 @@ class _BuscadorProductoPageState extends State<BuscadorProductoPage> {
   String titulo = '';
   List<Producto> listaBusqueda = List<Producto>.filled(0, null, growable: true);
 
-  int _vista = 1;
+  int _vista = 0;
 
   bool _buscando = false;
 

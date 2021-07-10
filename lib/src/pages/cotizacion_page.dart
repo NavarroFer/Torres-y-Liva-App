@@ -193,8 +193,7 @@ class _CotizacionPageState extends State<CotizacionPage> {
                       children: [
                         _celda(20.0, totalProd.toString()),
                         pdf.Container(
-                            // decoration: pdf.BoxDecoration(
-                            //     border: pdf.Border.all(color: PdfColors.black)),
+                            margin: pdf.EdgeInsets.symmetric(vertical: 1),
                             width: 100,
                             child: img),
                         _celda(

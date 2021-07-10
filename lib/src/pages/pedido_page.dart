@@ -796,7 +796,7 @@ class _PedidoPageState extends State<PedidoPage> {
             File(path).readAsBytesSync(),
           );
 
-          img = pdf.Image(image, fit: pdf.BoxFit.fitHeight, width: 50); //45
+          img = pdf.Image(image, fit: pdf.BoxFit.fitHeight, width: 60); //45
         } catch (e) {
           img = pdf.Container();
         }
@@ -814,7 +814,8 @@ class _PedidoPageState extends State<PedidoPage> {
                       pdf.Container(
                           // decoration: pdf.BoxDecoration(
                           //     border: pdf.Border.all(color: PdfColors.black)),
-                          width: 50,
+                          margin: pdf.EdgeInsets.symmetric(vertical: 1),
+                          width: 60,
                           child: img),
                       celda(
                           60.0,

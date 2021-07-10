@@ -86,7 +86,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _botonReportePrecios(BuildContext context) {
-    return _botonMenu(context, "Reporte precios", _onPressBotonReportePrecios);
+    return _botonMenu(context, "Fotocotizaciones", _onPressBotonReportePrecios);
   }
 
   _onPressBotonReportePrecios(BuildContext context) {
